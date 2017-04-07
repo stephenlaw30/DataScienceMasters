@@ -4,15 +4,17 @@ mean of 6.7 hours and a standard deviation of 1.1 hours.
 If an adult has a z-score of -1.5, this person gets -1.5 = (x - 6.7) / 1.1 hours of sleep per night.'
 (-1.5*1.1) + 6.7 = #5.05 hours of sleep per night
 
+(4.5 - 6.7) / 1.1 
+1-pnorm(-2) = #0.9772499 
 
-unanswered  
+'0.977 = 97.7% of adults sleep longer than 4.5 hours per night.'
 
-4b. What proportion of adults sleep longer than 4.5 hours per night? (Report to 3 decimal places.)
-
-
-unanswered  
-
-4c. What proportion of adults sleep between 5.38 and 8.79 hours of sleep? (Report to 3 decimal places.)
+(5.38 - 6.7) / 1.1 
+(8.79 - 6.7) / 1.1 
+1-pnorm(-1.2) = #0.8849303 
+1-pnorm(1.9) = #0.02871656
+0.8849303 - 0.02871656 #= 0.8562137
+ What proportion of adults sleep between 5.38 and 8.79 hours of sleep? (Report to 3 decimal places.)
 
 
 unanswered  
