@@ -11,7 +11,7 @@ df
 
 cor(df$millionares,df$pop) #0.9923768
 
-#coefficient of determination --> R2 --> correlation coefficeint ^ 2
+#coefficient of determination --> R2 --> correlation coefficient ^ 2
 cor(df$millionares,df$pop)^2
 linFit(df$pop, df$millionares)
 

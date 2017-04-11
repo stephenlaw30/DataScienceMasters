@@ -56,7 +56,7 @@ the min value
 #SCALE() only the cols we need to --> age and salary
 training_set.std <- training_set
 test_set.std <- test_set
-
+#age and salary cols --> cols 2 and 3
 training_set.std[,2:3] <- scale(training_set.std[,2:3])
 test_set.std[,2:3] <- scale(test_set.std[,2:3])
 
