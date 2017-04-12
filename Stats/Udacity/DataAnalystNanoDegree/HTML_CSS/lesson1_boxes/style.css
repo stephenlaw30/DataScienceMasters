@@ -32,15 +32,19 @@ h2 {
     -moz-box-sizing: border-box;
     -ms-box-sizing: border-box;
     box-sizing: border-box;
-} 	
+}
+
+/*flexible parent display so that child elements can be positioned (img and description)*/	
+.app {
+	display: -webkit-flex;
+	display: flex;
+}
+
 /*description class SELECTOR --> rule applies to all description HTML tags on the page
 		- can combine selectors, such as to select all links w/in an element w/ ARTICLE CLASS*/
 .description {
 	/*attribute:value*/
-	color:red
+	color:blue
 }
-./*flexible parent display so that child elements can be positioned (img and description)
-.app {
-    display: flex;
-}
-*/
+
+
