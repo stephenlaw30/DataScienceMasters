@@ -40,7 +40,7 @@ in world record shotput distance per year.
 mens <- subset(wr, Event == 'Mens Shotput')
 womens <- subset(wr, Event == 'Womens Shotput')
 
-#3. Create a scatterplot of year and record shotput distance: one for men and one for women.  
+#3. Create a scatterplot of year and record shotput distance: one for men and one for women.  '
 library(ggplot2)
 ggplot(mens) + geom_point(aes(Year, Record)) + ggtitle('mens')
 ggplot(womens) + geom_point(aes(Year, Record)) + ggtitle('womens')
