@@ -3,6 +3,7 @@
 ## Part IIIV - Working with Data
 
 ### Chapter 5 - Descriptive Stats
+#### 5.1 - Descriptive Stats
 
 Any time you get a new data set to look at, 1 of the first tasks to do is find ways of summarising the data in a 
 compact, easily-understood fashion. This is what **descriptive statistics** (as opposed to **inferential 
