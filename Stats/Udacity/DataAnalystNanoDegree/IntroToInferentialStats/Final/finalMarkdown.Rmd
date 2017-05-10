@@ -1,0 +1,116 @@
+---
+title: "Udacity Intro to Descriptive Statistics Final Project"
+output:
+  html_document: default
+  github_document: default
+  word_document: default
+---
+# *Questions for Investigation*
+
+For the experiment, I have a standard deck of 52 playing cards divided into four suits (spades (&#9824;), hearts (&#9829;), diamonds (&#9830;), and clubs (&#9827;)), with each suit containing thirteen cards (Ace, the numbers 2 through 10, and the three face cards: Jack, Queen, and King). 
+
+For the first part of the experiment, I took 10,000 draws of a single card from the deck, and assigned each card a specified value
+
+  * Ace takes a value of 1
+  * Numbered cards take the value printed on the card
+  * Jack, Queen, and King each take a value of 10.
+
+```{r load data, echo = FALSE}
+values <- as.vector(read.csv('values.csv')[,2])
+samples <- as.vector(read.csv('samples.csv')[,2])
+options(warn=-1)
+
+```
+
+Then, we plot a histogram depicting the relative frequencies of the card values, with added lines for the median and mean.
+
+<center>
+```{r random draws histogram, echo = FALSE}
+#plot histogram w/ mean and median
+library(ggplot2)
+ggplot() + 
+  aes(x=values) + 
+  geom_histogram(binwidth = 1, boundary = 2, color = 'white', aes(fill = ..count..)) +
+  guides(fill=FALSE) +
+  ylab('Frequency') + 
+  xlab('Card Value') +
+  ylim(0,5000) +
+  geom_vline(aes(xintercept=mean(values)),
+             color="green", size=1) + 
+  geom_vline(aes(xintercept=median(values)),
+             color="red", size=1) +
+  geom_text(aes(x=mean(values)-0.5, label="Mean", y=4000), 
+            colour="black", angle=0, size=4) +
+  geom_text(aes(x=median(values)+0.5, label="Median", y=4000), 
+            colour="black", angle=0, size=4)
+```
+</center>
+
+So I can see I have an odd distribution, which I guess I would say it is left/negatively-skewed, as I have a long tail to the left, compared to that very high bin of values up to 10. Also, the mean is lower than the median, since there are a larger amount of values to the left of the plot, which pulls it away from the median. But, the majority of the cards I have drawn had a value of 10, so they were either a 10 from any of the 4 suites, or they were a face card.
+
+Now, I'll get samples for a new distribution by drawing three cards from the deck (*without* replacement) and then summing up the three cards' values into a single value. I then replace the drawn cards back into the deck and repeat this procedure 10,000 times, and then take a look at the distribution of the card sums.
+
+<center>![***Samples Sums Statistics***](summary.png)</center>
+
+So I can see I have a mean and median that are quite close, and a standard deviation of just under 5. 
+
+Now I must create a histogram of the sampled card sums.
+
+<center>
+```{r samples sums histogram, echo = FALSE}
+#plot 2nd histogram w/ mean and median
+ggplot() + 
+  aes(x=samples) + 
+  geom_histogram(binwidth = 1, boundary = 1, color = 'white', aes(fill = ..count..)) +
+  guides(fill=FALSE) +
+  ylab('Frequency') + 
+  xlab('Card Sums') +
+  ylim(0,1200) +
+  geom_vline(aes(xintercept=mean(samples)),
+             color="green", size=1) + 
+  geom_vline(aes(xintercept=median(samples)),
+             color="red", size=1) +
+  geom_text(aes(x=mean(samples)-1, label="Mean", y=1100), 
+            colour="black", angle=0, size=4) +
+  geom_text(aes(x=median(samples)+1.25, label="Median", y=1100), 
+            colour="black", angle=0, size=4)
+
+```
+</center>
+
+I can see here that my distribution is now very normal-looking. But the mean is slightly pulled to the left of the median, showing that it is *slightly* left skewed, but looking at the histogram, it's safe to call this a normal distribution. 
+
+Compared to our original distribution, this change to a more-normal distribution can be attributed to increasing the sample size from 1 to 3, because a larger sample size creates a larger Z-score for a sample mean, which in turn decreases the proportion of sample means that vary from the sample mean.
+
+We know that 90% of our data values in this distribution are those values with a chance of being selected that is between 5% and 95%, which on a Z-table come out to be Z-score values between **-1.645** and **1.645**.
+
+<center>
+![***Negative Z-score***](negative_z.png)
+![***Positive Z-score***](positive_z.png)
+</center>
+
+So, if the Z-score is equal to the difference between an observation and the mean divided by the standard deviation, to get those observations between which 90% of our data values fall, we need to multiply each of our Z-score values by the standard deviation and then add the mean.
+
+And if we do that, we'd have **(-1.645 x 4.89) + 19.59** as our lower value, and **(1.645 x 4.89) + 19.59** as our upper value. These formulas give us an lower boundary of
+```{r lower boundary, echo = FALSE}
+(-1.645*sd(samples)) + mean(samples)
+```
+and an upper boundary of
+```{r upper boundary, echo = FALSE}
+(1.645*sd(samples)) + mean(samples)
+```
+
+So, 90% of sample sum values fall between **11.3938** and **27.7860**.
+
+To find the approximate probability I would a draw value of at least 20 from this distribution, I would need to find the Z-score for a value of 20 in this distribution, then find the proportion value in the Z-table corresponding to that Z-score, and then subtract this proportion value from 1.
+
+So, our Z-score would be **(20 - 19.59) / 4.89**, which gives a value of:
+```{r z, echo = FALSE}
+(20 - mean(samples)) / sd(samples)
+```
+
+Then I look at the Z-table for this score of **0.08** and retrieve that proportion.
+
+<center>![***Z-table for value of 20***](20_perc_z.png)</center>
+
+So we've got a proportion of **0.5319**, which I subtract from 1 to get the approximate probability I would a draw value of at least 20. So this would be **1 - 0.5319 = 0.4681**, so I have a 46.81% chance of drawing a value of at least 20 from my distribution of sample means.
