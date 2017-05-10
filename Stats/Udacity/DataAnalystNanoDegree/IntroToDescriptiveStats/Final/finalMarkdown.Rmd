@@ -1,5 +1,5 @@
 ---
-title: "Udacity Intro to Descriptive Statistics Final Projcet"
+title: "Udacity Intro to Descriptive Statistics Final Project"
 output:
   html_document: default
   github_document: default
