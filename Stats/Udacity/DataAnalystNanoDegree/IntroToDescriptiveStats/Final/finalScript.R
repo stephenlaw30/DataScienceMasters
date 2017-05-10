@@ -21,10 +21,18 @@ library(ggplot2)
 ggplot() + 
   aes(x=values) + 
   geom_histogram(binwidth = 1, boundary = 2, color = 'white', aes(fill = ..count..)) +
+  guides(fill=FALSE) +
+  ylab('Frequency') + 
+  xlab('Card Value') +
+  ylim(0,5000) +
   geom_vline(aes(xintercept=mean(values)),
-             color="blue", linetype="dashed", size=1) + 
+             color="green", size=1) + 
   geom_vline(aes(xintercept=median(values)),
-             color="red", linetype="dashed", size=1)
+             color="red", size=1) +
+  geom_text(aes(x=mean(values)-0.5, label="Mean", y=4000), 
+            colour="black", angle=0, size=4) +
+  geom_text(aes(x=median(values)+0.5, label="Median", y=4000), 
+            colour="black", angle=0, size=4)
 
 #sum sample values
 samples = integer(10000)
@@ -49,14 +57,21 @@ sd(samples)
 write.csv(values,'values.csv')
 write.csv(samples,'samples.csv')
 
-library(ggplot2)
 ggplot() + 
   aes(x=samples) + 
   geom_histogram(binwidth = 1, boundary = 1, color = 'white', aes(fill = ..count..)) +
+  guides(fill=FALSE) +
+  ylab('Frequency') + 
+  xlab('Card Sums') +
+  ylim(0,1200) +
   geom_vline(aes(xintercept=mean(samples)),
-             color="blue", linetype="dashed", size=1) + 
+             color="green", size=1) + 
   geom_vline(aes(xintercept=median(samples)),
-             color="red", linetype="dashed", size=1)
+             color="red", size=1) +
+  geom_text(aes(x=mean(samples)-1, label="Mean", y=1100), 
+            colour="black", angle=0, size=4) +
+  geom_text(aes(x=median(samples)+1.25, label="Median", y=1100), 
+            colour="black", angle=0, size=4)
 
 'Within what range will you expect approximately 90% of your draw values to fall? '
 # z-table = 1.28
