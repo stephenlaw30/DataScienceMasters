@@ -91,7 +91,7 @@ We know that 90% of our data values in this distribution are those values with a
 
 So, if the Z-score is equal to the difference between an observation and the mean divided by the standard deviation, to get those observations between which 90% of our data values fall, we need to multiply each of our Z-score values by the standard deviation and then add the mean.
 
-And if we do that, we'd have **(-1.645 x 4.89) + 19.59** as our lower value, and **(1.645 x 4.89) + 19.59** as our upper value. These formulas give us an lower boundary of
+And if we do that, we'd have **(-1.645 x 4.98) + 19.59** as our lower value, and **(1.645 x 4.98) + 19.59** as our upper value. These formulas give us an lower boundary of
 ```{r lower boundary, echo = FALSE}
 (-1.645*sd(samples)) + mean(samples)
 ```

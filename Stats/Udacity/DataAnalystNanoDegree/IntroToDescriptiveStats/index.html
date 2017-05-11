@@ -11,7 +11,7 @@
   m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
   })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
-  ga('create', 'UA-42775844-5', 'auto');
+  ga('create', 'UA-42775844-6', 'auto');
   ga('send', 'pageview');
 
 </script>
@@ -48,6 +48,9 @@
 							with each suit containing thirteen cards (Ace, the numbers 2 through 10, and the three face cards: Jack, Queen, and King).</p>
 							
 							<p>For the first part of the experiment, I took 10,000 draws of a single card from the deck, and assigned each card a specified value</p>
+							
+							<p>I did this via a script in R, which I also used to create the histograms. The code for that can be found <a href="https://github.com/newns92/DataScienceMasters/blob/master/Stats/Udacity/DataAnalystNanoDegree/IntroToDescriptiveStats/Final/finalScript.R">here</a></p>
+							
 							
 								<ul>
 								<li>Ace takes a value of 1</li>
@@ -99,7 +102,7 @@
 							<p>So, if the Z-score is equal to the difference between an observation and the mean divided by the standard deviation, to get those observations 
 							between which 90% of our data values fall, we need to multiply each of our Z-score values by the standard deviation and then add the mean.</p>
 							
-							<p>And if we do that, we’d have <strong>(-1.645 x 4.89) + 19.59</strong> as our lower value, and <strong>(1.645 x 4.89) + 19.59</strong> as our upper 
+							<p>And if we do that, we’d have <strong>(-1.645 x 4.98) + 19.59</strong> as our lower value, and <strong>(1.645 x 4.89) + 19.59</strong> as our upper 
 							value. These formulas give us an lower boundary of</p>
 							
 							<pre><code>
@@ -116,7 +119,7 @@
 							20 in this distribution, then find the proportion value in the Z-table corresponding to that Z-score, and then subtract this proportion value from 
 							1.</p>
 							
-							<p>So, our Z-score would be <strong>(20 - 19.59) / 4.89</strong>, which gives a value of:</p>
+							<p>So, our Z-score would be <strong>(20 - 19.59) / 4.98</strong>, which gives a value of:</p>
 							
 							<pre><code>
 ## [1] 0.08230925</code></pre>
@@ -131,6 +134,8 @@
 							least 20. So this would be <strong>1 - 0.5319 = 0.4681</strong>, so I have a 46.81% chance of drawing a value of at least 20 from my distribution of 
 							sample means.</p>
 
+				<h2><a href="https://newns92.github.io/">Back to home</h2>							
+							
 				<!-- Three -->
 					<section id="three">
 						<h2>Get In Touch</h2>
@@ -256,6 +261,7 @@ print 'It took ' + i + ' iterations to sort the deck.';</code></pre>
 				<div class="inner">
 					<ul class="icons">
 						<!--<li><a href="#" class="icon fa-twitter"><span class="label">Twitter</span></a></li>-->
+						<li><a href="https://newns92.github.io/" class="icon fa-home"><span class="label">Home</span></a></li>						
 						<li><a href="https://github.com/newns92/" class="icon fa-github"><span class="label">Github</span></a></li>
 						<li><a href="https://www.linkedin.com/in/stephen-newns//" class="icon fa-linkedin"><span class="label">LinkedIn</span></a></li>
 						<!--<<li><a href="#" class="icon fa-dribbble"><span class="label">Dribbble</span></a></li>-->
