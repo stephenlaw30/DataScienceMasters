@@ -1,0 +1,40 @@
+USE ConsumerComplaints
+
+-- How many complaints received and sent on same day
+SELECT date_received 'Date', Count(*) 'Count'
+FROM dbo.Consumer_Complaints
+WHERE date_received = date_sent
+GROUP BY date_received;
+
+-- Complaints received in NY
+SELECT company, product_name, issue, state_name
+FROM dbo.Consumer_Complaints
+WHERE state_name = 'NY';
+
+-- Complaints received in NY and CA
+SELECT company, product_name, issue, state_name
+FROM dbo.Consumer_Complaints
+WHERE state_name = 'NY' OR state_name = 'CA';
+
+-- Rows with word 'credit' in Product field
+SELECT company, product_name, issue, state_name
+FROM dbo.Consumer_Complaints
+WHERE LOWER(product_name) LIKE '%credit%';
+
+-- Rows with word 'late' in Issue field
+SELECT company, product_name, issue, state_name
+FROM dbo.Consumer_Complaints
+WHERE LOWER(issue) LIKE '%late%';
+
+-- * BONUS - rows with ZIP starting with 4
+SELECT company, product_name, issue, zip_code
+FROM dbo.Consumer_Complaints
+WHERE zip_code LIKE '4____';
+
+SELECT company, product_name, issue, zip_code
+FROM dbo.Consumer_Complaints
+WHERE zip_code LIKE '4%';
+
+SELECT company, product_name, issue, zip_code
+FROM dbo.Consumer_Complaints
+WHERE zip_code NOT LIKE '4%';

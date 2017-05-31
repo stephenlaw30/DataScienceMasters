@@ -1,0 +1,101 @@
+/***** Market Research for console game company via 2 datasets of all console games released from 1980 and 2015 
+	plus a historic list of all console platforms (Wii, PS2, Xbox) and info about them ********/
+	
+--% of Global Sales from N. America
+SELECT SUM(na_sales)/(SUM(eu_sales)+SUM(jp_sales)+ SUM(other_sales)) AS NA_GlobalShare_prop,
+	(SUM(na_sales)/(SUM(eu_sales)+SUM(jp_sales)+ SUM(other_sales)))*100 AS NA_GlobalShare_perc
+FROM console_games;
+
+ALTER TABLE console_games
+	ADD COLUMN global_sales float8;
+UPDATE console_games
+	SET global_sales = na_sales + eu_sales + jp_sales + other_sales
+SELECT * FROM console_games
+ORDER BY game_rank ASC
+
+--------------------------------------------------------------
+
+ALTER TABLE console_games
+	ADD COLUMN na_sales_prop float8,
+    ADD COLUMN na_sales_perc float8;
+UPDATE console_games
+	SET na_sales_prop = na_sales/global_sales
+   		WHERE global_sales > 0; /*cannot divide by 0*/
+UPDATE console_games    
+    SET na_sales_perc = (na_sales/global_sales)*100
+    	WHERE global_sales > 0; /*cannot divide by 0*/
+SELECT * FROM console_games
+ORDER BY game_rank ASC;
+
+--------------------------------------------------------------
+
+ALTER TABLE console_games
+	DROP COLUMN na_sales_perc;        
+SELECT * FROM console_games
+ORDER BY game_rank ASC
+	
+--View of console game titles, ordered by platform name in ASC and Year of release in DESC
+SELECT game_name, platform, game_year AS release_year
+FROM console_games
+ORDER BY platform ASC, game_year DESC
+
+--For each game title, get 1st 4 letters of publisher's name
+SELECT game_name, platform, upper(left(publisher,4)) as publisher, game_year AS release_year/*, reverse(platform),*/
+FROM console_games
+ORDER BY game_rank
+
+-- Display all console platforms released either just before Christmas or just before Black Friday (in any year)
+ALTER TABLE console_dates
+	ADD COLUMN days_on_market float8,
+    ADD COLUMN years_on_market float8,
+UPDATE console_dates
+	SET days_on_market = discontinued - first_retail_availability;
+UPDATE console_dates    
+	SET years_on_market = (discontinued - first_retail_availability)/365;
+	/*SET years_on_market = DATE_PART('year',discontinued) - first_retail_availability)/365; /*LESS ACCURATE*/
+
+SELECT *, DATE_PART('year',discontinued) - DATE_PART('year',first_retail_availability) years_available, /*MORE ACCURATE*/
+from console_dates
+ORDER BY first_retail_availability;
+
+SELECT count(platform_name)
+FROM console_dates
+WHERE DATE_PART('month',first_retail_availability) - 11 = 0 OR
+	DATE_PART('month',first_retail_availability) - 12 = 0; /*released in Nov before Black Friday or in Dec before Christmas*/
+    
+SELECT platform_name platform, first_retail_availability, DATE_PART('year',first_retail_availability) AS release_year, DATE_PART('month',first_retail_availability) AS release_month
+FROM console_dates
+WHERE DATE_PART('month',first_retail_availability) - 11 = 0 OR
+	DATE_PART('month',first_retail_availability) - 12 = 0 /*released in Nov before Black Friday or in Dec before Christmas*/
+ORDER BY first_retail_availability;
+
+-- Order platforms by longevity in ASC (available longest = bottom)
+SELECT platform_name platform, first_retail_availability as release, discontinued, AGE(discontinued, first_retail_availability) time_on_market
+FROM console_dates
+ORDER BY AGE(discontinued, first_retail_availability)
+
+
+
+/* Demonstrate how to deal w/ Game_Year col if client wants to convert to different data type */
+SELECT game_name, platform, LEFT(CAST(game_year as VARCHAR(4)),2) decade
+from console_games
+ORDER BY game_rank;
+
+SELECT game_name, platform, LEFT(game_year::VARCHAR(4),2) decade
+from console_games
+ORDER BY game_rank;
+
+SELECT game_name, platform, TO_DATE(CAST(game_year as VARCHAR(4)),'yyyy') /*gives 1st date of year (01/01) */
+from console_games
+ORDER BY game_rank;
+
+/* Provide recommendations on how to deal w/ missing data */
+SELECT * FROM console_games where game_name IS NULL /* DB error */
+/*delete these rows b/c they affect aggregates OR investigate to figure out what games they are*/
+
+SELECT * FROM console_games WHERE jp_sales IS NULL.
+/*use avg of NA, EU, and Other sales*/
+UPDATE console_games
+	SET jp_sales = ROUND(((na_sales) + (eu_sales) + (other_sales))/3) WHERE game_name = 'Brain Age: Train Your Brain in Minutes a Day';
+SELECT * FROM console_games
+WHERE game_name = 'Brain Age: Train Your Brain in Minutes a Day'
