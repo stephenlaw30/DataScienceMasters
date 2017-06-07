@@ -8,7 +8,14 @@
 
 -- Can JOIN on multiple fields (get only rows where BOTH conditions are TRUE
 
---CROSS-JOIN = Cartesian Product --> returns a SET
+--CROSS-JOIN = Cartesian Product of set A by set B --> returns a SET (AxB) of all possible ordered pairs/combinations of the records in the 2 sets w/ no
+--	criteria for the match (no ON clause)
+--		i.e. 1st row in 1st table is linked to EVERY row in 2nd table, then same for 2nd row in 1st table and so on
+--		ex: 89 rows CROSS JOIN 100 rows = result of 8900 rows
+--	there are some situations where we'd need to see all possible combos of rows + tables
+--		ex: set of colors vs. set of tiles + we need a resulting table of a combo of all colors + tiles
+--		ex: 5 people + each has 3 doors to go through + we want to see each combo of this
+--		ex: analyzing socioeconimic patterns
 
 CREATE TABLE pets (
     petid 	varchar,

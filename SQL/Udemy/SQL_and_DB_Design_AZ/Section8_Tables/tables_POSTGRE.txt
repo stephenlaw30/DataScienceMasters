@@ -1,0 +1,62 @@
+CREATE DATABASE udemy8;
+
+CREATE TABLE movies (
+-- want to allocate as little data as possible to keep DB running smooth    
+	movie_name 		varchar(250),
+    release_year 	integer, -- cannot have constraints on INT
+    country			varchar(100) NOT NULL,
+    genre			varchar(250) NOT NULL,
+    PRIMARY KEY (movie_name,release_year) -- see under constraints for table
+    -- making movie_name + release_year the PK makes them NOT NULL by default
+);
+
+-- INSERT 
+/*COPYING
+
+COPY movies FROM 'path.csv' DELIMITER ',' CSV HEADER*/
+
+INSERT INTO movies 
+	VALUES ('SE7EN', 1995, 'USA', 'Mystery, Crime, Thriller');
+    
+select * from movies
+
+INSERT INTO movies VALUES 
+    ('The Girl With The Dragon Tattoo', 2011, 'USA', 'Mystery, Crime, Thriller'),
+    ('Adventureland', 2009, 'USA', 'Indie, Comedy'),
+    ('The Social Network', 2010, 'USA', 'Drama');
+    
+UPDATE movies
+	SET country = 'US'
+WHERE movie_name = 'Adventureland' AND movie_year = 2009
+
+-- ALTER
+-- make each value in column "country" equal to 'USA if we don't specify it w/ INSERT'
+ALTER TABLE movies
+	ALTER COLUMN country SET DEFAULT 'USA';
+
+INSERT INTO movies VALUES 
+    ('Test1', 2017, DEFAULT, 'Thriller');
+
+SELECT * FROM movies
+
+ALTER TABLE movies
+	ADD director VARCHAR(50)
+UPDATE movies
+	SET director = 'David Fincher'
+WHERE lower(movie_name) = 'se7en' 
+	OR lower(movie_name) = 'the girl with the dragon tattoo'
+    OR lower(movie_name) = 'the social network'
+
+-- DROP
+ALTER TABLE movies DROP director
+
+SELECT * FROM movies
+
+DROP CASCADE -- drops something + anything else depending on it
+-- prevents us from having that now doesn't exist in other tables
+
+DROP DATABASE movies -- do this outside movies 
+
+DROP DATABASE udemy8 -- do this outside udemy8 
+	
+
