@@ -1,0 +1,85 @@
+USE ConsoleGames;
+
+CREATE TABLE console_games (
+    game_rank 	integer,
+    game_name 	varchar(500),
+    platform 	varchar(250),
+    game_year 	integer,
+    genre 		varchar(20),
+    publisher 	varchar(250),
+    na_sales 	float,
+    eu_sales 	float,
+    jp_sales 	float,
+    other_sales float    
+);
+
+CREATE TABLE console_dates (
+    platform_name 				char(250),
+    first_retail_availability 	date,
+    discontinued 				date,
+    units_sold_mill 			float,
+    platform_comment 			varchar(500)    
+);
+
+INSERT INTO console_games
+	SELECT * FROM RAWConsoleGames
+
+INSERT INTO console_dates
+	SELECT * FROM RAWConsoleDates;
+	
+USE ConsoleGames
+
+-- calculate % of global sales made in N. America
+ALTER TABLE console_games
+	ADD global_sales float,
+		na_global_share float
+
+UPDATE console_games
+	SET global_sales = (na_sales + eu_sales + jp_sales + other_sales);
+UPDATE console_games
+	SET na_global_share = na_sales / global_sales
+	WHERE global_sales > 0
+
+/* extract view of console game titles ordered by platform name in ascending order
+and year of release in descending order*/
+SELECT game_name 'Title', platform 'Platform', game_year 'Year of Release'
+FROM console_games
+ORDER BY platform ASC, game_year DESC
+
+-- for each game, get 1st 4 letters of publisher's name
+SELECT game_name, upper(left(publisher,4)) 'Publisher'
+FROM console_games
+
+-- display all console platforms released either just before Black Friday or Christmas
+SELECT * FROM console_dates
+
+SELECT platform_name 'Platform', first_retail_availability 'Release Date'
+FROM console_dates
+WHERE month(first_retail_availability) = 11 OR month(first_retail_availability) = 12
+
+SELECT platform_name 'Platform', first_retail_availability 'Release Date'
+FROM console_dates
+WHERE datepart(month, first_retail_availability) = 11 OR 
+		datepart(month, first_retail_availability) = 12
+
+-- order platforms by longevity in ascending order (available longest = bottom)
+ALTER TABLE console_dates
+	ADD retail_duration_days int		
+UPDATE console_dates
+	SET discontinued = NULL
+	WHERE discontinued = '1900-01-01'
+UPDATE console_dates
+	SET retail_duration_days = DATEDIFF(DAY,first_retail_availability, discontinued)
+	WHERE discontinued IS NOT NULL
+UPDATE console_dates
+	SET retail_duration_days = DATEDIFF(DAY,first_retail_availability,GETDATE())
+	WHERE discontinued IS NULL
+
+SELECT platform_name 'Platform', first_retail_availability 'Release Date', 
+			discontinued 'Discontinued Date', retail_duration_days 'Days Sold'
+FROM console_dates
+ORDER BY retail_duration_days ASC
+
+-- convert Date cols to different data types
+SELECT *, CAST(game_year as DECIMAL) -- only works b/c game_year is an int
+FROM console_games	

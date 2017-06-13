@@ -48,7 +48,3 @@ See we consistently get around 85% accuracy around k = 11+, w/ k = 12 and k = 15
 does NOT tell how good model is b/c we havent done any cross-validation or ran this model on test data
 
 this is only TRAINING ACCURACY - will probably be lower on test data, but not required for this question'
-
-
-
-

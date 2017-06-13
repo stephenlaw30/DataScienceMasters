@@ -1,0 +1,92 @@
+/*Online clothing retail expecting rapid expansion in coming months are not
+sure their database cannot handle the amount of transactions that will come w/ an increase in
+# of customers
+
+Role: Data Analyst to investigate the current DB design + if its found to be inefficient for
+OLTP, redesign it
+
+CREATE TABLE transactions (
+    transactionid 		varchar,
+    timestampsec 		timestamp,
+    customerid 			varchar,
+    firstname 			varchar,
+    surname 			varchar,
+    shipping_state 		varchar,
+    item 				varchar,
+    description 		varchar,
+    retail_price 		float(2),
+    loyalty_discount 	float(2)
+);
+
+COPY transactions FROM 'C:\Users\Nimz\Dropbox\DataScienceMasters\SQL\Udemy\SQL_and_DB_Design_AZ\Section9_DBDesign\OLTP.csv' DELIMITER ',' CSV HEADER;
+select * FROM transactions ORDER BY transactionid;
+
+-- check for duplicates
+SELECT COUNT(*) FROM transactions; -- 3455
+SELECT COUNT(*) FROM  
+(
+    SELECT DISTINCT * FROM transactions
+) as subquery; -- subquery require alias --> 3455
+
+-- transaction id is the unique key + have no cells w/ more than 2 items in it - in 1NF
+
+-- candidate keys --> transactionID, timestapsec + customerid
+-- each non-prime attribute is indeed based on WHOLE of candidate key
+-- names, shipping state, loyalty discount only depend on customer ID, not customer ID AND timestampsec
+-- shipping state on
+-- NOT IN 2NF
+
+-- SOLUTION --> copy data over into new table + drop all cols except id from original table
+CREATE TABLE tmpCustomers AS 
+SELECT
+    customerid,
+    firstname,
+    surname,
+    shipping_state,
+	loyalty_discount
+FROM transactions;
+
+CREATE TABLE customers AS 
+    SELECT DISTINCT *
+    FROM tmpCustomers;
+
+DROP TABLE tmpCustomers;
+	SELECT * FROM customers; -- 942 CUSTOMERS
+
+ALTER TABLE transactions
+    DROP COLUMN firstname, 
+    DROP COLUMN surname, 
+    DROP COLUMN shipping_state,
+    DROP COLUMN loyalty_discount;
+
+SELECT * FROM transactions;
+
+-- 3NF
+
+SELECT * FROM transactions;
+-- description + retail price is dependent on item # which is based on candidate keys --> non-transitive relationship
+-- if we add a new transaction w/ same item #, don't want to duplicate the description + retail price values
+
+CREATE TABLE tmpProducts AS
+(
+    SELECT 
+    	item, 
+    	description, 
+    	retail_price
+    FROM transactions
+);
+
+CREATE TABLE products AS
+    SELECT DISTINCT *
+    FROM tmpProducts;
+
+DROP TABLE tmpProducts;
+
+SELECT * FROM products; -- 126 items
+-- 2 items could have the same name + price but different ID's
+
+ALTER TABLE transactions
+    DROP COLUMN description, 
+    DROP COLUMN retail_price;
+    
+SELECT * FROM transactions;

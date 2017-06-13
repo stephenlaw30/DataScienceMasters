@@ -101,3 +101,80 @@ sum(predictedScaled == cc_m[,11]) / nrow(cc_m)
 1 - model@error
 # = 86.39%
 
+'*******************CROSS-FOLD VALIDATION FOR KVSM*************'
+'*********SAME CODE AS BEFORE BUT W/ EXTRA ARG IN MODEL CREATION FOR # OF CROSS VALIDATIONS - cross = x'
+
+setwd('C:/Users/NEWNSS/Dropbox/DataScienceMasters/GATech/Modeling')
+cc <- read.table('credit_card_data-headers.txt', header = T, sep = '\t')
+head(cc)
+
+#need data in a matrix for vanilladot simple linear kernel
+cc_m <- as.matrix(cc)
+
+library(lme4)
+library(geepack)
+library(survival)
+library(kernlab)
+
+set.seed(1)
+
+#call kvsm w/ vanilladot simle linear kernel
+model <- ksvm(R1~.,                  #predict V11 outcome variable by all others
+              cc_m,
+              type = 'C-svc',         #use C classification
+              kernel = 'vanilladot',  #simple linear kernel 
+              C = 100,                #lambda
+              scaled = T,             #have ksvm scale the data
+              cross = 10)             #number of folds
+
+'Support Vector Machine object of class "ksvm" 
+- SV type: C-svc  (classification) 
+- parameter : cost C (lambda) = 100 
+- Linear (vanilla) kernel function. 
+- Number of Support Vectors : 189 
+- Objective Function Value : -17887.92 
+- Training error : 0.136086 '
+
+'Support Vector Machine object of class "ksvm" 
+- SV type: C-svc  (classification) 
+- parameter : cost C = 100 
+- Linear (vanilla) kernel function. 
+- Number of Support Vectors : 189 
+- Objective Function Value : -17887.92 
+- Training error : 0.136086 
+- Cross validation error : 0.137622 ---> new data point'
+
+#calculate a[0],a[1],....,a[m]
+a <- colSums(model@xmatrix[[1]]*model@coef[[1]])
+a0 <- -model@b
+
+'The above define our linear classifier
+R1 = 0.08158492 - 0.0010065348x1 - 0.0011729048x2 - 0.0016261967x3 + 0.0030064203x4 + 1.0049405641x5 - 
+0.0028259432x6 + 0.0002600295x7 - 0.0005349551x8 - 0.0012283758x9 + 0.1063633995x10'
+
+#get model predictions via calculations
+
+#create vector to hold predictions to preallocate memory (important in other languages)
+predictedScaled <- rep(NA,nrow(cc_m))
+
+#for each data point, transform into scaled equivalent + calculate a*scaledDataPoint + a[0], + predict value of data 
+# point based on that result
+for (i in 1:nrow(cc_m)) {
+  #if predicted value is above classifier's value, predict 1, if below, predict 0
+  if (sum(a*(cc_m[1,1:10] - model@scaling$x.scale$`scaled:center`)/model@scaling$x.scale$`scaled:scale`) + a >= 0) {
+    predictedScaled[i] <- 1
+  }
+  if (sum(a*(cc_m[i,1:10] - model@scaling$x.scale$`scaled:center`)/model@scaling$x.scale$`scaled:scale`) + a < 0) {
+    predictedScaled[i] <- 0
+  }   
+}
+
+#get model predictions via predict()
+pred <- predict(model,cc_m[,1:10])
+pred
+
+#get accuracy via 2 methods
+sum(pred == cc_m[,11]) / nrow(cc_m)
+sum(predictedScaled == cc_m[,11]) / nrow(cc_m)
+1 - model@error
+# = 0.8639144 = 86.39%
