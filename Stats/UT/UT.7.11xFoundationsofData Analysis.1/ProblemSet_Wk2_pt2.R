@@ -13,5 +13,5 @@ At least 6 hours, but less than 7 hours	  5%
 
 A total of 6 students reported they worked on the take-home exam for 5 hours or longer. So 6/0.15 = 40 is the total 
 number of students who reported their time and 40*0.55 = 22 students spent fewer than 3 hours completing the take-home
-exam. If the professor wanted to report the center of this distribution, which measure of center should she use the
+exam. If the professor wanted to report the center of this distribution, the measure of center should she use is the
 median, since it is right-skewed. And Bin "At least 4 hours, but less than 5 hours" includes the value of Q3 (75%)'

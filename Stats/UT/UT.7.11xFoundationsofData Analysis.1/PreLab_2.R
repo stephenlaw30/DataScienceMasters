@@ -23,6 +23,7 @@ ggplot(adopted) + geom_histogram(aes(x = Days.Shelter),binwidth = 5,boundary = 5
 IQR (31 or 30)'
 summary(adopted$Days.Shelter)
 fivenum(adopted$Days.Shelter)
+spread <- 38 - 8
 
 #How many days was the animal who took the longest to be adopted in the shelter? = 211 days
 animaldata[which.max(adopted$Days.Shelter),]

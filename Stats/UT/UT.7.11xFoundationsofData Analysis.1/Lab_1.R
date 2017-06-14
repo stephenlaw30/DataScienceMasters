@@ -13,7 +13,7 @@ str(daily)
 table(daily$gender)
 mean(daily$age)
 mean(daily$age[daily$gender=="F"])
-mean(daily$age[daily$gender=="M"])4
+mean(daily$age[daily$gender=="M"])
 
 'Can you compare the average age of the male daily riders and the female daily riders?  (Hint: Can you subset the datafile again to
 separate the males and the females?)'

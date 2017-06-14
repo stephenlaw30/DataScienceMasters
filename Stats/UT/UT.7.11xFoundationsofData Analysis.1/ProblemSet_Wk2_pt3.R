@@ -46,11 +46,12 @@ values2 <- c(2,2,3,5,6,7,9,13,15,18)
 fivenum(values2)
 mean(values2)
 
-
 valuesInc <- values2+2
+summary(values2)
 summary(valuesInc)
 
 valuesDBl <- values2*2
+summary(values2)
 summary(valuesDBl)
 
 'If each value in the dataset were increased by 2, the Mean, Median, and Mode would change, and if each value in the 
