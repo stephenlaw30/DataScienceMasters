@@ -5,7 +5,7 @@ We will run a few simulations on this data to see if we can replicate what the C
 
 library(SDSFoundations)
 
-'****Primary Research Question*****  How many letters long is the typical student's name?  How does our estimate 
+'****Primary Research Question*****  How many letters long is the typical students name?  How does our estimate 
   change as we increase the sample size?'
 
 
