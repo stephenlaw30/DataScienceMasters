@@ -1,0 +1,121 @@
+USE VetClinic
+GO
+
+-- Pets
+CREATE TABLE Pets (
+    Petid	varchar(10),
+    Name	varchar(100),
+    Kind	varchar(100),
+    Gender	varchar(10),
+    Age		int,
+    OwnerID varchar(10)
+)
+
+INSERT INTO Pets
+SELECT *
+FROM [RAW_VetClinic.Pets];
+
+-- Owners
+CREATE TABLE Owners (
+    OwnerID			varchar(10),
+    Name			varchar(100),
+    Surname			varchar(100),
+    StreetAddress	varchar(100),
+    City			varchar(100),
+    State			varchar(2),
+	StateFull		varchar(100),
+	ZipCode			varchar(10)
+)
+
+INSERT INTO Owners
+SELECT *
+FROM [RAW_VetClinic.Owners]
+
+-- ProceduresDetails
+CREATE TABLE ProceduresDetails (
+    ProcedureType		varchar(100),
+    ProcedureSubCode	varchar(10),
+    Description			varchar(100),
+    Price				float
+)
+
+INSERT INTO ProceduresDetails
+SELECT *
+FROM [RAW_VetClinic.ProceduresDetails]
+
+-- ProceduresHistory
+CREATE TABLE ProceduresHistory (
+    PetID				varchar(10),
+    ProcedureDate		date,
+    ProcedureType		varchar(100),
+    ProcedureSubCode	varchar(10)
+)
+
+INSERT INTO ProceduresHistory
+SELECT *
+FROM [RAW_VetClinic.ProceduresHistory]
+
+DROP TABLE [RAW_VetClinic.Owners];
+DROP TABLE [RAW_VetClinic.Pets];
+DROP TABLE [RAW_VetClinic.ProceduresDetails];
+DROP TABLE [RAW_VetClinic.ProceduresHistory];
+
+/***** Data Analyst for vet clinic who needs dispersed data combined and have analytics performed ********/
+
+--1) Extract info on pet names + owner names
+SELECT o.Surname  'Last Name', o.Name 'First Name', CONCAT(o.Name, ' ', o.Surname) 'FUll Name',
+	p.Name 'Pet Name'
+FROM Owners o
+	LEFT JOIN Pets p on o.OwnerID = p.OwnerID
+
+--2) Which pets from the clinic had procedures performed on them (ONLY THOSE PETS W/ PROC)
+SELECT p.name 'Pet Name', CONCAT(o.name,' ',o.surname) 'Owner Name', ph.proceduretype 'Procedure Type', 
+	ph.proceduredate 'Procedure Date'
+FROM pets p
+	INNER JOIN ProceduresHistory ph on p.petid = ph.petid
+INNER JOIN owners o on p.ownerid = o.ownerid
+ORDER BY p.petid; --see some pets had multiple procedures
+
+/*****Procedures NOT from our clinic*****/
+SELECT pe.name petName, CONCAT(o.name,' ',o.surname) ownerName,
+	ph.proceduretype proceduretype, ph.proceduredate procedureDate
+FROM pets pe 
+INNER JOIN procedurehistory ph on pe.petid = ph.petid
+INNER JOIN owners o on pe.ownerid = o.ownerid
+ORDER BY pe.petid;
+
+--3) Match up procedures to descriptions
+SELECT ph.proceduredate procedureDate, ph.proceduretype, ph.proceduresubcode,
+	pd.description, pd.price
+FROM procedurehistory ph
+LEFT JOIN proceduredetails pd on ph.proceduresubcode = pd.proceduresubcode AND ph.proceduretype = pd.proceduretype
+ORDER BY ph.proceduredate
+
+--4) Do the above but only for pets from the clinic
+SELECT pe.name petName, ph.proceduredate procedureDate, ph.proceduretype, ph.proceduresubcode,
+	pd.description, pd.price
+FROM pets pe
+INNER JOIN procedurehistory ph ON pe.petid = ph.petid
+LEFT JOIN proceduredetails pd on ph.proceduresubcode = pd.proceduresubcode AND ph.proceduretype = pd.proceduretype
+ORDER BY ph.proceduredate
+
+--5) Extract table of individual costs/procedure prices for owner's of pets from the clinic w/ owner + procedure side-by-side
+SELECT CONCAT(o.name,' ',o.surname) ownerName, pd.price/*, pe.name petName, ph.proceduredate procedureDate, ph.proceduretype, ph.proceduresubcode,
+	pd.description*/
+FROM owners o
+LEFT JOIN pets pe ON o.ownerid = pe.ownerid
+INNER JOIN procedurehistory ph ON pe.petid = ph.petid
+LEFT JOIN proceduredetails pd on ph.proceduresubcode = pd.proceduresubcode AND ph.proceduretype = pd.proceduretype
+ORDER BY ph.proceduredate
+
+--6) Find pets w/ same 1st letter of name as owner
+SELECT pe.name petName, CONCAT(o.name,' ',o.surname) ownerName,
+	ph.proceduretype proceduretype, ph.proceduredate procedureDate
+FROM pets pe 
+LEFT JOIN procedurehistory ph on pe.petid = ph.petid
+LEFT JOIN owners o on pe.ownerid = o.ownerid;
+
+SELECT pe.name petName, o.name ownerName
+FROM owners o
+RIGHT JOIN pets pe on o.ownerid = pe.ownerid
+WHERE LEFT(o.name,1) = LEFT(pe.name,1);

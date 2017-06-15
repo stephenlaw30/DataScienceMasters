@@ -40,6 +40,22 @@ UPDATE console_games
 	SET na_global_share = na_sales / global_sales
 	WHERE global_sales > 0
 
+-- dealing with NULLS
+SELECT * FROM console_games ORDER BY game_name -- need to do investgation to find this
+SELECT * FROM console_games ORDER BY platform -- need to do investgation to find this
+SELECT * FROM console_games ORDER BY game_year -- need to do investgation to find this
+-- in the meantime
+UPDATE console_games
+	SET game_year = NULL
+	WHERE game_year = 0
+SELECT * FROM console_games ORDER BY global_sales -- need to do investgation to find this
+
+-- Imputation by average example
+SELECT * from console_games where game_rank = 20
+UPDATE console_games
+	SET jp_sales = round((na_sales + eu_sales + other_sales) / 3,2)
+	WHERE game_rank = 20
+
 /* extract view of console game titles ordered by platform name in ascending order
 and year of release in descending order*/
 SELECT game_name 'Title', platform 'Platform', game_year 'Year of Release'
@@ -50,17 +66,24 @@ ORDER BY platform ASC, game_year DESC
 SELECT game_name, upper(left(publisher,4)) 'Publisher'
 FROM console_games
 
+--for fun
+SELECT game_name, reverse(publisher) 'Reverse Publisher'
+FROM console_games
+
 -- display all console platforms released either just before Black Friday or Christmas
 SELECT * FROM console_dates
 
 SELECT platform_name 'Platform', first_retail_availability 'Release Date'
 FROM console_dates
 WHERE month(first_retail_availability) = 11 OR month(first_retail_availability) = 12
+ORDER BY first_retail_availability
 
 SELECT platform_name 'Platform', first_retail_availability 'Release Date'
 FROM console_dates
 WHERE datepart(month, first_retail_availability) = 11 OR 
 		datepart(month, first_retail_availability) = 12
+ORDER BY first_retail_availability
+
 
 -- order platforms by longevity in ascending order (available longest = bottom)
 ALTER TABLE console_dates
@@ -83,3 +106,12 @@ ORDER BY retail_duration_days ASC
 -- convert Date cols to different data types
 SELECT *, CAST(game_year as DECIMAL) -- only works b/c game_year is an int
 FROM console_games	
+
+SELECT *, CAST(game_year as varchar(4)) -- only works b/c game_year is an int
+FROM console_games	
+
+/*SELECT *, game_year::varchar(4) -- only works b/c game_year is an int
+FROM console_games
+
+SELECT *, to_date(CAST(game_year as varchar(4)),'YYYY') -- only works b/c game_year is an int
+FROM console_games	*/	
