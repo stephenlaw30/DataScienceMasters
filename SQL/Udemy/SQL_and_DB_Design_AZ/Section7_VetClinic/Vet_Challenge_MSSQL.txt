@@ -76,46 +76,32 @@ FROM pets p
 INNER JOIN owners o on p.ownerid = o.ownerid
 ORDER BY p.petid; --see some pets had multiple procedures
 
-/*****Procedures NOT from our clinic*****/
-SELECT pe.name petName, CONCAT(o.name,' ',o.surname) ownerName,
-	ph.proceduretype proceduretype, ph.proceduredate procedureDate
-FROM pets pe 
-INNER JOIN procedurehistory ph on pe.petid = ph.petid
-INNER JOIN owners o on pe.ownerid = o.ownerid
-ORDER BY pe.petid;
-
 --3) Match up procedures to descriptions
-SELECT ph.proceduredate procedureDate, ph.proceduretype, ph.proceduresubcode,
-	pd.description, pd.price
-FROM procedurehistory ph
-LEFT JOIN proceduredetails pd on ph.proceduresubcode = pd.proceduresubcode AND ph.proceduretype = pd.proceduretype
-ORDER BY ph.proceduredate
+SELECT ph.ProcedureDate	 'Date', ph.ProcedureType 'Type', ph.ProcedureSubCode 'SubCode',
+	pd.Description, pd.Price 'Price ($)'
+FROM ProceduresHistory ph
+LEFT JOIN ProceduresDetails pd on ph.ProcedureSubCode = pd.ProcedureSubCode AND ph.ProcedureType = pd.ProcedureType
+ORDER BY ph.ProcedureDate
 
 --4) Do the above but only for pets from the clinic
-SELECT pe.name petName, ph.proceduredate procedureDate, ph.proceduretype, ph.proceduresubcode,
-	pd.description, pd.price
+SELECT pe.name 'Pet Name', ph.proceduredate 'Date', ph.proceduretype 'Type', ph.proceduresubcode 'Subcode',
+	pd.Description, pd.Price 'Price ($)'
 FROM pets pe
-INNER JOIN procedurehistory ph ON pe.petid = ph.petid
-LEFT JOIN proceduredetails pd on ph.proceduresubcode = pd.proceduresubcode AND ph.proceduretype = pd.proceduretype
+INNER JOIN ProceduresHistory ph ON pe.petid = ph.petid
+LEFT JOIN ProceduresDetails pd on ph.proceduresubcode = pd.proceduresubcode AND ph.proceduretype = pd.proceduretype
 ORDER BY ph.proceduredate
 
 --5) Extract table of individual costs/procedure prices for owner's of pets from the clinic w/ owner + procedure side-by-side
-SELECT CONCAT(o.name,' ',o.surname) ownerName, pd.price/*, pe.name petName, ph.proceduredate procedureDate, ph.proceduretype, ph.proceduresubcode,
-	pd.description*/
-FROM owners o
-LEFT JOIN pets pe ON o.ownerid = pe.ownerid
-INNER JOIN procedurehistory ph ON pe.petid = ph.petid
-LEFT JOIN proceduredetails pd on ph.proceduresubcode = pd.proceduresubcode AND ph.proceduretype = pd.proceduretype
+SELECT CONCAT(o.name,' ',o.surname) 'Owner Name', pd.price 'Price ($)'
+	/*, pe.name petName, ph.proceduredate procedureDate, ph.proceduretype, ph.proceduresubcode, pd.description*/
+FROM Owners o
+LEFT JOIN Pets pe ON o.ownerid = pe.ownerid
+INNER JOIN ProceduresHistory ph ON pe.petid = ph.petid
+LEFT JOIN ProceduresDetails pd on ph.proceduresubcode = pd.proceduresubcode AND ph.proceduretype = pd.proceduretype
 ORDER BY ph.proceduredate
 
 --6) Find pets w/ same 1st letter of name as owner
-SELECT pe.name petName, CONCAT(o.name,' ',o.surname) ownerName,
-	ph.proceduretype proceduretype, ph.proceduredate procedureDate
-FROM pets pe 
-LEFT JOIN procedurehistory ph on pe.petid = ph.petid
-LEFT JOIN owners o on pe.ownerid = o.ownerid;
-
-SELECT pe.name petName, o.name ownerName
-FROM owners o
-RIGHT JOIN pets pe on o.ownerid = pe.ownerid
+SELECT pe.name 'Pet', o.name 'Owner'
+FROM Owners o
+RIGHT JOIN Pets pe on o.ownerid = pe.ownerid
 WHERE LEFT(o.name,1) = LEFT(pe.name,1);

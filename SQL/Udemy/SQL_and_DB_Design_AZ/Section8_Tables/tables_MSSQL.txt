@@ -1,0 +1,56 @@
+CREATE DATABASE Movies;
+USE Movies 
+GO
+CREATE TABLE myMovies (
+-- want to allocate as little data as possible to keep DB running smooth    
+	movie_name 		VARCHAR(250),
+    release_year 	INT, -- cannot have constraints on INT
+    country			VARCHAR(100) NOT NULL,
+    genre			VARCHAR(250) NOT NULL,
+    PRIMARY KEY (movie_name,release_year) -- see under constraints for table
+    -- making movie_name + release_year the PK makes them NOT NULL by default
+);
+
+/*COPYING
+INSERT INTO myMovies 
+	VALUES ('SE7EN', 1995, 'USA', 'Mystery, Crime, Thriller');
+    
+select * from myMovies
+
+INSERT INTO myMovies VALUES 
+    ('The Girl With The Dragon Tattoo', 2011, 'USA', 'Mystery, Crime, Thriller'),
+    ('Adventureland', 2009, 'USA', 'Indie, Comedy'),
+    ('The Social Network', 2010, 'USA', 'Drama');
+    
+UPDATE myMovies
+	SET country = 'US'
+WHERE movie_name = 'Adventureland' AND release_year = 2009
+
+-- ALTER
+-- make each value in column "country" equal to 'USA if we don't specify it w/ INSERT'
+ALTER TABLE myMovies
+	ADD CONSTRAINT country 
+	DEFAULT 'USA' FOR country;
+
+INSERT INTO myMovies VALUES 
+    ('Test1', 2017, DEFAULT, 'Thriller');
+
+SELECT * FROM myMovies
+
+ALTER TABLE myMovies
+	ADD director VARCHAR(50)
+UPDATE myMovies
+	SET director = 'David Fincher'
+WHERE lower(movie_name) = 'se7en' 
+	OR lower(movie_name) = 'the girl with the dragon tattoo'
+    OR lower(movie_name) = 'the social network'
+
+-- DROP
+ALTER TABLE myMovies DROP COLUMN director
+
+SELECT * FROM myMovies
+
+--DROP CASCADE -- drops something + anything else depending on it
+-- prevents us from having that now doesn't exist in other tables
+
+DROP DATABASE myMovies -- do this outside when db not in use 	
