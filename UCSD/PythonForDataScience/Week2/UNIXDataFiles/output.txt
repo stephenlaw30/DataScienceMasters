@@ -1,7 +1,0 @@
-/c/Users/NEWNSS/Dropbox/DataScienceMasters/UCSD/PythonForDataScience/Week2/UNIXDataFiles
-total 5460
--rw-r--r-- 1 newnss 1049089      64 Jun 14 14:16 fruits.txt
--rw-r--r-- 1 newnss 1049089      89 Jun 15 10:09 output.txt
--rw-r--r-- 1 newnss 1049089 5583442 Jun 14 14:16 shakespeare.txt
--rw-r--r-- 1 newnss 1049089      64 Jun 15 10:02 sorted_fruits.txt
--rw-r--r-- 1 newnss 1049089      49 Jun 15 10:03 unique_fruits.txt

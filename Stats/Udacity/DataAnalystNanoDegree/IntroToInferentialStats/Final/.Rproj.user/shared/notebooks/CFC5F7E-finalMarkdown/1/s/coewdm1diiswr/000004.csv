@@ -1,5 +1,0 @@
-"0","print((-1.645*sd(samples)) + mean(samples), type=""html"")"
-"1","[1]"
-"1"," 11.3938"
-"1","
-"

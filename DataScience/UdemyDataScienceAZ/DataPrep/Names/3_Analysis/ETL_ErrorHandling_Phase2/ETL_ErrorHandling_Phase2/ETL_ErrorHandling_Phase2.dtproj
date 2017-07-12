@@ -26,11 +26,7 @@
           <SSIS:Property SSIS:Name="CreatorComputerName">LAPTOP-2NKDA5EJ</SSIS:Property>
           <SSIS:Property SSIS:Name="Description">
           </SSIS:Property>
-<<<<<<< HEAD
           <SSIS:Property SSIS:Name="PasswordVerifier" SSIS:Sensitive="1">AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAVglODxP7RUmKFou91f0KsAAAAAACAAAAAAAQZgAAAAEAACAAAAAn860qUbeDb+J2Juf6EvS9qld0Z8W0Pbv9yDz3EfQHhwAAAAAOgAAAAAIAACAAAABRu2zFH8rdevRe13fF3CECTL5IWVF6NZm06CtR/oP23JAAAACDNeehrbB0txbzaMgdx2ivXS3zfVeLdvX/c/xiQsZfIlSI6u1Q6J8aZFK3WimXcEsNUjcie71tP9tEDt8z6pMHfxd6/cit/sutZOkTs/lW9RbCpXkUDWl2Z8Y5/ALlr78e10Ny1eiz222unDz0M6FZgyqYQGQ0N2IjEPPMHy4wbV0+99zkSZbWUbJ0qV+hxmBAAAAArJY6AQNX6Nw65gglbjIoO2qHnDuJbND9S+y7TwchqqV218q+/27pNNvfIZbBxDpzUq1YqS9vllpR9umZgpgcYw==</SSIS:Property>
-=======
-          <SSIS:Property SSIS:Name="PasswordVerifier" SSIS:Sensitive="1">AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAVglODxP7RUmKFou91f0KsAAAAAACAAAAAAAQZgAAAAEAACAAAAA1pCu1/qGLAomMbV7RjPoaNJwL3XM9umPq0uSdq4yrcgAAAAAOgAAAAAIAACAAAADTOPG7Gkb13YhQxm1wN+RGC4GgE4XIt5+Qkad2xhqXw5AAAAAJlrrCQUxJ0Tg76Fk/B7mOUxUBTm72Ujd7DFWcC5nZN+6LykypLhPu9zahFd8K5oWGS+Ng9v97hiogHetFRpvOo/b1bio9xbxts3OUicUKTW7RxKdkQk2jzo4HsSggViBnC/SWaO/wPHeQrCAkgZIaeqRCAPi8iiuQUlKTRS4Y7CzU1r4JGpAZdjpjxCca17tAAAAAs8TalJos8VCq7LKWMr4If5NZu3hbKlkqi8yheX1XmfReg+wkUORxo4m5FrrmFjO7GBicN1uKavfO1b7J4hDw7A==</SSIS:Property>
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
           <SSIS:Property SSIS:Name="FormatVersion">1</SSIS:Property>
         </SSIS:Properties>
         <SSIS:Packages>
@@ -46,24 +42,16 @@
                 <SSIS:Property SSIS:Name="Name">Package</SSIS:Property>
                 <SSIS:Property SSIS:Name="VersionMajor">1</SSIS:Property>
                 <SSIS:Property SSIS:Name="VersionMinor">0</SSIS:Property>
-<<<<<<< HEAD
                 <SSIS:Property SSIS:Name="VersionBuild">3</SSIS:Property>
                 <SSIS:Property SSIS:Name="VersionComments">
                 </SSIS:Property>
                 <SSIS:Property SSIS:Name="VersionGUID">{973B28D1-7560-470D-BBDF-E42E1201EE5C}</SSIS:Property>
-=======
-                <SSIS:Property SSIS:Name="VersionBuild">1</SSIS:Property>
-                <SSIS:Property SSIS:Name="VersionComments">
-                </SSIS:Property>
-                <SSIS:Property SSIS:Name="VersionGUID">{7F0B2EBE-A455-4799-89A5-642514D8A634}</SSIS:Property>
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                 <SSIS:Property SSIS:Name="PackageFormatVersion">8</SSIS:Property>
                 <SSIS:Property SSIS:Name="Description">
                 </SSIS:Property>
                 <SSIS:Property SSIS:Name="ProtectionLevel">1</SSIS:Property>
               </SSIS:Properties>
               <SSIS:Parameters>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.LAPTOP-2NKDA5EJ\SQLSERVERDEV.udemyDataScienceAZ.ConnectionString">
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
@@ -153,9 +141,6 @@
                   </SSIS:Properties>
                 </SSIS:Parameter>
                 <SSIS:Parameter SSIS:Name="CM.Names.AlwaysCheckForRowDelimiters">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.AlwaysCheckForRowDelimiters">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -170,11 +155,7 @@
                     <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.Names.CodePage">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.CodePage">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -189,11 +170,7 @@
                     <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.Names.ColumnNamesInFirstDataRow">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.ColumnNamesInFirstDataRow">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -208,11 +185,7 @@
                     <SSIS:Property SSIS:Name="DataType">3</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.Names.ConnectionString">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.ConnectionString">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -223,19 +196,11 @@
                     <SSIS:Property SSIS:Name="IncludeInDebugDump">0</SSIS:Property>
                     <SSIS:Property SSIS:Name="Required">0</SSIS:Property>
                     <SSIS:Property SSIS:Name="Sensitive">0</SSIS:Property>
-<<<<<<< HEAD
                     <SSIS:Property SSIS:Name="Value">C:\Users\Nimz\Dropbox\DataScienceMasters\DataScience\UdemyDataScienceAZ\DataPrep\Names\3_Analysis\FakeNames_20170622_2.csv</SSIS:Property>
                     <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
                 <SSIS:Parameter SSIS:Name="CM.Names.DataRowsToSkip">
-=======
-                    <SSIS:Property SSIS:Name="Value">C:\Users\Nimz\Dropbox\DataScienceMasters\DataScience\UdemyDataScienceAZ\DataPrep\Names\3_Analysis\FakeNames_20160620.csv</SSIS:Property>
-                    <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
-                  </SSIS:Properties>
-                </SSIS:Parameter>
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.DataRowsToSkip">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -250,11 +215,7 @@
                     <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.Names.Format">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.Format">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -269,11 +230,7 @@
                     <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.Names.HeaderRowDelimiter">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.HeaderRowDelimiter">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -289,11 +246,7 @@
                     <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.Names.HeaderRowsToSkip">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.HeaderRowsToSkip">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -308,11 +261,7 @@
                     <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.Names.LocaleID">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.LocaleID">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -327,11 +276,7 @@
                     <SSIS:Property SSIS:Name="DataType">9</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.Names.RowDelimiter">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.RowDelimiter">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -345,11 +290,7 @@
                     <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.Names.TextQualifier">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.TextQualifier">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -364,11 +305,7 @@
                     <SSIS:Property SSIS:Name="DataType">18</SSIS:Property>
                   </SSIS:Properties>
                 </SSIS:Parameter>
-<<<<<<< HEAD
                 <SSIS:Parameter SSIS:Name="CM.Names.Unicode">
-=======
-                <SSIS:Parameter SSIS:Name="CM.FakeNames.Unicode">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   <SSIS:Properties>
                     <SSIS:Property SSIS:Name="ID">
                     </SSIS:Property>
@@ -402,7 +339,6 @@
         <ConnectionSecurityMappings />
         <DatabaseStorageLocations />
         <TargetServerVersion>SQLServer2017</TargetServerVersion>
-<<<<<<< HEAD
         <ParameterConfigurationValues>
           <ConfigurationSetting>
             <Id>LastModifiedTime</Id>
@@ -410,9 +346,6 @@
             <Value xsi:type="xsd:dateTime">2017-06-22T23:53:22.5138659Z</Value>
           </ConfigurationSetting>
         </ParameterConfigurationValues>
-=======
-        <ParameterConfigurationValues />
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
       </Options>
     </Configuration>
   </Configurations>

@@ -8,7 +8,6 @@
         <UserPasswords />
         <OfflineMode>false</OfflineMode>
         <ProgressReporting>true</ProgressReporting>
-<<<<<<< HEAD
         <ParameterConfigurationSensitiveValues>
           <ConfigurationSetting>
             <Id>LastModifiedTime</Id>
@@ -16,9 +15,6 @@
             <Value xsi:type="xsd:dateTime">2017-06-22T23:53:22.5143672Z</Value>
           </ConfigurationSetting>
         </ParameterConfigurationSensitiveValues>
-=======
-        <ParameterConfigurationSensitiveValues />
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
       </Options>
     </Configuration>
   </Configurations>

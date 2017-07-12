@@ -11,18 +11,12 @@
   DTS:LocaleID="1033"
   DTS:ObjectName="Package"
   DTS:PackageType="5"
-<<<<<<< HEAD
   DTS:VersionBuild="3"
   DTS:VersionGUID="{973B28D1-7560-470D-BBDF-E42E1201EE5C}">
-=======
-  DTS:VersionBuild="1"
-  DTS:VersionGUID="{7F0B2EBE-A455-4799-89A5-642514D8A634}">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
   <DTS:Property
     DTS:Name="PackageFormatVersion">8</DTS:Property>
   <DTS:ConnectionManagers>
     <DTS:ConnectionManager
-<<<<<<< HEAD
       DTS:refId="Package.ConnectionManagers[LAPTOP-2NKDA5EJ\SQLSERVERDEV.udemyDataScienceAZ]"
       DTS:CreationName="OLEDB"
       DTS:DTSID="{160B1A09-AB99-46CD-BDD1-FE71A8A87091}"
@@ -37,12 +31,6 @@
       DTS:CreationName="FLATFILE"
       DTS:DTSID="{A3D9D14D-63DD-46B7-830F-307FC52B1D2D}"
       DTS:ObjectName="Names">
-=======
-      DTS:refId="Package.ConnectionManagers[FakeNames]"
-      DTS:CreationName="FLATFILE"
-      DTS:DTSID="{3126D51D-3908-4CB2-91C4-C4B200EB528D}"
-      DTS:ObjectName="FakeNames">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
       <DTS:ObjectData>
         <DTS:ConnectionManager
           DTS:Format="Delimited"
@@ -52,810 +40,430 @@
           DTS:RowDelimiter=""
           DTS:TextQualifier="_x0022_"
           DTS:CodePage="1252"
-<<<<<<< HEAD
           DTS:ConnectionString="C:\Users\Nimz\Dropbox\DataScienceMasters\DataScience\UdemyDataScienceAZ\DataPrep\Names\3_Analysis\FakeNames_20170622_2.csv">
-=======
-          DTS:ConnectionString="C:\Users\Nimz\Dropbox\DataScienceMasters\DataScience\UdemyDataScienceAZ\DataPrep\Names\3_Analysis\FakeNames_20160620.csv">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
           <DTS:FlatFileColumns>
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Number"
               DTS:DTSID="{D7E6C1CA-C28D-4CB0-A284-5B46E20FE30F}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Number"
-              DTS:DTSID="{AADB4C11-3EF4-4342-8B0C-EA78FD9BD885}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Gender"
               DTS:DTSID="{D48398A5-4601-4846-ABAB-230EBE57B06A}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Gender"
-              DTS:DTSID="{8C1AA215-48CF-4DAC-8651-03B492527325}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="NameSet"
               DTS:DTSID="{9D014629-A986-4B0B-B909-C08952F90286}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="NameSet"
-              DTS:DTSID="{ACFDA7D2-0E23-45CC-BBF2-0AB689E96B35}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Title"
               DTS:DTSID="{8733486E-7568-496E-8B63-CDD7A823E364}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Title"
-              DTS:DTSID="{DF00DC84-A5AB-4994-ADE9-BBABAC483E2A}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="GivenName"
               DTS:DTSID="{DE98AEAB-BDBA-4E70-9AA4-C20D856B3336}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="GivenName"
-              DTS:DTSID="{8A474D29-2F1B-41A5-BAF9-8B053577B4B7}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="MiddleInitial"
               DTS:DTSID="{0397522A-7790-4DF6-8F54-6F9CDFB0E934}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="MiddleInitial"
-              DTS:DTSID="{6617C6BB-4BC5-4734-A7A1-BACB72B0986D}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Surname"
               DTS:DTSID="{8737F3FF-0B61-451C-A748-C99D8CD62D29}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Surname"
-              DTS:DTSID="{6A416BFC-D349-4E89-A101-B85553BFCD1D}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="AmountPaid"
               DTS:DTSID="{1EF0AD68-5E03-41A3-BEAA-0E07BA2543F3}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="AmountPaid"
-              DTS:DTSID="{58855F85-4C3C-403B-A4D0-CD4EE42BE75D}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="StreetAddress"
               DTS:DTSID="{46DEBF80-4BA0-48F0-8697-89AA45D2C94C}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="StreetAddress"
-              DTS:DTSID="{E14C08DB-92A0-4537-A25E-E585B0D5AB46}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="City"
               DTS:DTSID="{5E1723CD-425B-447B-B9CB-6E5C6E66980D}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="City"
-              DTS:DTSID="{A70C5801-040C-4631-9931-F1C6583462C8}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="State"
               DTS:DTSID="{625AA2BA-9D44-4373-8B60-C350772D5318}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="State"
-              DTS:DTSID="{65AAE0B4-3E3F-4F18-9287-D5D232983211}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="StateFull"
               DTS:DTSID="{5EB99202-5D78-4BC4-B27E-8E8B1D592AE8}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="StateFull"
-              DTS:DTSID="{F9BB5BEF-2125-43A0-9DAD-EAB7D848CB9B}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="ZipCode"
               DTS:DTSID="{84F10C2C-5768-498E-95A0-364D26EF25B6}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="ZipCode"
-              DTS:DTSID="{828D4B5A-227B-4BA3-B139-7FA5A7C01D80}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Country"
               DTS:DTSID="{3A4BBE55-84FD-4BDD-AD1E-4F6A30333347}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Country"
-              DTS:DTSID="{D9410EBA-D52D-40B0-BF62-6377B6E621D8}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="CountryFull"
               DTS:DTSID="{42A4198C-EB2D-4E71-AC3E-D51118D95A86}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="CountryFull"
-              DTS:DTSID="{3F518970-1A1F-44AE-9218-BFDB71F703E9}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="5000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Feedback"
               DTS:DTSID="{AFC2BDFB-DE33-4850-991F-AFCD9E9DC021}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Feedback"
-              DTS:DTSID="{AAE06C43-2BFD-458E-924F-F038E199C239}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="EmailAddress"
               DTS:DTSID="{C20DF0A1-7B6E-48DE-AD9D-5663E552C686}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="EmailAddress"
-              DTS:DTSID="{52EE360F-802A-4860-9812-2F93FD5A7733}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Username"
               DTS:DTSID="{5536E838-383D-4A93-A370-CF6E2376B295}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Username"
-              DTS:DTSID="{11727468-9144-4024-8652-57A940802E75}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Password"
               DTS:DTSID="{CA6A1641-2A39-4ADB-B8F0-B99BD8F38DAB}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Password"
-              DTS:DTSID="{9C116991-2381-4E05-979C-F5648E68F682}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="BrowserUserAgent"
               DTS:DTSID="{F43470FC-9BCB-434F-815D-4FA02751900A}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="BrowserUserAgent"
-              DTS:DTSID="{1A4B150A-2612-463F-B16A-19942FA3CA9B}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="TelephoneNumber"
               DTS:DTSID="{21C6445B-5B49-45EE-B9AD-732330DAA50F}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="TelephoneNumber"
-              DTS:DTSID="{9C94D94A-E3E7-41F4-B630-DE027104BFBB}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="TelephoneCountryCode"
               DTS:DTSID="{2131C5A2-7B17-4879-8C87-3C3D01D759E7}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="TelephoneCountryCode"
-              DTS:DTSID="{7F2D6CE0-C539-48E6-B649-BC6FDD296977}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="MothersMaiden"
               DTS:DTSID="{20926BA6-8BD9-45FA-837B-70B369960E33}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="MothersMaiden"
-              DTS:DTSID="{DBC95F14-25F7-4D8F-BD73-736762CE0010}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Birthday"
               DTS:DTSID="{1C6B2327-80E8-4E4F-9DAF-5D6266E36866}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Birthday"
-              DTS:DTSID="{C20FD60E-DB68-4FE1-90EA-BE06E0ACF7FC}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="TropicalZodiac"
               DTS:DTSID="{3BB653A0-F2F6-4E11-8B05-9FC5126BE92B}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="TropicalZodiac"
-              DTS:DTSID="{054ABB25-DB5A-4AAA-9128-9A34C73A1B7E}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="CCType"
               DTS:DTSID="{E8B9A499-9A97-4BBD-8F66-8A3BED4A56AB}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="CCType"
-              DTS:DTSID="{AFF9A9AE-4F57-49D2-BE9D-DD5281B05F86}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="CCNumber"
               DTS:DTSID="{F4CE7257-0120-4712-A2C4-18FDBD2856B5}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="CCNumber"
-              DTS:DTSID="{5B500D4B-286F-430F-B96C-C9F7B4C47D99}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="CVV2"
               DTS:DTSID="{7EE2D15C-BAEB-489C-B5CB-8C5E88BDED85}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="CVV2"
-              DTS:DTSID="{C159BF38-DA91-49CF-94C3-DBC58939AB35}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="CCExpires"
               DTS:DTSID="{419C469E-DBC8-4C0C-BCF5-C4A161057C82}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="CCExpires"
-              DTS:DTSID="{273A664A-F8CD-4486-9978-6DCEC58774B5}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="NationalID"
               DTS:DTSID="{9A015BED-F30F-498A-8101-1E95F3C5A975}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="NationalID"
-              DTS:DTSID="{FE655223-EB3C-4228-B0EB-4EDBC822E41E}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="UPS"
               DTS:DTSID="{7BB31416-B579-4125-AAE0-15A4393E95C7}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="UPS"
-              DTS:DTSID="{2E558FF5-92BF-4CBE-AF92-C6AE9C215DE2}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="WesternUnionMTCN"
               DTS:DTSID="{02DC3828-9661-437A-982B-D65C787BD799}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="WesternUnionMTCN"
-              DTS:DTSID="{671A3B5D-886A-40A9-A52D-4F93E5605305}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="MoneyGramMTCN"
               DTS:DTSID="{77D9A114-0F26-4CDB-A1E7-9E4622F22FEE}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="MoneyGramMTCN"
-              DTS:DTSID="{52B8088D-64E9-4B1F-B16E-FEB344061546}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Color"
               DTS:DTSID="{65735B70-326A-4B59-9DB5-C1CC99110347}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Color"
-              DTS:DTSID="{5ACACEE9-ECF5-4275-B6E6-FA81C19F3A87}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Occupation"
               DTS:DTSID="{06A08DDA-5C13-42C8-9543-9CE48B4D1A59}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Occupation"
-              DTS:DTSID="{2D37D750-0473-4E9F-8CA9-4ADAE1DACB2B}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Company"
               DTS:DTSID="{78547A83-A6B1-4548-87A1-5F6239135FD8}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Company"
-              DTS:DTSID="{DA0EA4B1-874E-4E13-B354-D215556E69BA}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Vehicle"
               DTS:DTSID="{03A2AB91-E8B1-43F4-B2EC-FD5FDB4F417B}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Vehicle"
-              DTS:DTSID="{E7F9ED45-622B-4D42-A7EC-73B05DAF8BBB}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Domain"
               DTS:DTSID="{6631B171-C992-4EE3-A4C3-DE98196A0F5D}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Domain"
-              DTS:DTSID="{2CB00125-595B-4999-8542-D8BB699F69F9}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="BloodType"
               DTS:DTSID="{1BE612D6-EEA2-4F73-B6CC-AE2765E49A2C}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="BloodType"
-              DTS:DTSID="{E75D6047-64A4-497F-B5AD-79857D56BB7D}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Pounds"
               DTS:DTSID="{B56997F4-DD57-4DC4-B7AA-B740FB2947BA}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Pounds"
-              DTS:DTSID="{9FC033E6-B3BC-4115-A9FC-82DBF61D8FD5}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Kilograms"
               DTS:DTSID="{93E4A2EF-DA79-45A5-8945-DB6484394642}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Kilograms"
-              DTS:DTSID="{02A4F315-6782-462E-B3B8-C9B3262AC6D1}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="FeetInches"
               DTS:DTSID="{EA5B0C6A-27F6-4544-8236-D79012A3EEE0}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="FeetInches"
-              DTS:DTSID="{37E03BA9-52AC-49DC-8161-79FF947BC65D}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Centimeters"
               DTS:DTSID="{ACC67D46-1EC4-48C1-8788-092FF2FEBD44}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Centimeters"
-              DTS:DTSID="{AE921BAB-249A-44DF-AA25-71D8060E7B97}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="GUID"
               DTS:DTSID="{FDB9912B-FABD-4326-8C45-F0B9177EC26D}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="GUID"
-              DTS:DTSID="{A0CDA94B-BB85-47E5-92C5-F933477CC074}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Latitude"
               DTS:DTSID="{CE87BBA4-8175-459F-885B-537130312B7C}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Latitude"
-              DTS:DTSID="{7ED95547-6655-4C45-B824-639621FFFB08}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x002C_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Longitude"
               DTS:DTSID="{347626A5-4180-482F-859A-A199407A4C8D}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Longitude"
-              DTS:DTSID="{C961F105-507A-4AEE-91D2-6C4C035D2C6C}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
             <DTS:FlatFileColumn
               DTS:ColumnType="Delimited"
               DTS:ColumnDelimiter="_x000D__x000A_"
-<<<<<<< HEAD
               DTS:MaximumWidth="1000"
               DTS:DataType="129"
               DTS:TextQualified="True"
               DTS:ObjectName="Column 46"
               DTS:DTSID="{12A9089C-892F-4E35-AB65-1C363348B516}"
-=======
-              DTS:MaximumWidth="50"
-              DTS:DataType="129"
-              DTS:TextQualified="True"
-              DTS:ObjectName="Column 46"
-              DTS:DTSID="{66FEFCFE-392D-40EA-BD04-0BC1DE312D4E}"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               DTS:CreationName="" />
           </DTS:FlatFileColumns>
         </DTS:ConnectionManager>
@@ -900,13 +508,8 @@
               <connections>
                 <connection
                   refId="Package\20170620_CC\Flat File Source.Connections[FlatFileConnection]"
-<<<<<<< HEAD
                   connectionManagerID="Package.ConnectionManagers[Names]"
                   connectionManagerRefId="Package.ConnectionManagers[Names]"
-=======
-                  connectionManagerID="Package.ConnectionManagers[FakeNames]"
-                  connectionManagerRefId="Package.ConnectionManagers[FakeNames]"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   name="FlatFileConnection" />
               </connections>
               <outputs>
@@ -921,11 +524,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Number]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Number]"
                       name="Number"
                       truncationRowDisposition="FailComponent">
@@ -947,11 +546,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Gender]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Gender]"
                       name="Gender"
                       truncationRowDisposition="FailComponent">
@@ -973,11 +568,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[NameSet]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[NameSet]"
                       name="NameSet"
                       truncationRowDisposition="FailComponent">
@@ -999,11 +590,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Title]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Title]"
                       name="Title"
                       truncationRowDisposition="FailComponent">
@@ -1025,11 +612,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[GivenName]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[GivenName]"
                       name="GivenName"
                       truncationRowDisposition="FailComponent">
@@ -1051,11 +634,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[MiddleInitial]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[MiddleInitial]"
                       name="MiddleInitial"
                       truncationRowDisposition="FailComponent">
@@ -1077,11 +656,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Surname]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Surname]"
                       name="Surname"
                       truncationRowDisposition="FailComponent">
@@ -1103,11 +678,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[AmountPaid]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[AmountPaid]"
                       name="AmountPaid"
                       truncationRowDisposition="FailComponent">
@@ -1129,11 +700,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[StreetAddress]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[StreetAddress]"
                       name="StreetAddress"
                       truncationRowDisposition="FailComponent">
@@ -1155,11 +722,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[City]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[City]"
                       name="City"
                       truncationRowDisposition="FailComponent">
@@ -1181,11 +744,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[State]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[State]"
                       name="State"
                       truncationRowDisposition="FailComponent">
@@ -1207,11 +766,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[StateFull]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[StateFull]"
                       name="StateFull"
                       truncationRowDisposition="FailComponent">
@@ -1233,11 +788,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[ZipCode]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[ZipCode]"
                       name="ZipCode"
                       truncationRowDisposition="FailComponent">
@@ -1259,11 +810,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Country]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Country]"
                       name="Country"
                       truncationRowDisposition="FailComponent">
@@ -1285,11 +832,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[CountryFull]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[CountryFull]"
                       name="CountryFull"
                       truncationRowDisposition="FailComponent">
@@ -1311,11 +854,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Feedback]"
-<<<<<<< HEAD
                       length="5000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Feedback]"
                       name="Feedback"
                       truncationRowDisposition="FailComponent">
@@ -1337,11 +876,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[EmailAddress]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[EmailAddress]"
                       name="EmailAddress"
                       truncationRowDisposition="FailComponent">
@@ -1363,11 +898,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Username]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Username]"
                       name="Username"
                       truncationRowDisposition="FailComponent">
@@ -1389,11 +920,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Password]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Password]"
                       name="Password"
                       truncationRowDisposition="FailComponent">
@@ -1415,11 +942,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[BrowserUserAgent]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[BrowserUserAgent]"
                       name="BrowserUserAgent"
                       truncationRowDisposition="FailComponent">
@@ -1441,11 +964,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[TelephoneNumber]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[TelephoneNumber]"
                       name="TelephoneNumber"
                       truncationRowDisposition="FailComponent">
@@ -1467,11 +986,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[TelephoneCountryCode]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[TelephoneCountryCode]"
                       name="TelephoneCountryCode"
                       truncationRowDisposition="FailComponent">
@@ -1493,11 +1008,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[MothersMaiden]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[MothersMaiden]"
                       name="MothersMaiden"
                       truncationRowDisposition="FailComponent">
@@ -1519,11 +1030,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Birthday]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Birthday]"
                       name="Birthday"
                       truncationRowDisposition="FailComponent">
@@ -1545,11 +1052,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[TropicalZodiac]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[TropicalZodiac]"
                       name="TropicalZodiac"
                       truncationRowDisposition="FailComponent">
@@ -1571,11 +1074,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[CCType]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[CCType]"
                       name="CCType"
                       truncationRowDisposition="FailComponent">
@@ -1597,11 +1096,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[CCNumber]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[CCNumber]"
                       name="CCNumber"
                       truncationRowDisposition="FailComponent">
@@ -1623,11 +1118,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[CVV2]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[CVV2]"
                       name="CVV2"
                       truncationRowDisposition="FailComponent">
@@ -1649,11 +1140,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[CCExpires]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[CCExpires]"
                       name="CCExpires"
                       truncationRowDisposition="FailComponent">
@@ -1675,11 +1162,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[NationalID]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[NationalID]"
                       name="NationalID"
                       truncationRowDisposition="FailComponent">
@@ -1701,11 +1184,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[UPS]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[UPS]"
                       name="UPS"
                       truncationRowDisposition="FailComponent">
@@ -1727,11 +1206,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[WesternUnionMTCN]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[WesternUnionMTCN]"
                       name="WesternUnionMTCN"
                       truncationRowDisposition="FailComponent">
@@ -1753,11 +1228,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[MoneyGramMTCN]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[MoneyGramMTCN]"
                       name="MoneyGramMTCN"
                       truncationRowDisposition="FailComponent">
@@ -1779,11 +1250,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Color]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Color]"
                       name="Color"
                       truncationRowDisposition="FailComponent">
@@ -1805,11 +1272,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Occupation]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Occupation]"
                       name="Occupation"
                       truncationRowDisposition="FailComponent">
@@ -1831,11 +1294,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Company]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Company]"
                       name="Company"
                       truncationRowDisposition="FailComponent">
@@ -1857,11 +1316,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Vehicle]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Vehicle]"
                       name="Vehicle"
                       truncationRowDisposition="FailComponent">
@@ -1883,11 +1338,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Domain]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Domain]"
                       name="Domain"
                       truncationRowDisposition="FailComponent">
@@ -1909,11 +1360,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[BloodType]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[BloodType]"
                       name="BloodType"
                       truncationRowDisposition="FailComponent">
@@ -1935,11 +1382,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Pounds]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Pounds]"
                       name="Pounds"
                       truncationRowDisposition="FailComponent">
@@ -1961,11 +1404,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Kilograms]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Kilograms]"
                       name="Kilograms"
                       truncationRowDisposition="FailComponent">
@@ -1987,11 +1426,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[FeetInches]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[FeetInches]"
                       name="FeetInches"
                       truncationRowDisposition="FailComponent">
@@ -2013,11 +1448,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Centimeters]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Centimeters]"
                       name="Centimeters"
                       truncationRowDisposition="FailComponent">
@@ -2039,11 +1470,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[GUID]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[GUID]"
                       name="GUID"
                       truncationRowDisposition="FailComponent">
@@ -2065,11 +1492,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Latitude]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Latitude]"
                       name="Latitude"
                       truncationRowDisposition="FailComponent">
@@ -2091,11 +1514,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Longitude]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Longitude]"
                       name="Longitude"
                       truncationRowDisposition="FailComponent">
@@ -2117,11 +1536,7 @@
                       errorOrTruncationOperation="Conversion"
                       errorRowDisposition="FailComponent"
                       externalMetadataColumnId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Column 46]"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       lineageId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].Columns[Column 46]"
                       name="Column 46"
                       truncationRowDisposition="FailComponent">
@@ -2143,471 +1558,283 @@
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Number]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Number" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Gender]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Gender" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[NameSet]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="NameSet" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Title]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Title" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[GivenName]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="GivenName" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[MiddleInitial]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="MiddleInitial" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Surname]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Surname" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[AmountPaid]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="AmountPaid" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[StreetAddress]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="StreetAddress" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[City]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="City" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[State]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="State" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[StateFull]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="StateFull" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[ZipCode]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="ZipCode" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Country]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Country" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[CountryFull]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="CountryFull" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Feedback]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="5000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Feedback" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[EmailAddress]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="EmailAddress" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Username]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Username" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Password]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Password" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[BrowserUserAgent]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="BrowserUserAgent" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[TelephoneNumber]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="TelephoneNumber" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[TelephoneCountryCode]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="TelephoneCountryCode" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[MothersMaiden]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="MothersMaiden" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Birthday]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Birthday" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[TropicalZodiac]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="TropicalZodiac" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[CCType]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="CCType" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[CCNumber]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="CCNumber" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[CVV2]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="CVV2" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[CCExpires]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="CCExpires" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[NationalID]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="NationalID" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[UPS]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="UPS" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[WesternUnionMTCN]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="WesternUnionMTCN" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[MoneyGramMTCN]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="MoneyGramMTCN" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Color]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Color" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Occupation]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Occupation" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Company]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Company" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Vehicle]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Vehicle" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Domain]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Domain" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[BloodType]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="BloodType" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Pounds]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Pounds" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Kilograms]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Kilograms" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[FeetInches]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="FeetInches" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Centimeters]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Centimeters" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[GUID]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="GUID" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Latitude]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Latitude" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Longitude]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Longitude" />
                     <externalMetadataColumn
                       refId="Package\20170620_CC\Flat File Source.Outputs[Flat File Source Output].ExternalColumns[Column 46]"
                       codePage="1252"
                       dataType="str"
-<<<<<<< HEAD
                       length="1000"
-=======
-                      length="50"
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                       name="Column 46" />
                   </externalMetadataColumns>
                 </output>
@@ -2656,11 +1883,7 @@
                 <property
                   dataType="System.String"
                   description="Specifies the name of the database object used to open a rowset."
-<<<<<<< HEAD
                   name="OpenRowset">[RAW_Names]</property>
-=======
-                  name="OpenRowset"></property>
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                 <property
                   dataType="System.String"
                   description="Specifies the variable that contains the name of the database object used to open a rowset."
@@ -2682,11 +1905,7 @@
                   dataType="System.Int32"
                   description="Specifies the mode used to access the database."
                   name="AccessMode"
-<<<<<<< HEAD
                   typeConverter="AccessMode">3</property>
-=======
-                  typeConverter="AccessMode">0</property>
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                 <property
                   dataType="System.Boolean"
                   description="Indicates whether the values supplied for identity columns will be copied to the destination. If false, values for identity columns will be auto-generated at the destination. Applies only if fast load is turned on."
@@ -2698,11 +1917,7 @@
                 <property
                   dataType="System.String"
                   description="Specifies options to be used with fast load.  Applies only if fast load is turned on."
-<<<<<<< HEAD
                   name="FastLoadOptions">TABLOCK,CHECK_CONSTRAINTS</property>
-=======
-                  name="FastLoadOptions"></property>
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                 <property
                   dataType="System.Int32"
                   description="Specifies when commits are issued during data insertion.  A value of 0 specifies that one commit will be issued at the end of data insertion.  Applies only if fast load is turned on."
@@ -2711,11 +1926,8 @@
               <connections>
                 <connection
                   refId="Package\20170620_CC\OLE DB Destination.Connections[OleDbConnection]"
-<<<<<<< HEAD
                   connectionManagerID="Package.ConnectionManagers[LAPTOP-2NKDA5EJ\SQLSERVERDEV.udemyDataScienceAZ]"
                   connectionManagerRefId="Package.ConnectionManagers[LAPTOP-2NKDA5EJ\SQLSERVERDEV.udemyDataScienceAZ]"
-=======
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                   description="The OLE DB runtime connection used to access the database."
                   name="OleDbConnection" />
               </connections>
@@ -2726,7 +1938,6 @@
                   errorRowDisposition="FailComponent"
                   hasSideEffects="true"
                   name="OLE DB Destination Input">
-<<<<<<< HEAD
                   <inputColumns>
                     <inputColumn
                       refId="Package\20170620_CC\OLE DB Destination.Inputs[OLE DB Destination Input].Columns[Number]"
@@ -3394,10 +2605,6 @@
                       length="1000"
                       name="Column 46" />
                   </externalMetadataColumns>
-=======
-                  <externalMetadataColumns
-                    isUsed="True" />
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                 </input>
               </inputs>
               <outputs>
@@ -3468,31 +2675,20 @@
         <NodeLayout
           Size="170.4,41.6"
           Id="Package\20170620_CC\OLE DB Destination"
-<<<<<<< HEAD
           TopLeft="254.285718616174,144.376472613061" />
-=======
-          TopLeft="354.857148900324,134.588237181667" />
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
         <EdgeLayout
           Id="Package\20170620_CC.Paths[Flat File Source Output]"
           TopLeft="219.200002452305,91.1529418714319">
           <EdgeLayout.Curve>
             <mssgle:Curve
               StartConnector="{assembly:Null}"
-<<<<<<< HEAD
               EndConnector="120.285716163869,53.2235307416289"
               Start="0,0"
               End="120.285716163869,45.7235307416289">
-=======
-              EndConnector="220.857146448019,43.435295310235"
-              Start="0,0"
-              End="220.857146448019,35.935295310235">
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
               <mssgle:Curve.Segments>
                 <mssgle:SegmentCollection
                   Capacity="5">
                   <mssgle:LineSegment
-<<<<<<< HEAD
                     End="0,22.6117653708145" />
                   <mssgle:CubicBezierSegment
                     Point1="0,22.6117653708145"
@@ -3506,21 +2702,6 @@
                     Point3="120.285716163869,30.6117653708145" />
                   <mssgle:LineSegment
                     End="120.285716163869,45.7235307416289" />
-=======
-                    End="0,17.7176476551175" />
-                  <mssgle:CubicBezierSegment
-                    Point1="0,17.7176476551175"
-                    Point2="0,21.7176476551175"
-                    Point3="4,21.7176476551175" />
-                  <mssgle:LineSegment
-                    End="216.857146448019,21.7176476551175" />
-                  <mssgle:CubicBezierSegment
-                    Point1="216.857146448019,21.7176476551175"
-                    Point2="220.857146448019,21.7176476551175"
-                    Point3="220.857146448019,25.7176476551175" />
-                  <mssgle:LineSegment
-                    End="220.857146448019,35.935295310235" />
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
                 </mssgle:SegmentCollection>
               </mssgle:Curve.Segments>
             </mssgle:Curve>
@@ -3532,7 +2713,6 @@
       </GraphLayout>
     </LayoutInfo>
   </TaskHost>
-<<<<<<< HEAD
   <PipelineComponentMetadata
     design-time-name="Package\20170620_CC\OLE DB Destination">
     <Properties>
@@ -3546,7 +2726,5 @@
       </Property>
     </Properties>
   </PipelineComponentMetadata>
-=======
->>>>>>> 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a
 </Objects>]]></DTS:DesignTimeProperties>
 </DTS:Executable>

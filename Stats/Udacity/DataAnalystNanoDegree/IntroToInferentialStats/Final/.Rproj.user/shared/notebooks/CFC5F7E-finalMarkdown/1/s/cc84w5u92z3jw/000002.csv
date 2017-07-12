@@ -1,1 +1,0 @@
-"0","values <- as.vector(read.csv('values.csv')[,2])"
