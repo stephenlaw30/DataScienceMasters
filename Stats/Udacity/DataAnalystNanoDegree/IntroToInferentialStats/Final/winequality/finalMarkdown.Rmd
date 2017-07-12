@@ -1,0 +1,155 @@
+---
+title: "Udacity Intro to Inferential Statistics Final Project - Wine Quality"
+output:
+  html_document: default
+  github_document: default
+  word_document: default
+---
+
+# Analysis of Wine Quality
+
+## Hypothesis Test
+
+Utilizing the **Wine Quality Data Set** from the [UCI Machine Learning Repository.](https://archive.ics.uci.edu/ml/datasets/Wine+Quality), we can do some simple statistic test to find some interesting insights about this data set of wine characteristics.
+
+This is actually 2 datasets, which, respectively, are related to red and white variants of the Portuguese "Vinho Verde" wine, which consists of wine from the Minho region of Portugal. Portugal is currently one of the top exporters of wine in the world.
+
+The data sets contain the same variables, where the inputs/independent variables are physicochemical data, and sensory/output variables are also available (e.g. there is no data about grape type, brand, selling price, etc.).
+
+I was interested in finding out if there's a significant difference in quality of wines with higher alcohol content (a higher **alcohol by volume (ABV) percentage**) compared to the population of wines gathered in these 2 data sets. 
+
+The first thing I did was load in both data sets and merge them together, while also creating a new feature, **isRed**, to signify if a wine was a red or a white, in case I needed this later.
+
+```{r setup, echo = FALSE}
+# load in libraries
+library(ggplot2)
+
+# load in data
+red <- read.csv('winequality-red.csv', sep = ';')
+white <- read.csv('winequality-white.csv',sep = ';')
+
+# create factor for wine color for a combined data set
+red$isRed <- 1
+white$isRed <- 0
+
+# combine data frames
+wine <- rbind(red,white)
+wine$isRed <- as.factor(wine$isRed)
+```
+
+```{r inspect data set, echo = FALSE}
+head(wine)
+sprintf('Number of wines: %i',nrow(wine))
+```
+
+My hypotheses for this data set of 6497 wines were:
+
+* **h(0) = There is no signifcant difference in wine quality between all wines and wines of a higher ABV%**
+* **h(a) = Wines with a higher ABV significantly differ in quality than the population of wines**
+
+My first step after defining my hypotheses was to check the distribution of the **quality** variable of the dataset.
+
+```{r check population, echo = FALSE}
+ggplot(wine) + geom_histogram(aes(x = (quality)),
+                              bins = 6,
+                              fill = 'purple', 
+                              colour = 'black') + 
+  ggtitle('Distribution of Wine Quality Scores') + 
+  xlab('Quality') + 
+  ylab('Count')
+```
+
+I can see that my distribution is generally normal. So I can then find my population parameters, &#956; and &#963;:
+
+```{r create population parameters, echo = FALSE}
+mu <- round(mean(wine$quality),2) # 5.818378
+sigma <- round(sd(wine$quality),2) # 0.8732553
+sprintf('Mu: %f',mu)
+sprintf('Sigma: %f',sigma)
+```
+
+Then, I can create a sample from this population which will consist of of all wines who have a higher alcohol content than the mean alcohol content of the population.
+
+```{r create above average alcohol content sample, echo = FALSE}
+set.seed(15)
+highAlcQuality <- wine$quality[wine$alcohol > mean(wine$alcohol)]
+alcMean <- round(mean(wine$alcohol),2)
+sprintf('Population Mean Alcohol Content: %f',alcMean)
+sprintf('Sample Size: %i',length(highAlcQuality))
+```
+
+So I'd end up with have a sample of 3006 wines, a little less than half of the population, each of whom has an alcohol content is greater than 10.49% ABV.
+
+Now I can check out the distribution of the values of quality for these wines with an above-average alcohol content.
+
+```{r check distribution of sample, echo = FALSE} 
+ggplot() + geom_histogram(aes(x = highAlcQuality), 
+                 bins = 6, 
+                 fill = 'dark red', 
+                 colour = 'black') + 
+  ggtitle('Distribution of Quality of Above-Average Alcohol Content Wine') + 
+  xlab('Quality') +
+  ylab('Count')
+```
+
+By reviewing the original distribution of wine quality from the population, we can see that the distribution of quality is almost a mirror image over the quality value of **6**. 
+
+Both are basically normally distributed, but the population quality distribution resembles a *very slight* right skew, while the sample quality distribution resembles a *very slight* left skew.
+
+Next, we need to calculate the sample statistics, the mean quality score ( x&#772; ) from the sample and the standard error ( &#963;/&#8730;n ). Afterwards, we'd need to calculate the margin of error by multiplying our standard error by the z-critical value of 1.96 for a 95% confidence level. ( &#945; = 0.05 ).
+
+```{r create sample statistics, echo = FALSE}
+x <- mean(highAlcQuality) # 6.184963
+stdErr <- sigma/sqrt(length(highAlcQuality)) # 0.01592747
+# calculate margin of error for z-critical score of 1.96 for 95% confidence
+margErr <- 1.96*stdErr # 0.03121784
+sprintf('x bar: %f',round(x,2))
+sprintf('Std. Error: %f',round(stdErr,2))
+```
+
+We'd then use the x&#772;, &#956;, and standard error to calculate a z-score
+
+```{r create z-score to test if difference is significant, echo = FALSE}
+z <- (x - mu)/(stdErr) # 23.01594
+sprintf('Z: %f',round(z,2))
+```
+
+We can see that our z-score is absurdly higher than our z-critical score, most likely due to our superflourous sample size. 
+
+Therefore, we can reject the null hypotheses that higher ABV wine is the same quality as wine with below average ABV or wine with average ABV In other words, the quality of a higher alcohol by volume wine is significantly different that the quality of the entire population of wine, and this is not likely due to chance.
+
+## Correlation
+
+We can then check to see the relationship between these 2 variables via **correlation**. The first step in this would be to inspect the data via a scatterplot of the two variables.
+
+```{r wine scatterplot, echo = FALSE}
+ggplot() + 
+  geom_point(aes(x = red$alcohol, y = red$quality), 
+             shape = 21, colour = "black", fill = "red", size = 3, stroke = 1) + 
+  geom_point(aes(x = white$alcohol, y = white$quality), 
+             shape = 21, colour = 'black', fill = "white", size = 2, stroke = 1) + 
+  ggtitle('Wine Alcohol Content vs. Wine Quality') + 
+  xlab('Alcohol by Volume (ABV %)') + 
+  ylab('Quality')
+```
+
+So we can see a slight positive linear relationship, but it does not look very strong.
+
+This is possibly due to the thin axes range we are dealing with, or maybe just because the relationship is genuinely not that strong, and there are other factors at play that affect wine quality. It's more than likely we have extraneous factors affecting this quality score that are not even captured in our data set.
+
+But for now, let's check the Pearson Correlation Coefficient ( r ), as well as the Coefficient of Determination ( r&#178; ).
+
+```{r correlation, echo = FALSE}
+wineCorr <- cor(wine$alcohol,wine$quality)
+wineCoeffDet <- cor(wine$alcohol,wine$quality)^2 
+sprintf('r : %f',round(wineCorr,4))
+sprintf('r squared : %f',round(wineCoeffDet,4))
+```
+
+So we can see that we have a moderate positive linear relationship ( r = 0.4443) between the alcohol content of wine and the quality of wine. 
+
+We also see, from our r&#178; value, that only about 19.74% of the variation in the quality of the wine was due to the variation in the ABV percentages of the wine.
+
+So, from the two tests ran above, we can conclude that a higher ABV % of a wine from the Minho region of Portugal *tends* to have be of a higher quality, with a moderately strong positive relationship between the 2 factors. 
+
+Future analysis could include performing the same tests as above, but for another factor instead of ABV, or a comparison of the characteristics of white wine versus red wine.

@@ -1,0 +1,20 @@
+{
+    "collab_server" : "",
+    "contents" : "setwd('C:/Users/NEWNSS/Dropbox/DataScienceMasters/Stats/Udacity/DataAnalystNanoDegree/IntroToInferentialStats/Final/winequality')\n\n# load in libraries\nlibrary(ggplot2)\n\n# load in data\nred <- read.csv('winequality-red.csv', sep = ';')\nwhite <- read.csv('winequality-white.csv',sep = ';')\n\nsummary(red$alcohol)\nsummary(white$alcohol)\n\n# create factor for wine color for a combined data set\nred$isRed <- 1\nwhite$isRed <- 0\n\n# combine data frames\nwine <- rbind(red,white)\nwine$isRed <- as.factor(wine$isRed)\n\n# inspect\nhead(wine)\nsummary(wine)\n\n#***************DOES HIGHER ALCOHOLIC WINE HAVE HIGHER QUALITY?\n\n#h(0) = all wines have same quality (is = mean)\n#h(a) = quality is different if alcohol is higher than average\n# check population\nggplot(wine) + geom_histogram(aes(x = (quality)),\n                              bins = 6,\n                              fill = 'purple', \n                              colour = 'black') + \n  ggtitle('Distribution of Wine Quality Scores') + \n  xlab('Quality') + \n  ylab('Count')\n\n# population parameters\nmu <- mean(wine$quality) # 5.818378\nsigma <- sd(wine$quality) # 0.8732553\n\n# create sample wines with above average alcohol content\nset.seed(15)\nhighAlcQuality <- wine$quality[wine$alcohol > mean(wine$alcohol)]\n\nggplot() +\n  #geom_histogram(aes(x = log(wine$alcohol)), fill = 'blue') +\n  geom_histogram(aes(x = highAlcQuality), \n                 bins = 6, \n                 fill = 'dark red', \n                 colour = 'black') + \n  ggtitle('Distribution of Quality of Above-Average Alcohol Content Wine') + \n  xlab('Quality') +\n  ylab('Count')\n\n# sample statistics\nx <- mean(highAlcQuality) # 6.184963\nstdErr <- sigma/sqrt(length(highAlcQuality)) # 0.01592747\n\n# calculate margin of error for z-critical score of 1.96 for 95% confidence\nmargErr <- 1.96*stdErr # 0.03121784\n\nz <- (x - mu)/(stdErr) # 23.01594\n#reject Null that higher alcoholic wine is the same quality as below average or average\n# i.e. it's significantly different in quality (greater b/c positive z-score)\n\n'*************************************************************************'\n\n\nggplot() + \n  geom_point(aes(x = red$alcohol, y = red$quality), \n             shape = 21, colour = \"black\", fill = \"red\", size = 3, stroke = 1) + \n  geom_point(aes(x = white$alcohol, y = white$quality), \n             shape = 21, colour = 'black', fill = \"white\", size = 2, stroke = 1) + \n  ggtitle('Wine Alcohol Content vs. Wine Quality') + \n  xlab('Alcohol Content') + \n  ylab('Quality')\n\ncor(wine$alcohol,wine$quality) # 0.4443185 = mildly positive linear relationship\ncor(wine$alcohol,wine$quality)^2 # 0.1974189 = 19.74% of variation in quality is due to variation in alcohol %\n\n'.\tEven if 2 variables appear to be related after looking at the data, it could just be due to chance\n.\tThe actual population might not have this relationship\n.\tOr vice versa, where the population has a relationship but a sample from it does not\n.\tThings like this happen due to sampling error, which can be reduced w/ larger sample sizes\n'\n#test w/ a linear regression model\nsummary(lm(quality~alcohol,wine))\n#see that alcohol is very significant w/ a very small p-value, so this relationship is statistically significant,\n# but is not very strong, as there are plenty of other factors which may as well be affecting quality of the wine",
+    "created" : 1499730201911.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2107461651",
+    "id" : "E72AD4B8",
+    "lastKnownWriteTime" : 1499783277,
+    "last_content_update" : 1499783277041,
+    "path" : "C:/Users/NEWNSS/Dropbox/DataScienceMasters/Stats/Udacity/DataAnalystNanoDegree/IntroToInferentialStats/Final/winequality/wine_exploration.R",
+    "project_path" : "wine_exploration.R",
+    "properties" : {
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
