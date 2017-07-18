@@ -17,17 +17,27 @@ setwd('C:/Users/NEWNSS/Dropbox/DataScienceMasters/MachineLearning/Udemy/02_Multi
 # library for splitting data
 library(caTools)
 
+# inspect
 startups <- read.csv('50_Startups.csv')
 head(startups)
 summary(startups)
-dim(start)
+dim(startups)
 
+# encode categorical data (State)
+startups$State <- factor(startups$State, 
+                         levels = c('New York', 'California', 'Florida'),
+                         labels = c(1,2,3))
+
+head(startups)
+
+# split data
 set.seed(123)
+spl <- sample.split(startups$Profit, SplitRatio = .8) # 40 in train, 10 in test
+training <- subset(startups, spl == T)
+test <- subset(startups, spl == F)
 
-# get 10 obs in test, 20 in training
-spl <- sample.split(salary$YearsExperience, SplitRatio = 2/3)
-training <- subset(salary, spl == T)
-test <- subset(salary, spl == F)
+dim(training)
+dim(test)
 
 
 simpleModel1 <- lm(Salary ~ YearsExperience, training)
