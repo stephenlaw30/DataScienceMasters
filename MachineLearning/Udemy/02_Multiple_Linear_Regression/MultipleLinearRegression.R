@@ -140,3 +140,22 @@ summary(regressor.noStateAdmin)
 
 summary(regressor.RD)
 # so we only have 1 variable + its significant, but Adj R2 has decreased (.9468 -> .9434)
+
+'********USE FINAL MODEL ON ACTUAL DATASET**************'
+
+finalModel.RD <- lm(Profit ~ R.D.Spend, startups)
+summary(finalModel.RD)
+'Residuals:
+   Min     1Q Median     3Q    Max 
+-34351  -4626   -375   6249  17188 
+
+Coefficients:
+             Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 4.903e+04  2.538e+03   19.32   <2e-16 ***
+R.D.Spend   8.543e-01  2.931e-02   29.15   <2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 9416 on 48 degrees of freedom
+Multiple R-squared:  0.9465,	Adjusted R-squared:  0.9454 
+F-statistic: 849.8 on 1 and 48 DF,  p-value: < 2.2e-16'
