@@ -1,5 +1,4 @@
 beer_style,beer_origin
-Altbier,German
 American Adjunct Lager,American
 American Amber / Red Ale,American
 American Amber / Red Lager,American
@@ -20,27 +19,31 @@ American Porter,American
 American Stout,American
 American Strong Ale,American
 American Wild Ale,American
+California Common / Steam Beer,American
+Pumpkin Ale,American
+Wheatwine,American
+Cream Ale,American
+Vienna Lager,Austrian
 Baltic Porter,Baltic
+Kvass,Baltic
 Belgian Dark Ale,Belgian
 Belgian IPA,Belgian
 Belgian Pale Ale,Belgian
 Belgian Strong Dark Ale,Belgian
 Belgian Strong Pale Ale,Belgian
-Berliner Weissbier,German
-Biere de Champagne / Biere Brut,French
-Biere de Garde,French
+Dunkelweizen,Belgian
+Faro,Belgian
+Flanders Oud Bruin,Belgian
+Flanders Red Ale,Belgian
+Gueuze,Belgian
+Lambic - Fruit,Belgian
+Lambic - Unblended,Belgian
+Quadrupel (Quad),Belgian
+Saison / Farmhouse Ale,Belgian
+Tripel,Belgian
+Witbier,Belgian
 Black & Tan,British
-Bock,German
 Braggot,British
-California Common / Steam Beer,American
-Chile Beer,General 
-Cream Ale,American 
-Czech Pilsener,Czech 
-Doppelbock,German
-Dortmunder / Export Lager,German
-Dubbel,German
-Dunkelweizen,Belgian 
-Eisbock,German
 English Barleywine,British
 English Bitter,British
 English Brown Ale,British
@@ -51,55 +54,52 @@ English Pale Mild Ale,British
 English Porter,British
 English Stout,British
 English Strong Ale,British
+Extra Special / Strong Bitter (ESB),British
+Milk / Sweet Stout,British
+Oatmeal Stout,British
+Old Ale,British
+Czech Pilsener,Czech
+Sahti,Finnish
+Biere de Champagne / Biere Brut,French
+Biere de Garde,French
+Chile Beer,General 
+Fruit / Vegetable Beer,General 
+Herbed / Spiced Beer,General 
+Light Lager,General 
+Low Alcohol Beer,General 
+Smoked Beer,General 
+Winter Warmer,General 
+Altbier,German
+Berliner Weissbier,German
+Bock,German
+Doppelbock,German
+Dortmunder / Export Lager,German
+Dubbel,German
+Eisbock,German
 Euro Dark Lager,German
 Euro Pale Lager,German
 Euro Strong Lager,German
-Extra Special / Strong Bitter (ESB),British
-Faro,Belgian 
-Flanders Oud Bruin,Belgian 
-Flanders Red Ale,Belgian 
-Foreign / Export Stout,Irish 
-Fruit / Vegetable Beer,General 
 German Pilsener,German
 Gose,German
-Gueuze,Belgian 
-Happoshu,Japanese
 Hefeweizen,German
-Herbed / Spiced Beer,General 
-Irish Dry Stout,Irish 
-Irish Red Ale,Irish 
-Japanese Rice Lager,Japanese
 Keller Bier / Zwickel Bier,German
 Kristalweizen,German
-Kvass,Baltic
 Kölsch,German
-Lambic - Fruit,Belgian 
-Lambic - Unblended,Belgian 
-Light Lager,General 
-Low Alcohol Beer,General 
 Maibock / Helles Bock,German
-Milk / Sweet Stout,British
 Munich Dunkel Lager,German
 Munich Helles Lager,German
 Marzen / Oktoberfest,German
-Oatmeal Stout,British
-Old Ale,British
-Pumpkin Ale,American
-Quadrupel (Quad),Belgian 
 Rauchbier,German
 Roggenbier,German
-Russian Imperial Stout,Russian
 Rye Beer,German
-Sahti,Finnish
-Saison / Farmhouse Ale,Belgian 
 Schwarzbier,German
+Weizenbock,German
+Foreign / Export Stout,Irish
+Irish Dry Stout,Irish
+Irish Red Ale,Irish
+Happoshu,Japanese
+Japanese Rice Lager,Japanese
+Russian Imperial Stout,Russian
 Scotch Ale / Wee Heavy,Scottish
 Scottish Ale,Scottish
 Scottish Gruit / Ancient Herbed Ale,Scottish
-Smoked Beer,General 
-Tripel,Belgian 
-Vienna Lager,Austrian
-Weizenbock,German
-Wheatwine,American
-Winter Warmer,General 
-Witbier,Belgian 
