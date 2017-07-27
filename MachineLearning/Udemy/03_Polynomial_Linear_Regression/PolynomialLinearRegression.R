@@ -191,7 +191,7 @@ final_y_predict_lr <- predict(lin_reg, single_prediction_lin_reg)
 # 330378.8 --> predicts that his salary was over $330k and now he's asking for less, which is good for us, but not accurate
 
 
-## predict a single new result with POlynomial Linear Regression
+## predict a single new result with Polynomial Linear Regression
 
 single_prediction_poly_reg <- data.frame(Level = 6.5, level_sq = 6.5^2, level_cub = 6.5^3, level_quart = 6.5^4)
 
