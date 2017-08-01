@@ -1,27 +1,15 @@
 # Decision Tree Regression
+install.packages('dyplr')
+library(dplyr)
 
-# Importing the dataset
-dataset = read.csv('Position_Salaries.csv')
-dataset = dataset[2:3]
+salaries <- read.csv('Position_Salaries.csv')
+salaries <- salaries[,2:3]
 
-# Splitting the dataset into the Training set and Test set
-# # install.packages('caTools')
-# library(caTools)
-# set.seed(123)
-# split = sample.split(dataset$Salary, SplitRatio = 2/3)
-# training_set = subset(dataset, split == TRUE)
-# test_set = subset(dataset, split == FALSE)
-
-# Feature Scaling
-# training_set = scale(training_set)
-# test_set = scale(test_set)
-
-# Fitting Decision Tree Regression to the dataset
-# install.packages('rpart')
+#*************Fitting Decision Tree Regression to the dataset***********
 library(rpart)
-regressor = rpart(formula = Salary ~ .,
-                  data = dataset,
-                  control = rpart.control(minsplit = 1))
+
+# set minimum # of splits to 1
+dt_model = rpart(Salary ~ ., salaries, control = rpart.control(minsplit = 1))
 
 # Predicting a new result with Decision Tree Regression
 y_pred = predict(regressor, data.frame(Level = 6.5))
@@ -29,6 +17,13 @@ y_pred = predict(regressor, data.frame(Level = 6.5))
 # Visualising the Decision Tree Regression results (higher resolution)
 # install.packages('ggplot2')
 library(ggplot2)
+
+squared_plot <- ggplot(new_salaries) + 
+  geom_point(aes(Level, Salary), colour = 'blue') + # plot points
+  geom_line(aes(Level, y.pred), colour = 'red') + # plot regression line
+  xlab('Levels') +
+  ggtitle('Truth or Bluff (Squared Polynomial Regression)')
+
 x_grid = seq(min(dataset$Level), max(dataset$Level), 0.01)
 ggplot() +
   geom_point(aes(x = dataset$Level, y = dataset$Salary),
