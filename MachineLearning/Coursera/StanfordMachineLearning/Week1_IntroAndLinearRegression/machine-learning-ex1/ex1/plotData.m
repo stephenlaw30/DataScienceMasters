@@ -20,21 +20,10 @@ figure; % open a new figure window
 % The chain already has trucks in various cities and you have data for proﬁts and populations from the cities.
 % You would like to use this data to help you select which city to expand to next. 
 
-%% LOAD IN DATA
-%data = load('ex1data1.txt')
-
-%% SEPERATE PREDICTOR FROM OUTCOME
-%X = data(:,1);
-%y = data(:,2);
-
-%% STORE # OF DATA POINTS
-
-%m = length(y);
-
-%% CREATE SCATTERPLOT OF DATA OF RED CROSSES OF SIZE 10
 plot(x, y, 'rx', 'MarkerSize', 10);
-ylabel('Profit in $10,000s')
-xlabel('Population of City in 10,000s')
+
+ylabel('Profit in $10,000s'); % Set the y-axis label 
+xlabel('Population of City in 10,000s'); % Set the x-axis label 
 
 % ============================================================
 

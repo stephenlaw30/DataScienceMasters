@@ -38,8 +38,15 @@ pause;
 
 %% ======================= Part 2: Plotting =======================
 fprintf('Plotting Data ...\n')
+
+%%LOAD IN DATA
 data = load('ex1data1.txt');
-X = data(:, 1); y = data(:, 2);
+
+%% SEPERATE OUT PREDICTOR AND OUTCOME
+X = data(:, 1); 
+y = data(:, 2);
+
+%%GET NUMBER OF TRAINING EXAMPLES
 m = length(y); % number of training examples
 
 % Plot Data
@@ -59,6 +66,7 @@ iterations = 1500;
 alpha = 0.01;
 
 fprintf('\nTesting the cost function ...\n')
+
 % compute and display initial cost
 J = computeCost(X, y, theta);
 fprintf('With theta = [0 ; 0]\nCost computed = %f\n', J);
