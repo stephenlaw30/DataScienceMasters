@@ -12,7 +12,8 @@ Therefore, the VC will now which new companies they would want to invest in.
 This will also depend on if the VC is more concerned with each of the spends,
 and which would yield more profits.'
 
-setwd('C:/Users/NEWNSS/Dropbox/DataScienceMasters/MachineLearning/Udemy/02_Multiple_Linear_Regression')
+#setwd('C:/Users/NEWNSS/Dropbox/DataScienceMasters/MachineLearning/Udemy/02_Multiple_Linear_Regression')
+setwd('C:/Users/Nimz/Dropbox/DataScienceMasters/MachineLearning/Udemy/02_Multiple_Linear_Regression')
 
 # library for splitting data
 library(caTools)
@@ -56,7 +57,6 @@ Marketing.Spend  3.268e-02  2.127e-02   1.537    0.134
 State2           1.213e+02  3.751e+03   0.032    0.974    
 State3           2.376e+02  4.127e+03   0.058    0.954    
 ---
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Residual standard error: 9908 on 34 degrees of freedom
 Multiple R-squared:  0.9499,	Adjusted R-squared:  0.9425 
@@ -80,7 +80,6 @@ Estimate Std. Error t value Pr(>|t|)
 (Intercept) 4.902e+04  2.748e+03   17.84   <2e-16 ***
 R.D.Spend   8.563e-01  3.357e-02   25.51   <2e-16 ***
 ---
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Residual standard error: 9836 on 38 degrees of freedom
 Multiple R-squared:  0.9448,	Adjusted R-squared:  0.9434 
@@ -154,7 +153,6 @@ Coefficients:
 (Intercept) 4.903e+04  2.538e+03   19.32   <2e-16 ***
 R.D.Spend   8.543e-01  2.931e-02   29.15   <2e-16 ***
 ---
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Residual standard error: 9416 on 48 degrees of freedom
 Multiple R-squared:  0.9465,	Adjusted R-squared:  0.9454 
