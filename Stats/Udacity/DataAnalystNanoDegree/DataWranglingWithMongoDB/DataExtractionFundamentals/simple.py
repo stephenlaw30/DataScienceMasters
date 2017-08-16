@@ -16,6 +16,10 @@
 
 # Field names and values should not contain extra whitespace, like spaces or newline characters (strip())
 
+
+###***DictReader() from csv module will assume 1st row of the given file is the header row 
+###***Then reads through each following row and creates a dictionary with keys = header fields
+
 import os
 
 DATADIR = ""
