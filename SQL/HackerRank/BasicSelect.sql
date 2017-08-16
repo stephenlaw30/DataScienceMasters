@@ -41,3 +41,38 @@ SELECT TOP 1 CITY, MIN(LEN(CITY)) FROM STATION
 GROUP BY CITY
 ORDER BY MIN(LEN(CITY)), CITY ASC;
 
+--Query CITY names starting with vowels (i.e., a, e, i, o, or u) from STATION (result cannot contain duplicates)
+SELECT DISTINCT CITY FROM STATION WHERE LOWER(LEFT(CITY,1)) IN ('a','e','i','o','u')
+
+--Query CITY names ending with vowels (i.e., a, e, i, o, or u) from STATION (result cannot contain duplicates)
+SELECT DISTINCT CITY FROM STATION WHERE LOWER(RIGHT(CITY,1)) IN ('a','e','i','o','u')
+
+--Query CITY names ending AND starting with vowels (i.e., a, e, i, o, or u) from STATION (result cannot contain duplicates)
+SELECT DISTINCT CITY FROM STATION WHERE LOWER(RIGHT(CITY,1)) IN ('a','e','i','o','u') AND LOWER(LEFT(CITY,1)) IN ('a','e','i','o','u')
+
+--Query CITY names NOT starting with vowels (i.e., a, e, i, o, or u) from STATION (result cannot contain duplicates)
+SELECT DISTINCT CITY FROM STATION WHERE LOWER(LEFT(CITY,1)) NOT IN ('a','e','i','o','u')
+
+--Query CITY names NOT ending with vowels (i.e., a, e, i, o, or u) from STATION (result cannot contain duplicates)
+SELECT DISTINCT CITY FROM STATION WHERE LOWER(RIGHT(CITY,1)) NOT IN ('a','e','i','o','u')
+
+--Query CITY names NOT ending OR starting with vowels (i.e., a, e, i, o, or u) from STATION (result cannot contain duplicates)
+SELECT DISTINCT CITY FROM STATION WHERE LOWER(RIGHT(CITY,1)) NOT IN ('a','e','i','o','u') 
+OR LOWER(LEFT(CITY,1)) NOT IN ('a','e','i','o','u')
+
+--Query CITY names NOT ending AND NOT starting with vowels (i.e., a, e, i, o, or u) from STATION (result cannot contain duplicates)
+SELECT DISTINCT CITY FROM STATION WHERE LOWER(RIGHT(CITY,1)) NOT IN ('a','e','i','o','u') 
+AND LOWER(LEFT(CITY,1)) NOT IN ('a','e','i','o','u')
+
+--Query Names students in STUDENTS who scored higher than 75 Marks. 
+--Order output by the last 3 characters of each name. 
+--If 2+ more students both have names ending in the same last 3 characters (Bobby, Robby, etc.), secondary sort by ascending ID.
+SELECT NAME FROM STUDENTS WHERE MARKS > 75
+ORDER BY RIGHT(NAME,3), ID ASC
+
+--Prints list of employee names from the Employee table in alphabetical order.
+SELECT NAME FROM EMPLOYEE ORDER BY NAME
+
+--Print list of employees with salary >= $2k per month who have been employees for < 10 months, sorted by ascending employee_id.
+SELECT NAME FROM EMPLOYEE WHERE SALARY >= 2000 AND MONTHS < 10
+ORDER BY EMPLOYEE_ID ASC
