@@ -30,25 +30,25 @@ if n % 2 != 0:
   q2 = x[(n-1)//2]
   
   # get index to split array down middle
-  splitIndex = (n+1)/2;
+  splitIndex = (n+1)//2;
   
   # get q1 from 1st half of array
-  firstHalf = x[:splitIndex]
+  firstHalf = x[:splitIndex-1]
   m = len(firstHalf)
 
   if m % 2 != 0:
-    q1 = firstHalf[(m-1)//2]
+    q1 = float(firstHalf[(m-1)//2])
   else:
-    q1 = ((firstHalf[(m//2)-1])+(firstHalf[(m//2)]))/2;
+    q1 = float(((firstHalf[(m//2)-1])+(firstHalf[(m//2)]))/2)
 
   # get q3 from 2nd half of array
-  secondHalf = x[splitIndex+1:]
+  secondHalf = x[splitIndex:]
   o = len(secondHalf)
 
   if o % 2 != 0:
-    q3 = secondHalf[(o-1)//2]
+    q3 = float(secondHalf[(o-1)//2])
   else:
-    q3 = ((secondHalf[(o//2)-1])+(secondHalf[(o//2)]))/2;  
+    q3 = float(((secondHalf[(o//2)-1])+(secondHalf[(o//2)]))/2)
 
 # If number of elements in array is even
 else:
@@ -61,21 +61,21 @@ else:
   m = len(firstHalf)
 
   if m % 2 != 0:
-    q1 = firstHalf[(m-1)//2]
+    q1 = float(firstHalf[(m-1)//2])
   else:
-    q1 = ((firstHalf[(m//2)-1])+(firstHalf[(m//2)]))/2;
+    q1 = float(((firstHalf[(m//2)-1])+(firstHalf[(m//2)]))/2)
 
   # get q3 from 2nd half of array
   secondHalf = x[splitIndex:]
   o = len(secondHalf)
 
   if o % 2 != 0:
-    q3 = secondHalf[(o-1)/2]
+    q3 = float(secondHalf[(o-1)//2])
   else:
-    q3 = ((secondHalf[(o//2)-1])+(secondHalf[(o//2)]))/2;  
+    q3 = float(((secondHalf[(o//2)-1])+(secondHalf[(o//2)]))/2)
 
-print(q3)
-print(q1)
+#print(q3)
+#print(q1)
 iqr = q3 - q1
 print(iqr)
   

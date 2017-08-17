@@ -1,0 +1,45 @@
+Task 
+In a single toss of  fair (evenly-weighted) six-sided dice, find the probability that their sum will be at most 9.
+
+# of unfavorable outcomes = 6
+	- 4+6
+	- 6+4
+	- 5+5
+	- 5+6
+	- 6+5
+	- 6+6
+		
+
+# of outcomes
+	- (6 outcomes for 1st die)*(6 outcomes for 2nd die) = 36 outcomes
+	
+P = favorable outcomes/total outcomes = 30 / 36 = 5/6
+	
+	
+In a single toss of  fair (evenly-weighted) six-sided dice, find the probability that the values rolled by each die will be different and the two dice have a sum of 6.
+
+# of favorable outcomes
+	- 5+1
+	- 1+5
+	- 2+4
+	- 4+2
+
+# of outcomes
+	- (6 outcomes for 1st die)*(6 outcomes for 2nd die) = 36 outcomes
+	
+P = favorable outcomes/total outcomes = 4 / 36 = 1/9
+
+There are 3 urns labeled X, Y, and Z. 
+
+Urn X contains 4 red balls and 3 black balls.
+Urn Y contains 5 red balls and 4 black balls.
+Urn Z contains 4 red balls and 4 black balls. 
+
+One ball is drawn from each of the 3 urns. What is the probability that, of the 3 balls drawn, 2 are red and 1 is black?
+
+- the probability of the union of disjoint events each formed from the intersection of independent events.
+
+- Add up the probabilities of all mutually exclusive cases	
+	= RRB + RBR + BRR
+	= (4/7)*(5/9)*(1/2) + (4/7)*(4/9)*(1/2) + (3/7)*(5/9)*(1/2)
+
