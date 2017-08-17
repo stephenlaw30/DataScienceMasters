@@ -3,7 +3,6 @@
 ## Part IIIV - Working with Data
 
 ### Chapter 5 - Descriptive Stats
-#### 5.6 - Standard Scores'
+#### 5.8 - Missing Values'
 
-#a theoretical percentile rank for a score based on a z-score of 3.6
-pnorm(3.6)
+partial <- c(10, 20, NA, 30)
