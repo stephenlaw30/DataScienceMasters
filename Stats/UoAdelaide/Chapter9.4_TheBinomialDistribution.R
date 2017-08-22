@@ -50,6 +50,6 @@ ggplot() + geom_histogram(aes(t.3), bins = 10)
 #generating 2 chi-square variables w/ dF = 3 + dF = 20 via ratio of 2 chi-sq distributions
 chi.sq.20 <- rchisq( 1000, 20) 
 scaled.chi.sq.20 <- chi.sq.20 / 20
-F.3.20 <- scaled.chi.sq.3 / scaled.chi.sq.20
-> hist( F.3.20 ) # ... and draw a picture
+F.3.20 <- scaled.chisq.3 / scaled.chi.sq.20
+ggplot() + geom_histogram(aes(F.3.20))
 
