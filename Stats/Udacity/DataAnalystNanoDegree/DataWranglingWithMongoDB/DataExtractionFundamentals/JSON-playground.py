@@ -8,8 +8,8 @@ Different items can have different fields (i.e. record certifications can have m
 
 JSON data is usually encountered via a WEB SERVICE which is a database we can access via a HTTP requests + a query
 
-Queries are formulated as URLs
-
+Queries are formulated as URLs with a base URL (musicbrainz in this case) + specified entities for specific data we want 
+back (artist in this case), with some additional parameters for which features/metadata we want
 
 
 """
@@ -22,7 +22,7 @@ BASE_URL = "http://musicbrainz.org/ws/2/"
 ARTIST_URL = BASE_URL + "artist/"
 
 
-# QUERY PARAMETERS are given to the requests.get()function as a dictionary
+# QUERY PARAMETERS are given to the requests.get() function as a dictionary
 # This variable contains some starter parameters.
 query_type = {  "simple": {},
                 "atr": {"inc": "aliases+tags+ratings"},
