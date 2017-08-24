@@ -11,6 +11,11 @@ JSON data is usually encountered via a WEB SERVICE which is a database we can ac
 Queries are formulated as URLs with a base URL (musicbrainz in this case) + specified entities for specific data we want 
 back (artist in this case), with some additional parameters for which features/metadata we want
 
+Need unique identifier for an artist (will come up over and over for course)
+
+Send out search query for an artist + process returned results to get the ID for that artist + then request specific
+info about that artist w/ the ID
+
 
 """
 import json
@@ -30,14 +35,17 @@ query_type = {  "simple": {},
                 "releases": {"inc": "releases"}}
 
 # need unique identifier of artist to get their data
-def query_site(url, params, uid="", fmt="json"):
+def query_site(url, params, uid = "", fmt = "json"):
     """
-    This is the main function for making queries to the musicbrainz API which should return a JSON document.
+    Main function for making queries to musicbrainz API - should return a JSON document.
     """
     params["fmt"] = fmt
-    r = requests.get(url + uid, params=params)
+	# returned request JSON object
+    r = requests.get(url + uid, params = params)
+	# message to user
     print "requesting", r.url
-
+	
+	# check that request went through
     if r.status_code == requests.codes.ok:
         return r.json()
     else:
@@ -46,19 +54,19 @@ def query_site(url, params, uid="", fmt="json"):
 
 def query_by_name(url, params, name):
     """
-    Adds artist name to the query parameters before making an API call to query_site()
+    Adds given artist name to given url + query parameters before making API call to the JSON returned from query_site()
     """
     params["query"] = "artist:" + name
     return query_site(url, params)
 
 
-def pretty_print(data, indent=4):
+def pretty_print(data, indent = 4):
     """
-    After we get our output, we can use this function to format it to be more
-    readable.
+    Format output to be more readable.
     """
     if type(data) == dict:
-        print json.dumps(data, indent=indent, sort_keys=True)
+	# convert JSON
+        print json.dumps(data, indent = indent, sort_keys = True)
     else:
         print data
 
@@ -79,18 +87,18 @@ def main():
     results = query_by_name(ARTIST_URL, query_type["simple"], "Nirvana")
     pretty_print(results)
 
-    # Isolate information from the 4th band returned (index 3)
+    # Isolate info from the 4th band returned (index 3) in the artists dictionary (JSON object returned)
     print "\nARTIST:"
     pretty_print(results["artists"][3])
 
-    # Query for releases from that band using the artist_id
+    # Query for releases from that band using the artist_id value in the array
     artist_id = results["artists"][3]["id"]
     artist_data = query_site(ARTIST_URL, query_type["releases"], artist_id)
     releases = artist_data["releases"]
 
-    # Print information about releases from the selected band
+    # Print info about releases from the selected band
     print "\nONE RELEASE:"
-    pretty_print(releases[0], indent=2)
+    pretty_print(releases[0], indent = 2)
 
     release_titles = [r["title"] for r in releases]
     print "\nALL TITLES:"
