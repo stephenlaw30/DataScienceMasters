@@ -1,0 +1,1 @@
+probabilities <- c(clubs = .25, diamonds = .25, hearts = .25, spades = .25)
