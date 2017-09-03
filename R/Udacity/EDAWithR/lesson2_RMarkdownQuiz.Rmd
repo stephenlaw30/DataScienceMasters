@@ -1,0 +1,133 @@
+---
+title: "demystifyingR2"
+author: "Steve Newns"
+date: "September 3, 2017"
+output: html_document
+---
+Demystifying R Part 2
+========================================================
+
+1. Run the following command to see what it does.
+```{r}
+summary(mtcars)
+```
+
+2. In 2013, the average mpg for a car was 23 mpg. The car models in mtcars come from 1973-1974.
+Subset the data so that you create a new data frame that contains cars get 23+ mpg
+```{r}
+efficient <- subset(mtcars, mpg > 23)
+summary(efficient)
+```
+
+3. How many cars get more than 23 mpg? 
+```{r}
+dim(efficient)
+```
+
+4. We can also use logical operators to find out which car(s) get > 30 mpg and have more than 100 raw horsepower.
+```{r}
+subset(mtcars, mpg > 30 & hp > 100)
+```
+
+There's only one car that gets more than 30 mpg and 100 hp.
+
+5. What do you think this code does? --> subsets for cars that have < 14 mpg OR > 390 displacement
+```{r}
+subset(mtcars, mpg < 14 | disp > 390)
+```
+
+6. Print cars that have a 1/4 mile time (qsec) <= 16.90 seconds to the console.
+```{r}
+subset(mtcars, qsec <= 16.9)
+```
+
+7. Save subset of cars that weigh under 2k lbs (measured in lb/1000) to a variable called lightCars. 
+Print the numbers of cars and the subset to the console.
+```{r}
+lightCars <- subset(mtcars, wt < 2)
+nrow(lightCars)
+```
+
+8. You can also create new variables in a data frame. Create a variable mtcars$year + assume all of models were from 1974.
+Run the code below.
+```{r}
+library(tidyverse)
+mtcars <- mtcars %>%
+  mutate(year = 1974)
+head(mtcars)
+```
+
+Notice the # of variables changed in the work space.
+
+To drop a variable, subset the data frame and select the variable you
+want to drop with a negative sign in front of it.
+```{r}
+mtcars <- subset(mtcars, select = -year)
+head(mtcars)
+```
+
+Or use tidyverse
+```{r}
+mtcars <- mtcars %>%
+  mutate(year = 1974)
+head(mtcars)
+```
+
+```{r}
+mtcars <- mtcars %>%
+  mutate(year = NULL)
+head(mtcars)
+```
+
+Notice, we are back to 11 variables in the data frame.
+
+9. What do you think this code does? --> adds 2 years to each record, duplicating the record so it has both year values
+```{r}
+mtcars$year <- c(1973, 1974)
+```
+
+Open the table of values to see what values year takes on.
+```{r}
+head(mtcars)
+```
+Drop the year variable from the data set.
+```{r}
+mtcars <- mtcars %>%
+  mutate(year = NULL)
+head(mtcars)
+```
+
+
+10. Preview of ifelse()
+```{r}
+#all weights
+mtcars$wt
+
+# logical vector of T/F for if a car is> 3000 pounds
+cond <- mtcars$wt < 3
+cond
+
+# for each elemen in new weight class variable, if condition = True, make it light, if not make it average
+mtcars$weight_class <- ifelse(cond, 'light', 'average')
+mtcars$weight_class
+
+# make condition a higher weight
+cond <- mtcars$wt > 3.5
+# if an average car > 3500 lbs, make it heavy, if not leave it
+mtcars$weight_class <- ifelse(cond, 'heavy', mtcars$weight_class)
+mtcars$weight_class
+```
+
+Be careful that you don't bring in too much data into R at once since R holds all data in working memory.
+
+```{r}
+rm(cond)
+rm(efficient)
+```
+
+
+Which car(s) have an mpg >= 30 OR horsepower < 60
+```{r}
+data("mtcars")
+subset(mtcars, mpg >= 30 | hp < 60)
+```
