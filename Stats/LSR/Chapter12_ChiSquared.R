@@ -1,3 +1,4 @@
+setwd('C:/Users/Nimz/Dropbox/DataScienceMasters/Stats/LSR/sample-master')
 probabilities <- c(clubs = .25, diamonds = .25, hearts = .25, spades = .25)
 
 # calculate expected frequencies if null (probability of all suites are equal) were true
@@ -52,3 +53,21 @@ xtabs(~ choice + species, chapek9)
 # chi-squared association test
 library(lsr)
 associationTest(~ choice + species, chapek9)
+
+'***************************************************************************************************'
+
+# measure of effect
+cramersV(xtabs(~ choice + species, chapek9))
+
+'***************************************************************************************************'
+
+# base R chi-sq goodness of fit
+observed.i
+
+chisq.test(observed.i)
+
+# specify new null
+chisq.test(observed.i, p = nullProbs)
+
+# test of independence (use cross-tabulation instead of frequency table)
+chisq.test(xtabs(~ choice + species, chapek9))
