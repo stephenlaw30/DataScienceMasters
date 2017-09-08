@@ -333,3 +333,29 @@ ggplot(subset(facebook, !is.na(gender))) +
 
 by(facebook$friendships_initiated, facebook$gender, summary)
 # females barely
+
+'******************************************************************************************************'
+                                          'LOGICAL'
+'******************************************************************************************************'
+# often want to convert variables w/ many 0 values into a binary variable
+# helpful to find out if a user has actually used a certain feature instead of how many times they 
+#   actually used it
+summary(facebook$mobile_likes)
+# see median is 4 but looking at the mean + max, it tells us we have a lot of 0 values in the dataset
+
+table(facebook$mobile_likes == 0)
+#summary(facebook$mobile_likes > 0)
+# see that 35k users have no mobile likes
+
+# create new variable to see if users had a mobile check-in
+library(forcats)
+facebook <- facebook %>% 
+  mutate(mobile_check_in = ifelse(mobile_likes > 0,TRUE,FALSE)) %>%
+  mutate(factor(mobile_check_in))
+
+#check
+glimpse(facebook)
+table(facebook$mobile_check_in)
+
+# % of users who have a mobile check-in
+sum(facebook$mobile_check_in)/nrow(facebook)*100
