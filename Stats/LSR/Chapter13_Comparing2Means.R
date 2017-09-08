@@ -4,9 +4,25 @@ grades
 mean(grades)
 #higher than class average of 67.5
 
+# 1
 x_bar <- mean(grades)
 
-sig_true <- 9.5
-mu_null <- 6.75
+# 2
+sig_true <- 9.5 # true SD from assumptions
+mu_null <- 67.5 # mean that null (H0) specifies
 
-n = length(grades)
+# 3
+n = length(grades) # sample size
+
+# 4
+sem <- sig_true / sqrt(n)
+
+# 5
+z <- (x_bar - mu_null) / sem
+# 2.2596
+
+# calculate p-value
+upper.area <- pnorm(q = z, lower.tail = FALSE) # lower.tail = F ==> calculate AUC from 2.26 upwards
+lower.area <- pnorm(q = -z, lower.tail = TRUE)
+p.value <- lower.area + upper.area 
+#0.02384574
