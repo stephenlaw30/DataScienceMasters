@@ -26,3 +26,11 @@ upper.area <- pnorm(q = z, lower.tail = FALSE) # lower.tail = F ==> calculate AU
 lower.area <- pnorm(q = -z, lower.tail = TRUE)
 p.value <- lower.area + upper.area 
 #0.02384574
+
+
+'**********************************************************************************************'
+'1 sample t-test'
+'**********************************************************************************************'
+# estimate of pop SD, sigma
+sd(grades)
+
