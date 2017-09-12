@@ -1,3 +1,4 @@
+setwd('C:/Users/NEWNSS/Dropbox/DataScienceMasters/R/Udacity/EDAWithR/lesson3')
 library(ggplot2)
 data(diamonds)
 
@@ -100,3 +101,28 @@ ggplot(diamonds) +
   geom_freqpoly(aes(x = carat, binwidth = .01)) + 
   scale_x_continuous(limits = c(0,3), breaks = seq(0,5,.1))
 table(diamonds$carat) > 2000
+# counts of carat sizes of 0.1, 0.8, 2.9, 3.0, & 5.0 are under 2k, while 0.3 and 1.01 are > 2k
+
+'****************************GAPMINDER****************************'
+# download a data set of your choice + create 2-5 plots that make use of the techniques from Lesson 3.
+# ====================================================================================
+forest <- read.csv("forest_land.csv")
+
+forest <- forest %>%
+  rename("Country" = Forest.area..sq..km.) %>%
+  select(c("Country","X1990","X2000","X2005","X2010")) 
+
+forest[is.na(forest)] <- 0
+
+glimpse(forest)
+forest <- forest %>%
+  arrange(desc(X2010))
+
+top_10 <- forest[1:10,]
+
+# top 10 largest sq km of forest
+ggplot(top_10) +
+  geom_boxplot(aes(Country, X2010)) +
+  coord_cartesian(ylim = c(0,6000))
+# relatively similar, while H is highest median, and E is lowest median
+by(diamonds$price/diamonds$carat,diamonds$color,summary)
