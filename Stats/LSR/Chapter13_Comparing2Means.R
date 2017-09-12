@@ -34,3 +34,5 @@ p.value <- lower.area + upper.area
 # estimate of pop SD, sigma
 sd(grades)
 
+library(lsr)
+oneSampleTTest(x = grades, mu = 67.5) 
