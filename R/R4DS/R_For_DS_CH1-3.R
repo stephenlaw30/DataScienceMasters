@@ -1,4 +1,5 @@
-s#R for Data Science
+#R for Data Science
+library(ggplot2)
 library(tidyverse)
 #tidyverse_update()
 
@@ -198,3 +199,135 @@ ggplot(mpg, aes(displ, hwy)) +
   geom_point(aes(color = class)) +
   # subset data for smooth line for this layer only
   geom_smooth(data = filter(mpg, class == 'subcompact'), se = FALSE)
+
+'***************************3.6 Exercises***************************'
+## What geom would you use to draw a line chart? A boxplot? A histogram? An area chart?
+# geom_line, geom_boxplot, geom_histogram, geom_area
+  
+## Run this code in your head + predict what the output will look like
+# scatterplot of hwy mpg by displ, with a line, with no confidence intervals
+# different colored lines + points by drv
+ggplot(mpg, aes(displ, hwy, color = drv)) + 
+  geom_point() + 
+  geom_smooth(se = FALSE)
+
+## What does show.legend = FALSE do? What happens if you remove it?
+# it removes the legend to the right of the plot, 
+  
+## What does the se argument to ?geom_smooth() do?
+# removes the confidence intervals
+  
+## Will these two graphs look different? Why/why not?
+## ggplot(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+##   geom_point() + 
+##   geom_smooth()
+
+## ggplot() + 
+##   geom_point(data = mpg, mapping = aes(x = displ, y = hwy)) + 
+##   geom_smooth(data = mpg, mapping = aes(x = displ, y = hwy))
+
+# yes, since they are using the same dataframe and mapping
+# 1st function just makes it global for all subsequent layers
+
+## Recreate the R code necessary to generate the following graphs.
+ggplot(mpg, aes(displ, hwy)) + 
+  geom_point() +
+  geom_smooth(se = F)
+
+ggplot(mpg, aes(displ, hwy)) + 
+  geom_point() +
+  geom_smooth(se = F, aes(group = drv))
+
+ggplot(mpg, aes(displ, hwy, color = drv)) + 
+  geom_point() +
+  geom_smooth(se = F, aes(group = drv))
+
+ggplot(mpg, aes(displ, hwy)) + 
+  geom_point(aes(color = drv)) +
+  geom_smooth(se = F)
+
+ggplot(mpg, aes(displ, hwy)) + 
+  geom_point(aes(color = drv)) +
+  geom_smooth(se = F, aes(linetype = drv))
+
+ggplot(mpg, aes(displ, hwy)) + 
+  geom_point(aes(fill = drv), pch = 21, color = 'white', size = 5, stroke = 3)
+
+'***************************3.7 Statistical transformations***************************'
+# recreate bar chart w/ stat_count()
+ggplot(diamonds) + 
+  geom_bar(aes(cut))
+
+ggplot(diamonds) + 
+  stat_count(aes(cut))
+# works b/c every geom has a default stat + every stat has a default geom. 
+# can typically use geoms w/out worrying about the underlying statistical transformation.
+
+# change default stat of geom_bar to "identity" to map height to a y variable
+demo <- tribble(
+  ~cut,         ~freq,
+  "Fair",       1610,
+  "Good",       4906,
+  "Very Good",  12082,
+  "Premium",    13791,
+  "Ideal",      21551
+)
+
+ggplot(demo) +
+  geom_bar(aes(cut, freq), stat = "identity")
+
+# display bar chart of proportion rather than coutn
+ggplot(diamonds) + 
+  geom_bar(aes(cut, y = ..prop.., group = 1))
+
+# use stat_summary() to summarize the y-values for each unique x-value to draw
+#   attention to the summary you're computing
+ggplot(diamonds) + 
+  stat_summary(
+    aes(cut, depth),
+    fun.ymin = min,
+    fun.ymax = max,
+    fun.y = median
+  )
+
+'***************************3.7 Exercises***************************'
+## What is the default geom associated with stat_summary()? 
+## How could you rewrite previous plot to use the geom function instead of the stat function?
+?stat_summary  
+# pointrange is default geom
+
+ggplot(diamonds) + 
+  geom_pointrange(stat = 'summary',
+    aes(cut, depth),
+    fun.ymin = min,
+    fun.ymax = max,
+    fun.y = median
+  )
+
+
+
+## What does geom_col() do? How is it different to geom_bar()?
+?geom_col  
+# it represents values in the data rather than # of cases in each group
+
+## Most geoms and stats come in pairs that are almost always used in concert. 
+## Read through the documentation and make a list of all the pairs. What do they have in common?
+
+
+## What variables does stat_smooth() compute? What parameters control its behaviour?
+?stat_smooth
+# compute predicted y values, lower + upper bounds of CI (ymin, ymax), and the standard error
+# controlled by x and y parameters
+
+## In our proportion bar chart, we need to set group = 1. Why? 
+## In other words what is the problem with these two graphs?
+ggplot(diamonds) + 
+ ?geom_bar(aes(cut, y = ..prop..))
+
+ggplot(diamonds) + 
+  geom_bar(aes(cut, color, y = ..prop..))
+# group = 1 causes us to group by our x-axis levels correclty for proportions
+# for proportions, need to consider all levels of a variable together. 
+# data are 1st grouped by this variable, so each level of the variable is considered separately. 
+# The proportion of Fair in Fair is 100%, as is the proportion of Good in Good, etc. 
+# group = 1 prevents this so that proportions of each level will be relative to all levels
