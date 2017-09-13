@@ -35,4 +35,13 @@ p.value <- lower.area + upper.area
 sd(grades)
 
 library(lsr)
-oneSampleTTest(x = grades, mu = 67.5) 
+oneSampleTTest(x = grades, mu = 67.5)
+
+'**********************************************************************************************'
+'Independent samples t-test'
+'**********************************************************************************************'
+load('harpo.Rdata')
+head(harpo)
+library(lsr)
+
+independentSamplesTTest(grade ~ tutor, harpo, var.equal = T)
