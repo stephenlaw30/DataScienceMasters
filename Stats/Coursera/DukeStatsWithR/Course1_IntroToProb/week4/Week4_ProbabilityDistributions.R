@@ -31,5 +31,34 @@ follow a normal distribution. How cold are the coldest 20% of the days during Ju
 # i.e find temp where 20% of temps are colder than it
 qnorm(.2, 77, 5)
 
+'******************************BINOMIAL DISTRIBUTIONS************************************'
 
-'
+### Choose Function
+
+## how many scenarios leads to 2 successes (in any order) out of 9 trials?
+choose(n = 9, k = 2)
+
+## other way of computing
+factorial(9) / (factorial(2)*factorial(9 - 2))
+
+# gallup survey
+n = 10
+k = 8
+p = .13
+f = 1 - p
+
+n_choose_k <- choose(n,k)
+
+p_success <- n_choose_k*((p)^k)*((f)^(n-k))
+
+choose(n,(n-1))
+
+# calculate same thing with ?dbinom()
+dbinom(8,10,.13)
+
+# gallup obesity --> 5 uot of 20 exactly are obese if 26.2% of people are obese
+dbinom(5,20,.262)
+
+# 100 random employees
+dbinom(8,100,.13)
+
