@@ -38,10 +38,17 @@ library(lsr)
 oneSampleTTest(x = grades, mu = 67.5)
 
 '**********************************************************************************************'
-'Independent samples t-test'
+'Independent samples Student`s t-test'
 '**********************************************************************************************'
 load('harpo.Rdata')
 head(harpo)
 library(lsr)
 
 independentSamplesTTest(grade ~ tutor, harpo, var.equal = T)
+
+'**********************************************************************************************'
+'Independent samples Welch`s t-test'
+'**********************************************************************************************'
+independentSamplesTTest(grade ~ tutor, harpo, var.equal = F)
+
+chico <- read.csv("chico.Rdata")
