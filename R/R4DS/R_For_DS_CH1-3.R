@@ -1,3 +1,14 @@
+'**************************PLOT TEMPLATE***********************
+ggplot(data = <DATA>) + 
+  <GEOM_FUNCTION>(
+    mapping = aes(<MAPPINGS>),
+    stat = <STAT>, 
+    position = <POSITION>
+  ) +
+  <COORDINATE_FUNCTION> +
+  <FACET_FUNCTION>
+**************************************************************'
+  
 #R for Data Science
 library(ggplot2)
 library(tidyverse)
@@ -162,7 +173,7 @@ ggplot(mpg) +
 # larger dataset = too many plot possibly
   
 ' Read ?facet_wrap. What does nrow do? What does ncol do? What other options control the layout of 
- the individual panels? Why doesn't facet_grid() have nrow and ncol argument?'
+ the individual panels? Why doesn`t facet_grid() have nrow and ncol argument?'
 
 # they set # of rows or cols of plots. 
   
@@ -251,7 +262,7 @@ ggplot(mpg, aes(displ, hwy)) +
   geom_smooth(se = F, aes(linetype = drv))
 
 ggplot(mpg, aes(displ, hwy)) + 
-  geom_point(aes(fill = drv), pch = 21, color = 'white', size = 5, stroke = 3)
+  geom_point(aes(fill = drv), pch = 21, color = "white", size = 5, stroke = 3)
 
 '***************************3.7 Statistical transformations***************************'
 # recreate bar chart w/ stat_count()
@@ -281,7 +292,7 @@ ggplot(diamonds) +
   geom_bar(aes(cut, y = ..prop.., group = 1))
 
 # use stat_summary() to summarize the y-values for each unique x-value to draw
-#   attention to the summary you're computing
+#   attention to the summary you`re computing
 ggplot(diamonds) + 
   stat_summary(
     aes(cut, depth),
@@ -303,8 +314,6 @@ ggplot(diamonds) +
     fun.ymax = max,
     fun.y = median
   )
-
-
 
 ## What does geom_col() do? How is it different to geom_bar()?
 ?geom_col  
@@ -331,3 +340,150 @@ ggplot(diamonds) +
 # data are 1st grouped by this variable, so each level of the variable is considered separately. 
 # The proportion of Fair in Fair is 100%, as is the proportion of Good in Good, etc. 
 # group = 1 prevents this so that proportions of each level will be relative to all levels
+
+'***************************3.8 Position Adjustments***************************'
+# can color bars w/ color or fill aesthetics
+
+# color border w/ color
+ggplot(diamonds) + 
+  geom_bar(aes(cut, colour = cut))
+
+#color bars w/ fill
+ggplot(diamonds) + 
+  geom_bar(aes(cut, fill = cut))
+
+# map fill to another aesthetic to create a stacked bar chart
+# each rectangle represents a combo of cut + clarity
+ggplot(diamonds) + 
+  geom_bar(aes(cut, fill = clarity))
+
+# stacking is performed automatically by the position adjustment specified by "position" argument. 
+
+# use position = identity and set alpha to low value to see overlapping
+ggplot(diamonds) + 
+  geom_bar(aes(cut, fill = clarity), position = 'identity',  alpha = 0.2)
+
+# use position = identity and set fill to "NA" to see overlapping
+ggplot(diamonds) + 
+  geom_bar(aes(cut, color = clarity), position = 'identity',  fill = NA)
+
+# use position = fill to make each set of stacked bars the same height + each color a proportion
+ggplot(diamonds) + 
+  geom_bar(aes(cut, fill = clarity), position = 'fill')
+
+# splits out levels of fill variable into own bars stacked next to each other for each x variable level
+ggplot(diamonds) + 
+  geom_bar(aes(cut, fill = clarity), position = 'dodge')
+
+# spread out each DP in scatterplot with random noise via jitter to eliminate overlapping DPs
+ggplot(mpg) + 
+  geom_point(aes(displ,hwy), position = "jitter")
+# makes graph less accurate at small scales, but more revealing at large scales
+# geom_jitter() = shorthand for this
+ggplot(mpg) + 
+  geom_jitter(aes(displ,hwy))
+
+'***************************3.8 Exercises***************************'
+## What is the problem with this plot? How could you improve it?
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_point()
+# use jitter to eliminate overlapping DPs
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_jitter()
+
+## What parameters to geom_jitter() control the amount of jittering?
+?geom_jitter
+# explicitly set the position adjustment: position=position_jitter(width=0.3, height=0)) 
+
+# Compare and contrast geom_jitter() with geom_count().
+ggplot(data = mpg, mapping = aes(x = cty, y = hwy)) + 
+  geom_count()
+# geom_count sizes up DP's with the count of rounded DP's at a specific location
+
+## What's the default position adjustment for geom_boxplot()? 
+?geom_boxplot
+# dodge is default position
+
+## Create a visualisation of the mpg dataset that demonstrates it.
+ggplot(mpg, aes(class, hwy, color = class)) + 
+  geom_boxplot(position = 'identity')
+ggplot(mpg, aes(class, hwy, color = class)) + 
+  geom_boxplot(position = 'dodge')
+
+'***************************3.9 Coordinate systems***************************'
+# make horizontal boxplots
+ggplot(mpg, aes(class, hwy, color = class)) + 
+  geom_boxplot() +
+  coord_flip()
+
+### correctly set aspect ratio for map of NZ
+# install.packages("maps")
+nz <- map_data("nz")
+
+# original
+ggplot(nz, aes(long, lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black")
+
+# fixed
+ggplot(nz, aes(long, lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black") +
+  coord_quickmap()
+
+###
+bar <- ggplot(diamonds) + 
+  geom_bar(aes(cut, fill = cut), show.legend = FALSE, width = 1) + 
+  theme(aspect.ratio = 1) +
+  labs(x = NULL, y = NULL)
+
+# horizontal bars
+bar + coord_flip()
+
+# Coxcomb chart
+bar + coord_polar()
+
+'***************************3.9 Exercises***************************'
+## Turn a stacked bar chart into a pie chart using coord_polar().
+ggplot(diamonds) + 
+  geom_bar(aes(cut, fill = clarity)) + 
+  coord_polar()
+
+## What does labs() do?
+?labs
+# modifies labels (title, axes, legend) --> xlab, ylab, ggittle, labs
+ggplot(mtcars, aes(mpg, wt, colour = cyl)) + 
+  geom_point() + 
+  labs(colour = "Cylinders") + # legend
+  labs(x = "New x label") # x-axis
+
+## What's the difference between ?coord_quickmap() and coord_map()?
+?coord_quickmap
+# quickmap sets the aspect ratio of a plot to the appropriate lat/lon ratio to approximate the usual mercator
+#   projection for regions that span only a few degrees and are not too close to the poles
+# is much faster (particularly for complex plots like geom_tile) at the expense of correctness.
+
+# With CORRECT mercator projection
+ggplot(nz, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black") + 
+  coord_map()
+
+# With the aspect ratio approximation
+ggplot(nz, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black") + 
+  coord_quickmap()
+
+#What does plot below tell you about relationship between city + highway mpg? 
+ggplot(mpg, aes(cty, hwy)) +
+  geom_point() + 
+  geom_abline() +
+  coord_fixed()
+# tells us relationsip is a strong positive linear one
+
+## Why is coord_fixed() important?
+# forces a specified ratio between the physical representation of data units on the axes. 
+#   - ratio represents # of units on y-axis equivalent to 1 unit on x-axis w/ default ratio = 1
+#   - ensures that 1 unit on the x-axis is the same length as 1 unit on the y-axis. 
+#   - Ratios > 1 make units on y longer than units on x + vice versa. 
+#   - similar to eqscplot, but works for all types of graphics.
+
+## What does geom_abline() do?
+# adds a reference line w/ specified slope + intercept to the plot = default values --> intercept = 0 + slope = 1.
