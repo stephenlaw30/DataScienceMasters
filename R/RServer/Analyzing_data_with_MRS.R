@@ -19,7 +19,7 @@ install.packages('seriation') # package for reordering a distance matrix
 
 setwd('C:/DAT213x/script')
 
-options(max.print = 1000, scipen = 999, width = 90)
+options(max.print = 1000, scipen = 999, width = 90) # set max output and remove scientific notation
 library(RevoScaleR)
 rxOptions(reportProgress = 1) # reduces the amount of output RevoScaleR produces
 library(dplyr)
