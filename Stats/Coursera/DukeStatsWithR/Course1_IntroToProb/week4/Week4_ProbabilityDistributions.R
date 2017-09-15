@@ -56,9 +56,21 @@ choose(n,(n-1))
 # calculate same thing with ?dbinom()
 dbinom(8,10,.13)
 
-# gallup obesity --> 5 uot of 20 exactly are obese if 26.2% of people are obese
+# gallup obesity --> 5 out of 20 exactly are obese if 26.2% of people are obese
 dbinom(5,20,.262)
 
 # 100 random employees
 dbinom(8,100,.13)
 
+### find chances an average FB user (245 friends) has at least 70 friends who are considered power users
+prob_success <-  .25
+n <-  245
+
+# estimate mean + SD
+mean <- prob_success*n
+sd <- sqrt(n*prob_success*(1-prob_success))
+
+# calculate chance of having > 70 friends out of 245 for each value 70+, then sum up for
+# overall prob of having 70+ power-user friends
+sum(dbinom(70:n,n,prob_success))
+# 11.27%
