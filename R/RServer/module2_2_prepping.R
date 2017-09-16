@@ -152,7 +152,7 @@ head(xforms(jan))
 head(rxDataStep(jan, transformFunc = xforms, transformPackages = "lubridate"))
 
 # now actually write to file
-nyc_xdf <- RxXdfData("C:/Users/Nimz/Dropbox/yellow_tripdata_2016.xdf")
+nyc_xdf <- RxXdfData("yellow_tripdata_2016.xdf")
 
 # check how long it took as well
 st <- Sys.time()
@@ -350,14 +350,95 @@ ggplot(mht_df, aes(long, lat, fill = id)) +
   coord_equal() +                   # use fixed scale coordinate system
   theme(legend.position = "none") + # remove legend
   geom_text_repel(aes(label = id), data = mht_center, size = 2) # place ID label (neighborhood name) over median lat + long coordinates
-And so, we can see here a map of Manhattan,
-we can see neighborhoods that are color coded with the name
-of the neighborhood showing more or less on the neighborhood itself.
-And so, this is the information that was encoded in
-the shape file that we just loaded.
-In this case, we use the information to draw a map.
-In the next section, what we're gonna be doing is we're gonna write
-a complex transformation that is going to go to the coordinates for
-pickup and drop-off, which we have in our data.
-And it's gonna find the neighborhood that the pickup and
-the drop-off is happening at.
+
+'*****************************************************'
+'ADDING NEIGHBORHOODS'
+'*****************************************************'
+# complex transform to go to the coordinates pickup + drop-off + find their neighborhoods
+
+### TEST ON SAMPLE DATA FIRST
+# extract coordinate columns for all PICKUP LOCATIONS, replace NA w/ 0
+# use transmute to edit/add cols, but only keep those mentioned in the function (lat + long)
+#   - mutate() keeps those NOT mentioned
+nyc_coords <- jan %>%
+  transmute(long = ifelse(is.na(pickup_longitude),0,pickup_longitude),
+            lat = ifelse(is.na(pickup_latitude),0,pickup_latitude))
+
+# specify cols to coordinates() pointer function to find "lat" + "long" cols in nyc_coords + treat them as coordinates
+coordinates(nyc_coords) <- c("long", "lat")
+
+# at the spatial locations each data coordinate pair (x), retrieve the indexes/attributes from the spatial object mht_shape (y)
+# this uses lat + long from nyc_coords to find which neighborhood in mht_shape its coordinates fall into
+nhoods <- over(nyc_coords,mht_shape)
+
+# rename cols to specify pickup data
+names(nhoods) <- paste("pickup", tolower(names(nhoods)), sep = "_")
+
+# combine this new neighborhood info w/ the original data (adds pickup city (+ borough) + pickup_name (neighborhood))
+#   - add only cols with the words "name" or "city" in the column name
+jan <- cbind(jan, nhoods[, grep("name|city", names(nhoods))])
+head(jan)
+
+## this works, so do the same to the XDF file w/in a wrapper function
+find_nhoods <- function(data) {
+  
+  pickup_longitude <- ifelse(is.na(data$pickup_longitude),0,data$pickup_longitude)
+  pickup_latitude <- ifelse(is.na(data$pickup_latitude),0,data$pickup_latitude)
+  
+  # make dataframe to hold lat + long
+  data_coords <- data.frame(long = pickup_longitude, lat = pickup_latitude)
+  
+  # treat coordinate cols in the data frame as actual coordinates
+  coordinates(data_coords) <- c("long", "lat")
+  
+  # use lat + long to find which neighborhood in mht_shape the pair falls into
+  nhoods <- over(data_coords,shapefile)
+  
+  # addo nly drop-off neighborhood + city cols to data
+  data$pickup_nhood <- nhoods$NAME  
+  data$pickup_borough <- nhoods$CITY
+  
+  # do same for drop-offs
+  dropoff_longitude <- ifelse(is.na(data$dropoff_longitude),0,data$dropoff_longitude)
+  dropoff_latitude <- ifelse(is.na(data$dropoff_latitude),0,data$dropoff_latitude)
+  
+  # make dataframe to hold lat + long
+  data_coords <- data.frame(long = dropoff_longitude, lat = dropoff_latitude)
+  
+  # treat coordinate cols in the data frame as actual coordinates
+  coordinates(data_coords) <- c("long", "lat")
+  
+  # use lat + long to find which neighborhood in mht_shape the pair falls into
+  nhoods <- over(data_coords,shapefile)
+  
+  # addo nly drop-off neighborhood + city cols to data
+  data$dropoff_nhood <- nhoods$NAME  
+  data$dropoff_borough <- nhoods$CITY
+  
+  #return data
+  data
+}
+
+# test function w/ rxDataStep
+head(rxDataStep(jan, transformFunc = find_nhoods, transformPackages = c("sp", "maptools"),
+                transformObjects = list(shapefile = mht_shape)))
+
+# run data on actual XDF data file
+st <- Sys.time()
+rxDataStep(nyc_xdf, nyc_xdf, overwrite = T, transformFunc = find_nhoods, transformPackages = c("sp", "maptools","rgeos"),
+           transformObjects = list(shapefile = mht_shape))
+Sys.time() - st
+'Time difference of 1.755261 mins'
+
+# get 1st 5 rows of resulting dataframe
+rxGetInfo(nyc_xdf, numRows = 5, getVarInfo = T)
+
+# save new XDF file
+rxImport(inData = nyc_xdf, outFile = "yellow_tripdata_2016_prepped.xdf", colClasses = col_classes, overwrite = T)
+
+'Started w/ initial dataset + made it a richer dataset, as far as analyzing is concerned, by adding new features to it.
+  In some cases, features added were pretty simple features + in some cases, had to do some more complex transformations to
+  get those features.
+
+Going to spend quite a bit of time looking at those features, trying to visualize them, make sense of them. + tie them 
+together into a coherent story about what we see in the data.'
