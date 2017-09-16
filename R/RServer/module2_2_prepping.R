@@ -264,3 +264,100 @@ levelplot(prop.table(rxs2, 2), cuts = 4, xlab = "", ylab = "", main == "Distribu
 # see spikes around 1-5AM on Sat + Sun = late night crowd coming home from going out on Fri + Sat nights, with another light spike
 #   at 10PM-1AM on Saturday, a bit of early-birds who still went out
 # darker pink during hours people are likely going to work or church or morning travels
+
+'*****************************************************'
+'PLOTTING NEIGHBORHOODS'
+'*****************************************************'
+# R Server +  RevoScaleR has a particular requirement in the way a function has to be set up
+#   - takes in data as its input + usually modifies it somehow + returns it back.
+#   - once data is brought in as an input to a function, it unpacks as a list.
+#   - majority of cases, this is fine for us, but is something to be aware of when performing certain transformss that 
+#       require us to take the list + reshape it back into a data frame.
+#   - data is coming in chunk by chunk --> trickiness = have to avoid performing computations on the data (such as computing sums or
+#       averages + thinking its is happening for whole of data
+#   - if computing minimum inside a transformation function, its computing a separate minimum for each chunk of the data 
+#       as it's being brought in.
+#   - correct way of doing = perform the computation OUTSIDE using one of the RX functions(rxSummary)
+#     - Once we have the minimum, can then go + put it inside of the transformation function as the GLOBAL minimum 
+
+## Use GIS packages to extract some info out of the data.
+library(rgeos)
+library(sp)
+library(maptools)
+library(stringr) # str_detect
+
+# get shape file of Zillow neighborhoods w/ info about NYC
+nyc_shape <- readShapePoly("ZillowNeighborhoods-NY.shp")
+# many programming languages have APIs for reading shape files (popular format for strong GIS info)
+
+# subset shape file to only info about Manhattan
+mht_shape <- subset(nyc_shape, str_detect(CITY, "New York City-Manhattan"))
+
+# see what sort of information is in there.
+mht_shape@data
+mht_shape@data$NAME
+# shape file = not standard idea of data (tabular)
+# - has some tabular info but also non-tabular info = a more complex type of data format than a data frame would be.
+# - encodes some info about neighborhoods such as their names, etc. + neighborhood boundaries so we know how to draw them on a map.
+
+# create new ID field by formatting NAME field to character
+mht_shape@data$id <- as.character(mht_shape@data$NAME)
+mht_shape@data
+'   STATE   COUNTY                    CITY                NAME REGIONID                  id
+1      NY New York New York City-Manhattan        West Village   270964        West Village
+4      NY New York New York City-Manhattan        East Village   270829        East Village
+13     NY New York New York City-Manhattan        Battery Park   272869        Battery Park'
+
+# use fortify() to fortify data w/ a model
+# w/ gBuffer - expand given geometry to include area w/in specified width
+mht_points <- fortify(gBuffer(mht_shape, byid = T, width = 0), region = "NAME")
+'         long      lat order  hole piece                  id                 group
+1   -74.01243 40.71954     1 FALSE     1        Battery Park        Battery Park.1
+2   -74.01310 40.71569     2 FALSE     1        Battery Park        Battery Park.1
+3   -74.01429 40.71135     3 FALSE     1        Battery Park        Battery Park.1'
+
+# join this new LAT/LONG data back into shape file
+mht_df <- inner_join(mht_points, mht_shape@data, by = "id")
+head(mht_df)
+'       long      lat order  hole piece           id          group STATE   COUNTY                    CITY         NAME REGIONID
+1 -74.01243 40.71954     1 FALSE     1 Battery Park Battery Park.1    NY New York New York City-Manhattan Battery Park   272869
+2 -74.01310 40.71569     2 FALSE     1 Battery Park Battery Park.1    NY New York New York City-Manhattan Battery Park   272869
+3 -74.01429 40.71135     3 FALSE     1 Battery Park Battery Park.1    NY New York New York City-Manhattan Battery Park   272869
+4 -74.01657 40.70561     4 FALSE     1 Battery Park Battery Park.1    NY New York New York City-Manhattan Battery Park   272869
+5 -74.01632 40.70498     5 FALSE     1 Battery Park Battery Park.1    NY New York New York City-Manhattan Battery Park   272869
+6 -74.01651 40.70432     6 FALSE     1 Battery Park Battery Park.1    NY New York New York City-Manhattan Battery Park   272869'
+
+# get the median latitude and longitude for each neighorhood (id)
+library(dplyr)
+mht_center <- mht_df %>%
+  group_by(id) %>%
+  summarize(long = median(long), lat = median(lat))
+
+head(mht_center)
+'          <chr>     <dbl>    <dbl>
+1  Battery Park -74.01726 40.70794
+2 Carnegie Hill -73.95577 40.78554
+3  Central Park -73.95835 40.78513
+4       Chelsea -74.00917 40.75125
+5     Chinatown -73.99823 40.71606
+6       Clinton -74.00323 40.76216'
+
+# use these medians to draw a map of Manhattan that shows each neighborhood w/ its name superimposed on the map itself.
+library(ggrepel)
+ggplot(mht_df, aes(long, lat, fill = id)) + 
+  geom_polygon() + 
+  geom_path(color = "white") +      # connect observations in order they appear w/ white border
+  coord_equal() +                   # use fixed scale coordinate system
+  theme(legend.position = "none") + # remove legend
+  geom_text_repel(aes(label = id), data = mht_center, size = 2) # place ID label (neighborhood name) over median lat + long coordinates
+And so, we can see here a map of Manhattan,
+we can see neighborhoods that are color coded with the name
+of the neighborhood showing more or less on the neighborhood itself.
+And so, this is the information that was encoded in
+the shape file that we just loaded.
+In this case, we use the information to draw a map.
+In the next section, what we're gonna be doing is we're gonna write
+a complex transformation that is going to go to the coordinates for
+pickup and drop-off, which we have in our data.
+And it's gonna find the neighborhood that the pickup and
+the drop-off is happening at.
