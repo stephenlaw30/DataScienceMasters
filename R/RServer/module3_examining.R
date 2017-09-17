@@ -8,7 +8,7 @@ If unaccounted, such soft errors can have a profound impact on the analysis.'
 library(RevoScaleR)
 library(tidyverse)
 
-# read in prepperd XDF file
+# read in prepated XDF file
 nyc_xdf <- RxXdfData("C:/Users/Nimz/Dropbox/yellow_tripdata_2016_prepped.xdf")
 
 # get summary of all variables
@@ -161,3 +161,47 @@ ggsave("90_minute_trips_outliers.png")
 # there ARE cases w/ > 90 min trips (majority of cases)
 # so long distance and long duration = possibly legitmate trip (green), so why low fare?
 # investigate --> wrongly recorded distance? fare actually that small?
+
+
+'*****************************************************'
+'FILTER BY MANHATTAN'
+'*****************************************************'
+rxGetInfo(nyc_xdf, numRows = 10)
+# notice some NA's in data --> could be trips that do not start or end in Manhattan or are not in Manhattan at all
+# our shape file only limited to Manhattan --> 263 factor levels for pickup + dropoff nhoods to 28
+
+# keep only rows + cols relevant to the analysis we want to perform in new XDF file
+man_xdf <- RxXdfData('yellow_tripdata_2016_mahattan.xdf')
+
+library(stringr)
+
+rxDataStep(nyc_xdf, man_xdf, rowSelection = (
+  passenger_count > 0 &
+    trip_distance >= 0 & trip_distance < 30 &
+    trip_duration > 0 & trip_duration < 60*60*24 & # 24 hours
+    str_detect(pickup_borough, "Manhattan") &
+    str_detect(dropoff_borough, "Manhattan") &
+    !is.na(pickup_nbhood) &
+    !is.na(dropoff_nbhood) &
+    fare_amount > 0),
+  transformPackages = "stringr",
+  varsToDrop = c("extra", "mta_tax", "improvement_surcharge", "total_amount", 
+                 "pickup_borough", "dropoff_borough", "pickup_nhood", "dropoff_nhood"),
+  overwrite = TRUE)
+# check file size = see majority of data carried over (157k KB to 114k KB)
+# probably bc dropped cols, not filtered data
+
+# began course by taking a sample of the data + storing it in a data frame that we carried around.
+# do that now a second time, but this time for a RANDOM sample Manhattan XDF file (NOT 1st 1K rows)
+# get 1% of data
+man_sample <- rxDataStep(man_xdf, rowSelection = (u < .01), transforms = list(u = runif(.rxNumRows)))
+dim(man_sample)
+
+# ~ 29K rows = data frame we can use to visualize data in particular ways ro run a quick test on, etc.
+
+rxImport(man_sample, outFile = "yellow_tripdata_2016_mahattan_sample.xdf", overwrite = T)
+
+
+# In a good place = have data in a clean format w/ a bunch of new columns added to make the data richer.
+# can get a bit more serious about analysis now + start asking more serious questions about the data, looking at more 
+#   visualizations, + see what sorts of stories we can tell about this data.
