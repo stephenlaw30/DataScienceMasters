@@ -30,7 +30,7 @@ head(rxs_all$sDataFrame)
 # look at interaction between pickup neighborhood + pickup borough
 # NOTE - we have much more factor levels than are in actual data (all nhoods is our data = Manhattan)
 #     - will therefore only find Manhattan boroughs
-nhoods_by_borough <- rxCrossTabs(~ pickup_nhood:pickup_borough, nyc_xdf)
+nhoods_by_borough <- ?rxCrossTabs(~ pickup_nhood:pickup_borough, nyc_xdf)
 
 # reshape into dataframe in wide format (boroughs are cols)
 nhoods_by_borough <- nhoods_by_borough$counts[[1]]  %>%
