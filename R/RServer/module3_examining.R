@@ -1,6 +1,6 @@
 '############## Module 3 - Examining data***********************************'
 
-'In addition to asking whether data makes logical sense, it's often a good idea to also check whether data makes *business* or 
+'In addition to asking whether data makes logical sense, it`s often a good idea to also check whether data makes *business* or 
 *practical* sense. 
 Doing so can catch certain errors in data such as data being mislabeled or attributed to the wrong set of features. 
 If unaccounted, such soft errors can have a profound impact on the analysis.'
@@ -75,8 +75,15 @@ rxDataStep(nyc_xdf, nyc_xdf, transformFunc = refactor_columns,
            transformObjects = list(nhoods_levels = manhattan_nhoods), overwrite = T)
 
 # look at the counts of Manhattan pickup and dropoff neighborhoods
-rxs_pickdrop <- rxSummary(~ pickup_ nbhood:dropoff_nbhood, nyc_xdf)
+rxs_pickdrop <- rxSummary(~ pickup_nbhood:dropoff_nbhood, nyc_xdf)
 head(rxs_pickdrop$categorical[[1]])
+'  pickup_nbhood dropoff_nbhood Counts
+1  Battery Park   Battery Park   1026
+2 Carnegie Hill   Battery Park    126
+3  Central Park   Battery Park    164
+4       Chelsea   Battery Park   3028
+5     Chinatown   Battery Park    182
+6       Clinton   Battery Park   1171'
 
 '*****************************************************'
 'EXAMINE TRIP DISTANCE'
@@ -116,3 +123,41 @@ head(arrange(rxs$categorical[[1]], desc(Counts)), 10)
 '*****************************************************'
 'EXAMINE OUTLIERS'
 '*****************************************************'
+# using rowSelection argument rxSummary = subset data,
+# now use rowSelection to ID outliers
+# come up with some kind of business logic for what we think should be an outlier (somewhat subjective)
+# more determined based on what we think makes intuitive sense than anything particularly statistical.
+
+odd_trips <- rxDataStep(nyc_xdf, rowSelection = (
+  # believe that this current subset will be small but could still be a large dataframe
+  # overwrite u col in data + only grab 5% of returned data after the transformation completes
+  u < .05 & (
+    # criteria for odd trip
+    (trip_distance > 50 | trip_distance <= 0) | 
+      (passenger_count > 5 | passenger_count == 0) |
+      (fare_amount > 5000 | fare_amount <= 0)
+    # generate a # random deviates based on # of rows in current chunk
+  )), transforms = list(u = runif(.rxNumRows))) #rxNumRows always = size of current chunk of data
+
+print(dim(odd_trips))
+# 6.8k odd trips
+
+# get trips over 50 miles and color-code if a trip took less than 10 minutes (data in seconds so *60)
+odd_trips %>% 
+  filter(trip_distance > 50) %>%
+  ggplot() + geom_histogram(aes(fare_amount, fill = trip_duration <= 10*60), binwidth = 10) + 
+  xlim(0,500)
+ggsave("10_minute_trips_outliers.png")
+# would expect fare_amounts to be high bc trips are long
+# some have < $50 --> doesn't make much business sense = probably errors in data
+# only see 2 color = all trips > 10 minutes so fare should def be high 
+
+# check > 90 min
+odd_trips %>% 
+  filter(trip_distance > 50) %>%
+  ggplot() + geom_histogram(aes(fare_amount, fill = trip_duration <= 90*60), binwidth = 10) + 
+  xlim(0,500)
+ggsave("90_minute_trips_outliers.png")
+# there ARE cases w/ > 90 min trips (majority of cases)
+# so long distance and long duration = possibly legitmate trip (green), so why low fare?
+# investigate --> wrongly recorded distance? fare actually that small?
