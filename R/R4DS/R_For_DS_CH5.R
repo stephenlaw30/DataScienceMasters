@@ -1,5 +1,4 @@
 library(tidyverse)
-library(nyc)
 library(nycflights13)
 
 # explore the basic data manipulation verbs of dplyr
@@ -117,3 +116,49 @@ summary(flights)
 
 ## Why is FALSE & NA not missing?
 # since 1 value if FALSE, result is FALSE since & needs both sides to be TRUE
+
+'******************************************************'
+'5.3 ARRANGE()'
+'******************************************************'
+# arrange() works similarly to filter() except instead of selecting rows, it changes their order. 
+# takes a data frame + a set of col name/more complicated expressions to order by. 
+# provide more than 1 column name = mulitple levels
+
+# arrange flights by YMD in ASC
+arrange(flights, year, month, day)
+
+# arrange flights GREATEST arrival delay
+arrange(flights, desc(arr_delay))
+
+# missing values = always sorted at end
+df <- tibble(x = c(5, 2, NA))
+arrange(df, x)
+
+arrange(df, desc(x))
+
+'******************************************************'
+'5.3 EXERCISES'
+'******************************************************'
+
+# How could you use arrange() to sort all missing values to the start? (Hint: use is.na()).
+summary(flights)
+arrange(flights, desc(is.na(arr_delay)))
+
+# Sort flights to find the most delayed flights. 
+arrange(flights, desc(dep_delay))
+
+# Find the flights that left earliest.
+arrange(flights, dep_time)
+
+# Sort flights to find the fastest flights.
+arrange(flights, desc(air_time/distance))
+
+# Which flights travelled the longest? 
+arrange(flights, desc(distance))
+
+# Which travelled the shortest?
+arrange(flights, distance)
+
+'******************************************************'
+'5.4 EXERCISES'
+'******************************************************'
