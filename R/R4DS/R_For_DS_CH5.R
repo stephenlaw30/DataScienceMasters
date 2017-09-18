@@ -160,5 +160,150 @@ arrange(flights, desc(distance))
 arrange(flights, distance)
 
 '******************************************************'
+'5.4 SELECT()'
+'******************************************************'
+## allows you to rapidly zoom in on a useful subset using operations based on names of variables.
+## useful w/ 100s-1000s of variables
+
+# select only date cols
+select(flights, year, month, day)
+select(flights, year:day)
+
+# select all cols except date cols
+select(flights, -(year:day))
+
+## Helper functions you can use within select():
+##  - starts_with(), ends_with() , contains()
+##  - matches(): selects variables that match a  RegEx
+##  - num_range("x", 1:3) matches x1, x2 and x3.
+select(flights, contains("dep"))
+
+## can use select() to rename vars, but it drops all vars not explicitly mentioned
+## instead use rename(df, new = old)
+rename(flights, miles = distance)
+
+## can use select() in conjunction w/ the everything() helper. 
+## useful w/ a handful of variables you'd like to move to the start of the data frame
+select(flights, air_time, everything()) 
+
+'******************************************************'
 '5.4 EXERCISES'
 '******************************************************'
+## Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time, and arr_delay from flights.
+select(flights, "dep_time","dep_delay","arr_time","arr_delay")
+select(flights, c(4,6,7,9))
+select(flights, starts_with("dep"), starts_with("arr"))
+select(flights, ends_with("time"), ends_with("delay"), -starts_with('sched'), -starts_with('air'))
+select(flights, contains("dep_"), contains("arr_"), -starts_with('sched'))
+
+## What happens if you include the name of a variable multiple times in a select() call?
+select(flights, year, year)
+# only shows up once
+  
+## What does one_of() function do? Why might it be helpful in conjunction with this vector?
+select(flights, one_of(c("year", "month", "day", "dep_delay", "arr_delay")))
+
+## Does the result of running the following code surprise you? 
+select(flights, contains("TIME"))
+
+## How do the select helpers deal with case by default? How can you change that default?
+select(flights, contains("TIME", ignore.case = F))
+select(flights, contains("TIME", ignore.case = T))
+
+'******************************************************'
+'5.5 MUTATE()'
+'******************************************************'
+## mutate adds new variables as functions of existing ones --> only at end of dataset
+
+# create smaller dataset to see mutate() results
+flights_sml <- select(flights, year:day, ends_with("delay"), distance, air_time)
+# new cols
+mutate(flights_sml, 
+       gain = arr_delay - dep_delay,
+       speed = (distance / air_time) * 60,
+       # refer to new vars in even newer var
+       hours = air_time / 60,
+       gain_per_hour = gain / hours)
+
+## to only keep new vals use transmute()
+transmute(flights_sml, 
+       gain = arr_delay - dep_delay,
+       speed = (distance / air_time) * 60,
+       # refer to new vars in even newer var
+       hours = air_time / 60,
+       gain_per_hour = gain / hours)
+
+'Many functions for creating new variables you can use w/ mutate(). 
+  - Key property = function must be *vectorised* = take a vector of values as input, return a vector w/ same # of values as output. 
+  - Selection of functions that are frequently useful:
+  - Arithmetic operators: +, -, *, /, > ==> all vectorised, using "recycling rules" 
+    - "recycling rules" = If 1 parameter is shorter than the other, it will be automatically extended to be the same length. 
+    - most useful when 1 argument is a single number: air_time / 60, hours * 60 + minute, etc.
+    - Arithmetic operators are also useful in conjunction w/ the aggregate functions 
+    - Ex: x / sum(x) calculates a proportion of a total, y - mean(y) computes difference from the mean.
+  - Modular arithmetic: %/% (integer division) + %% (remainder)
+    - x == y * (x %/% y) + (x %% y). 
+    - Modular arithmetic = handy tool b/c allows you to break integers up into pieces. 
+    - Can compute hour and minute from dep_time with:'
+transmute(flights, hour = air_time %/% 60, minute = air_time %% 60)
+transmute(flights, dep_time, hour = dep_time %/% 100, minute = dep_time %% 100)
+
+' - Logs: log(), log2(), log10() = incredibly useful for dealing w/ data that ranges across multiple orders of magnitude. 
+    - also convert multiplicative relationships to additive
+    - All else being equal, log2() = easiest to interpret --> difference of 1 on log scale = doubling on original scale +
+        a difference of -1 corresponds to halving.
+  - Offsets: lead() + lag() allow you to refer to leading or lagging values
+    - allows you to compute running differences (e.g. x - lag(x)) or find when values change (x != lag(x)).
+    - most useful in conjunction w/ group_by()'
+x <- 1:10
+lag(x,4) # lag vector by 4 positions (chop off last n elements)
+lead(x,4) # lead vector by 4 positions (chop off 1st n elements)
+
+'  - Cumulative + rolling aggregates = running sums, products, mins,  maxes w/ cumsum(), cumprod(), cummin(), cummax()
+    - dplyr provides cummean() for cumulative means
+    - For rolling aggregates (i.e. sum computed over a rolling window), try RcppRoll package'
+cumsum(x)
+cummean(x)
+
+' - Logical comparisons, <, <=, >, >=, !=
+    - If doing a complex sequence of logical operations it's often a good idea to store the interim values in new variables 
+        so you can check that each step is working as expected.
+  - Ranking: # of ranking functions, but start w/ min_rank() = does most usual type of ranking (e.g. 1st, 2nd, 2nd, 4th). 
+    - The default gives smallest values small ranks --> use desc(x) to give the largest values the smallest ranks.'
+y <- c(1, 2, 2, NA, 3, 4)
+min_rank(y)
+min_rank(desc(y))
+'   - If min_rank() doesn't do what you need, look at variants row_number(), dense_rank(), percent_rank(), cume_dist(), ntile(). '
+row_number(y)
+dense_rank(y)
+percent_rank(y)
+cume_dist(y)
+
+5.5.2 Exercises
+
+## Currently dep_time and sched_dep_time are convenient to look at, but hard to compute w/ b/c they're not really continuous numbers. 
+## Convert them to a more convenient representation of number of minutes since midnight.
+mutate(flights, 
+       dep_midnight = (dep_time %/% 100)*60 + (dep_time %% 100),
+       sched_dep_time_after_midnight = (sched_dep_time %/% 100)*60 + (sched_dep_time %% 100)) %>% 
+  select(dep_time,dep_midnight,sched_dep_time,sched_dep_time_after_midnight) 
+
+## Compare air_time with arr_time - dep_time. What do you expect to see? What do you see? What do you need to do to fix it?
+mutate(flights, 
+       air_time_2 = ((arr_time %/% 100)*60 + (arr_time %% 100)) - ((dep_time %/% 100)*60 + (dep_time %% 100))) %>%
+  select(air_time, air_time_2)
+# even after converting from clock format to minutes after midnight, they should be the same
+
+
+## Compare dep_time, sched_dep_time, and dep_delay. How would you expect those three numbers to be related?
+# expect sched_dep_time - dep_time = dep_delay
+mutate(flights, dep_delay2 = dep_time - sched_dep_time) %>%
+  select(sched_dep_time, dep_time, dep_delay, dep_delay2)
+# 2nd dep_delay is off due to clock formatting of time vars
+
+##  Find the 10 most delayed flights using a ranking function. How do you want to handle ties? 
+Carefully read the documentation for ?min_rank().
+
+## What does 1:3 + 1:10 return? Why?
+  
+  What trigonometric functions does R provide?
