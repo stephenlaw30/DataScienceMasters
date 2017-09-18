@@ -74,3 +74,20 @@ sd <- sqrt(n*prob_success*(1-prob_success))
 # overall prob of having 70+ power-user friends
 sum(dbinom(70:n,n,prob_success))
 # 11.27%
+
+# gallup health insurance (working w/ binomial)
+dbinom(6,10,.56)
+
+# probability of at least 60
+sum(dbinom(60:100,100,.56))
+
+# QUIZ
+dbinom(2,3,.51)
+choose(3,2)*(.51^2)*(.49^1)
+
+sum(dbinom(1:10,10,.07))
+sum(choose(10,1:10)*(.07^1)*(.93^9))
+
+prob_success <-  .00001
+n <-  3000000
+sum(dbinom(36:n,n,prob_success))
