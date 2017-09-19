@@ -266,21 +266,25 @@ cumsum(x)
 cummean(x)
 
 ' - Logical comparisons, <, <=, >, >=, !=
-    - If doing a complex sequence of logical operations it's often a good idea to store the interim values in new variables 
+    - If doing a complex sequence of logical operations it`s often a good idea to store the interim values in new variables 
         so you can check that each step is working as expected.
   - Ranking: # of ranking functions, but start w/ min_rank() = does most usual type of ranking (e.g. 1st, 2nd, 2nd, 4th). 
     - The default gives smallest values small ranks --> use desc(x) to give the largest values the smallest ranks.'
 y <- c(1, 2, 2, NA, 3, 4)
-min_rank(y)
-min_rank(desc(y))
-'   - If min_rank() doesn't do what you need, look at variants row_number(), dense_rank(), percent_rank(), cume_dist(), ntile(). '
+?min_rank(y)
+'[1]  1  2  2 NA  4  5 ==> 1st lowest, tied for 2nd, tied for 2nd (no 3rd), NA, 4th lowest (bc no 3rd), 5th least'
+min_rank(desc(y)) 
+'[1]  5  3  3 NA  2  1 ==> least greatest, tied for 3rd least greatest NA, 2nd least greatest, 1st least greatest'
+
+'   - If min_rank() doesn`t do what you need, look at variants row_number(), dense_rank(), percent_rank(), cume_dist(), ntile(). '
 row_number(y)
 dense_rank(y)
 percent_rank(y)
 cume_dist(y)
 
-5.5.2 Exercises
-
+'******************************************************'
+'5.5 EXERCISES()'
+'******************************************************'
 ## Currently dep_time and sched_dep_time are convenient to look at, but hard to compute w/ b/c they're not really continuous numbers. 
 ## Convert them to a more convenient representation of number of minutes since midnight.
 mutate(flights, 
@@ -302,8 +306,88 @@ mutate(flights, dep_delay2 = dep_time - sched_dep_time) %>%
 # 2nd dep_delay is off due to clock formatting of time vars
 
 ##  Find the 10 most delayed flights using a ranking function. How do you want to handle ties? 
-Carefully read the documentation for ?min_rank().
+# most delayed
+as.data.frame(head(arrange(flights, desc(dep_delay)),15))
+
+as.data.frame(head(arrange(flights, desc(dep_delay)),15)) %>%
+  mutate(delayed_rank = min_rank(-dep_delay)) %>%
+  select(1:5, delayed_rank)
+# there are no ties for the top 10 most delayed
 
 ## What does 1:3 + 1:10 return? Why?
+1:3 + 1:10
+# mismatched length of data not currently vectorized
   
-  What trigonometric functions does R provide?
+## What trigonometric functions does R provide?
+'cos(x)
+sin(x)
+tan(x)
+
+acos(x)
+asin(x)
+atan(x)
+atan2(y, x)
+
+cospi(x)
+sinpi(x)
+tanpi(x)'
+
+'******************************************************
+5.6 Grouped summaries with summarise()
+******************************************************'
+## summarize collapses dataframes to single rows
+summarize(flights, delay = mean(dep_delay, na.rm = T))
+
+## not terribly useful unless paired w/ group_by --> changes unit of analysis from a complete dataset to individual groups. 
+## when using dplyr verbs on a grouped data frame they'll be automatically applied "by group". 
+
+# get average delay by date
+group_by(flights, year, month, day) %>%
+  summarize(delay = mean(dep_delay, na.rm = T))
+
+## group_by() + summarise() provide 1 of the tools used most commonly when working w/ dplyr: grouped summaries.
+
+# explore the relationship between the distance and average delay for each destination w/ pipes
+group_by(flights, dest) %>%
+    summarize(count = n(),
+              dist = mean(distance, na.rm = T),
+              delay = mean(dep_delay, na.rm = T)) %>%
+  filter(count > 20, dest != "HNL") %>%
+  ggplot(aes(dist,delay)) + # graph scatterplot of relationship
+    geom_point(aes(size = count), alpha = 1/3) + # make each point grow according to count of flights leaving each destination   
+    geom_smooth(se = FALSE) # remove CI bands
+
+## x %>% f(y) turns into f(x, y), and x %>% f(y) %>% g(z) turns into g(f(x, y), z) and so on.
+
+## aggregation functions obey the usual rule of missing values: if there's ANY missing value in the input, output = a missing value. 
+## Fortunately, all aggregation functions have na.rm arguments
+
+# for missing values that represent cancelled flights, removing the cancelled flights
+non_cancelled_flights <- filter(flights, !is.na(arr_delay), !is.na(dep_delay)) 
+
+non_cancelled_flights %>% group_by(year,month,day) %>%
+  summarize(mean = mean(dep_delay))
+
+## Whenever you do any aggregation = always good idea to include either a count (n()), or count of non-missing values (sum(!is.na(x))).
+## helps check that you're not drawing conclusions based on very small amounts of data. 
+
+# look at planes (identified by their tail number) that have the highest average delays
+delays <- non_cancelled_flights %>% 
+  group_by(tailnum) %>%
+  summarize(delay = mean(dep_delay))# %>%
+
+delays %>%
+  ggplot() + 
+    geom_freqpoly(aes(delay), binwidth = 10)
+# some planes have delays > 5 hrs (> 300 minutes)
+
+# draw scatterplot of flights vs avg delay
+delays2 <- non_cancelled_flights %>% 
+  group_by(tailnum) %>%
+  summarize(delay = mean(dep_delay, na.rm = T),
+            n = n())
+
+delays2 %>%
+  ggplot() + 
+  geom_point(aes(n,delay), alpha = 1/10)
+
