@@ -633,10 +633,13 @@ popular_dests %>%
 '******************************************************'
 '5.7 EXERCISES'
 '******************************************************'
-Refer back to the lists of useful mutate and filtering functions. Describe how each operation changes when you combine it with grouping.
+## Refer back to the lists of useful mutate + filtering functions. Describe how each operation changes when you combine it with grouping.
 
-Which plane (tailnum) has the worst on-time record?
-
+## Which plane (tailnum) has the worst on-time record?
+non_cancelled_flights %>% 
+  group_by(tailnum) %>%
+  rank(desc(arr_delay))
+  #filter(rank(desc(mean(is.na(arr_delay))))
 What time of day should you fly if you want to avoid delays as much as possible?
 
 For each destination, compute the total minutes of delay. For each, flight, compute the proportion of the total delay for its destination.
