@@ -12,7 +12,7 @@ qnorm(.90, 1500, 300)
 
 # find cutoff value for highest score one could get to stay in bottom 10% of normal ACT distribution
 # with mean = 21 + SD = 5
-# i.e. find the 1-th percentile (10% of scores lower than this value)
+# i.e. find the 10th percentile (10% of scores lower than this value)
 qnorm(.1, 21, 5)
 # 14.6
 
