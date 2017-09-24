@@ -17,10 +17,11 @@ str(afl.finalists) # vector of finalists (CHAR)
 summary(afl.margins) # numerical summary stats
 summary(afl.finalists) # frequency table
 
-ggplot() + geom_histogram(aes(x = afl.margins), binwidth = 10, colour = 'red')
+ggplot() + 
+  geom_histogram(aes(x = afl.margins), binwidth = 10, colour = 'red')
 'Right/positively-skewed (tail to the right) = use median as measure of center' 
 
-# Fairly substantial differences between mean and median indicate mean may be influenced a bit too much by extreme values
+# A fairly substantial differences between mean and median indicates mean may be influenced a bit too much by extreme values
 dataset <- c( -15,2,3,4,5,6,7,8,9,12)
 summary(dataset)
 
@@ -31,7 +32,7 @@ mean(dataset, trim = .1)
 # 5% trimmed mean for the afl.margins data
 mean(afl.margins, trim = 0.05) #33.75
 
-# Produce frequency table of of every team that played in any AFL final from 1987-2010
+## Produce frequency table of of every team that played in any AFL final from 1987-2010
 sort(table(afl.finalists), decreasing = TRUE)
 # Over the 24 years for which we have data, Geelong played in more finals than any other team = mode of the finalists'
 
@@ -56,33 +57,38 @@ maxFreq(afl.margins) # occured 8 times
 '********************************************************
 Measures of Variability
 ********************************************************'
-#see range (pretty useless bc not robust)
+# see range (pretty useless bc not robust)
 range(afl.margins)
+# calculate range
 max(afl.margins) - min(afl.margins)
 
-#check quantiles
+# check quantiles
 quantile(afl.margins) 
-#get Q1
+# get Q1
 quantile(afl.margins, probs = 0.25) 
-#get Q2/median
+# get Q2/median
 quantile(afl.margins, probs = 0.5)
-#get Q3
+# get Q3
 quantile(afl.margins, probs = 0.75) # 75% of point differentials are < 50.5
+# do for other percentile
+quantile(afl.margins, probs = .333333)
 
-## IQR = measure of variability for skewed data bc more robust than range
+## IQR = measure of variability for *skewed* data bc its more robust than range
 # see Q1 and Q3
 quantile(afl.margins, probs = c(.25,.75))
 
 # calculate IQR
 quantile(afl.margins, probs = 0.75) - quantile(afl.margins, probs = 0.25) 
+# get IQR
 IQR(afl.margins)
 
-## calculate MEAN ABSOLUTE DEVIATION
+## calculate MEAN ABSOLUTE DEVIATION = typical deviation from the reference point of the mean
 data <- c(56, 31, 56, 8, 32)
 mean(data) #36.6
-
 variations <- abs(data - mean(data))
 mean(variations) #15.52 = mean absolute deviation for these 5 scores
+
+m
 
 # calculate MEAN ABSOLUTE DEVIATION via add() function from lsr pkg
 aad(data)
