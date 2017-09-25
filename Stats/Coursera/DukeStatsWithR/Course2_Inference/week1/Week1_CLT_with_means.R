@@ -31,3 +31,18 @@ z <- (3.6 - X)/se_x
 pnorm(X,3.6,se_x)
 
 #0.1787223 = 17.9% chance playlist lasts long enough
+
+
+
+
+
+
+
+# get cutoff values for 95% CI 
+qnorm(.025) # ~ -1.96
+qnorm(1-.025) # ~ 1.96
+
+# get cutoff/critical values for 98% CI 
+qnorm((1 - .98)/2) # ~ -1.96
+qnorm(1-(1 - .98)/2) # ~ 1.96
+
