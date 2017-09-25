@@ -99,7 +99,7 @@ aad(data)
 variance <- (data - mean(data))^2
 mean(variance) #324.64
 
-#Base R function for variance
+# Base R function for variance
 var(data) #405.8
 
 'Answers are different? Check w/ afl.margins data'
@@ -107,7 +107,7 @@ variance2 <- (afl.margins - mean(afl.margins))^2
 mean(variance2) # 675.9718
 var(afl.margins) # 679.8345
 
-#R is evaluating a slightly different formula 
+# R is evaluating a slightly different formula 
 #   - Instead of *averaging* squared deviations (divide by number of DPs, N = population size), R divides by N - 1 (sample)'
 
 sum((data-mean(data))^2)/4 #405.8
@@ -115,7 +115,7 @@ var(data) #405.8
 
 ## variance = probably "right" way to describe variation around a mean, but is uninterpretable b/c not in same units as the data
 
-#Std Dev
+#Std Dev = same units = easy to interpret/report
 sd(afl.margins)
 
 ## Median absolute deviation (MAD) = typical (i.e. median) deviation from the median, simple + interpretable in raw form, a robust way to 
@@ -126,3 +126,110 @@ median(abs(afl.margins - median(afl.margins))) #19.5
 mad(afl.margins, constant = 1) #19.5
 # default value of constant = 1.4826 to multiply raw MAD value by to get better estimate of SD (ASSUMING DATA ARE NORMAL)
 mad(afl.margins) #28.9107
+
+
+'********************************************************
+SKEWNESS AND KURTOSIS
+********************************************************'
+skew(afl.margins) #0.7671555
+
+# psych package has kurtosi() to calculate the kurtosis of data.'
+library(psych)
+kurtosi(afl.margins) # close to mesokurtic = just pointy enough.
+
+
+'********************************************************
+SUMMARIZING DATA
+********************************************************'
+load('clinicaltrial.Rdata')
+summary(clin.trial) # see coutns for factor variables
+
+library(tidyverse)
+glimpse(clin.trial)
+
+describe(clin.trial) # only useful for NOMINAL DATA = interval or ratio
+# ignore variables w/ *'s 
+
+# break out summary stats by group
+describeBy(clin.trial, clin.trial$therapy)
+
+# general solution
+by(clin.trial, clin.trial$therapy, describe)
+
+# get summary mood gain by all possible combos of drug and therapy
+aggregate(mood.gain ~ therapy + drug, clin.trial, summary)
+
+'********************************************************
+STANDARD SCORES
+********************************************************'
+# get theoretical percentile rank for z = 3.6
+pnorm(3.6) # values above this z-score are > 99.98% of the data
+
+# higher z-score = more unusual value relative to its population
+
+# z-scores for each item in a matrix-like element
+scale(afl.margins)
+
+'********************************************************
+CORRELATIONS
+********************************************************'
+load('parenthood.RData')
+glimpse(parenthood)
+describe(parenthood)
+hist(parenthood$dan.sleep) # left-skew
+hist(parenthood$baby.sleep) # bimondal/normal-ish
+hist(parenthood$dan.grump) # right-skew
+
+ggplot(parenthood) + 
+  geom_point(aes(dan.sleep, dan.grump)) # negative linear
+ggplot(parenthood) + 
+  geom_point(aes(baby.sleep, dan.grump)) # negative, not very linear
+
+# covariance = generalization of notion of variance
+#   - mathematically simple way of describing relationship between 2 variables = not very informative to humans
+#   - average CROSS-PRODUCT between X + Y 
+#   - = 0 if variables are unrelated, is > 0 for positive, is < 0 for negative
+
+## pearson correlation coefficient r standardizes covariance in same way as a z-score = divide by both SD's of the variables
+cov(parenthood$dan.sleep, parenthood$dan.grump) # -9.22
+cov(parenthood$dan.sleep, parenthood$dan.grump)/(sd(parenthood$dan.grump)*sd(parenthood$dan.sleep)) # -.90
+cor(parenthood$dan.sleep, parenthood$dan.grump) # -.90
+# very strong negative linear relationship --> more sleep = less grump
+
+cor(parenthood) # slight positive for both sleeps, moderate negative for baby sleep + grump
+
+# CORRELATIONS MIGHT NOT MEAN WHAT WE THINK THEY MEAN = ALWAYS GRAPH THE DATA
+#   - they only measure of the extent to which the data all tend to fall on a single, perfectly straight line. 
+
+# ordinal relationships --> non-linear
+# if a student works more than another, they will be guaranteed to get a better grade
+# but its harder to get from 80% to 90% than from 0-35%, so relationship isn't linear
+# must describe relationship in ORDER of hours worked, not raw terms
+load("effort.Rdata")
+
+glimpse(effort)
+
+ggplot(effort) + 
+  geom_point(aes(hours, grade))
+  geom_line(aes(hours, grade))
+
+hrs.rank <- rank(effort$hours)
+grade.rank <- rank(effort$grade)
+
+cor(hrs.rank,grade.rank) # perfect SPEARMAN'S RANK-ORDER ORRELATION COEFFICIENT of 1
+
+# spearman easirer
+cor(hrs.rank, grade.rank, method = "spearman")
+
+# correlations only work for NUMERIC VARIABLES
+load("work.Rdata")
+glimpse(work)
+
+# to get correlation matrix, subset out the factors
+work %>%
+  select(hours, tasks, pay, day, week) %>%
+  cor
+
+# or use lsr correlation()
+correlate(work)
+correlate(work, corr.method = "spearman")

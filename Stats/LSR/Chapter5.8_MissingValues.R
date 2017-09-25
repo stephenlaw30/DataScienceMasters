@@ -24,7 +24,10 @@ mean(partial, na.rm = T) #mean of 3 non-NA values
 #       - also means every correlation in matrix is being computed from a slightly different set of observations
 #       - can be awkward when you want to compare the different correlations 
 
-# if you think the missing values were "chosen" completely randomly you'll probably want to use the pairwise method. 
-# If you think the missing data are a cue to thinking the whole observation might be rubbish (e.g. someone selecting arbitrary survey responses)
+# if you think the missing values were "chosen" completely randomly you'll probably want to 
+use the pairwise method. 
+# If you think the missing data are a cue to thinking the whole observation might be rubbish (e.g. someone 
+selecting arbitrary survey responses)
 #   but there's no pattern to which observations are "rubbish" it's probably safer to keep only observations that are complete. 
-# If you think there's something systematic going on (some observations are more likely to be missing than others), you have a much trickier problem
+# If you think there's something systematic going on (some observations are more likely to be missing than others), you
+have a much trickier problem
