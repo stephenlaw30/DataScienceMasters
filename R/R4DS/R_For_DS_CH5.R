@@ -218,7 +218,7 @@ select(flights, contains("dep_"), contains("arr_"), -starts_with('sched'))
 select(flights, year, year)
 # only shows up once
   
-## What does ?one_of() function do? Why might it be helpful in conjunction with this vector?
+## What does one_of() function do? Why might it be helpful in conjunction with this vector?
 select(flights, one_of(c("year", "month", "day", "dep_delay", "arr_delay")))
 # returns variables in the character vector that are in the dataset
 
@@ -233,7 +233,7 @@ select(flights, contains("TIME", ignore.case = T))
 '******************************************************'
 '5.5 MUTATE()'
 '******************************************************'
-## Adds new variables as functions of existing ones --> only at end of dataset
+## Adds new variables as functions of existing ones --> only appear at end of dataset
 
 # create smaller dataset to see mutate() results
 flights_sml <- select(flights, year:day, ends_with("delay"), distance, air_time)
@@ -324,22 +324,35 @@ mutate(flights,
 mutate(flights, 
        air_time_2 = ((arr_time %/% 100)*60 + (arr_time %% 100)) - ((dep_time %/% 100)*60 + (dep_time %% 100))) %>%
   select(air_time, air_time_2)
-# even after converting from clock format to minutes after midnight, they should be the same
-???????????????????????????????????????????????????
+# even after converting from clock format to minutes after midnight, they should be the same, but they are not
+
+# see how different they are
+mutate(flights, 
+       air_time_2 = ((arr_time %/% 100)*60 + (arr_time %% 100)) - ((dep_time %/% 100)*60 + (dep_time %% 100)),
+       air_time_diff = air_time_2 - air_time) %>%
+  select(air_time, air_time_2, air_time_diff)
 
 ## Compare dep_time, sched_dep_time, and dep_delay. How would you expect those three numbers to be related?
 # expect sched_dep_time - dep_time = dep_delay
 mutate(flights, dep_delay2 = dep_time - sched_dep_time) %>%
   select(sched_dep_time, dep_time, dep_delay, dep_delay2)
 # 2nd dep_delay is off due to clock formatting of time vars
+# convert to minutes after midnight
+## Compare air_time with arr_time - dep_time. What do you expect to see? What do you see? What do you need to do to fix it?
+mutate(flights, 
+       dep_time_2 = (dep_time %/% 100)*60 + (dep_time %% 100),
+       sched_dep_time2 = (sched_dep_time %/% 100)*60 + (sched_dep_time %% 100),
+       dep_delay_2 = dep_time_2 - sched_dep_time2) %>%
+  select(sched_dep_time, dep_time, dep_delay, dep_delay_2)
 
 ##  Find the 10 most delayed flights using a ranking function. How do you want to handle ties? 
 # most delayed
 as.data.frame(head(arrange(flights, desc(dep_delay)),15))
 
 as.data.frame(head(arrange(flights, desc(dep_delay)),15)) %>%
-  mutate(delayed_rank = min_rank(-dep_delay)) %>%
-  select(1:5, delayed_rank)
+  mutate(delayed_rank = min_rank(-dep_delay),
+         dep_delay = dep_time - sched_dep_time) %>%
+  select(1:5, delayed_rank, dep_delay)
 # there are no ties for the top 10 most delayed
 
 ## What does 1:3 + 1:10 return? Why?
@@ -363,67 +376,67 @@ tanpi(x)'
 '******************************************************
 5.6 Grouped summaries with summarise()
 ******************************************************'
-## summarize collapses dataframes to single rows
-summarize(flights, delay = mean(dep_delay, na.rm = T))
+## summarize collapses dataframes into single rows
+summarize(flights, avg_delay = mean(dep_delay, na.rm = T))
 
-## not terribly useful unless paired w/ group_by --> changes unit of analysis from a complete dataset to individual groups. 
-## when using dplyr verbs on a grouped data frame they'll be automatically applied "by group". 
+## not terribly useful unless paired w/ group_by --> changes unit of analysis from a complete dataset to individual groups/factor levels. 
+## when using dplyr verbs on a grouped data frame, they'll be automatically applied "by group". 
 
-# get average delay by date
+# get average delay by single date
 group_by(flights, year, month, day) %>%
-  summarize(delay = mean(dep_delay, na.rm = T))
+  summarize(avg_delay = mean(dep_delay, na.rm = T))
 
-## group_by() + summarise() provide 1 of the tools used most commonly when working w/ dplyr: grouped summaries.
+## group_by() + summarise() provides 1 of the tools used most commonly when working w/ dplyr: **grouped summaries**
 
-# explore the relationship between the distance and average delay for each destination w/ pipes
+# explore the relationship between the distance and average delay for each destination
 group_by(flights, dest) %>%
-    summarize(count = n(),
-              dist = mean(distance, na.rm = T),
-              delay = mean(dep_delay, na.rm = T)) %>%
+    summarize(count = n(), # number of flights at that destination
+              avg_dist = mean(distance, na.rm = T),
+              avg_delay = mean(dep_delay, na.rm = T)) %>%
   filter(count > 20, dest != "HNL") %>%
-  ggplot(aes(dist,delay)) + # graph scatterplot of relationship
+  ggplot(aes(avg_dist,avg_delay)) + # graph scatterplot of relationship
     geom_point(aes(size = count), alpha = 1/3) + # make each point grow according to count of flights leaving each destination   
     geom_smooth(se = FALSE) # remove CI bands
 
 ## x %>% f(y) turns into f(x, y), and x %>% f(y) %>% g(z) turns into g(f(x, y), z) and so on.
 
-## aggregation functions obey the usual rule of missing values: if there's ANY missing value in the input, output = a missing value. 
+## aggregation functions obey the usual rule of missing values: if there's ANY missing value in the input, the output = a missing value. 
 ## Fortunately, all aggregation functions have na.rm arguments
 
-# for missing values that represent cancelled flights, removing the cancelled flights
+# for missing values that represent cancelled flights, remove the cancelled flights
 non_cancelled_flights <- filter(flights, !is.na(arr_delay), !is.na(dep_delay)) 
 
 non_cancelled_flights %>% group_by(year,month,day) %>%
   summarize(mean = mean(dep_delay))
 
-## Whenever you do any aggregation = always good idea to include either a count (n()), or count of non-missing values (sum(!is.na(x))).
+## Whenever you do any aggregation = always good idea to include either a count n(), or count of non-missing values = sum(!is.na(x))
 ## helps check that you're not drawing conclusions based on very small amounts of data. 
 
-# look at planes (identified by their tail number) that have the highest average delays
+# look at planes (identified by their tail #) that have the highest average delays
 delays <- non_cancelled_flights %>% 
   group_by(tailnum) %>%
-  summarize(delay = mean(dep_delay))# %>%
+  summarize(avg_delay = mean(dep_delay))
 
 delays %>%
   ggplot() + 
-    geom_freqpoly(aes(delay), binwidth = 10)
-# some planes have delays > 5 hrs (> 300 minutes)
+    geom_freqpoly(aes(avg_delay), binwidth = 10)
+# some planes average delays > 5 hrs (> 300 minutes)
 
 # draw scatterplot of flights vs avg delay
 delays2 <- non_cancelled_flights %>% 
   group_by(tailnum) %>%
-  summarize(delay = mean(dep_delay, na.rm = T),
+  summarize(avg_delay = mean(dep_delay, na.rm = T),
             n = n())
 
 delays2 %>%
   ggplot() + 
-  geom_point(aes(n,delay), alpha = 1/10)
+  geom_point(aes(n,avg_delay), alpha = 1/10)
 # very few DPs > 400 min delay
 
 ## Look at average performance of batters in baseball as related to at-bats
 batting <- as.tibble(Lahman::Batting)
 
-# plot skill of batter (measured by ba) against # of opportunities to hit the ball (at-bat, ab),
+# plot skill of batter (measured by BA) against # of opportunities to hit the ball (at-bat, AB),
 # 1) get BA + ABs per each player
 batters <- batting %>%
   group_by(playerID) %>%
@@ -432,13 +445,13 @@ batters <- batting %>%
 
 # plot it
 batters %>%
-  filter(ab > 100) %>%
+  filter(ab > 100) %>% # get only players with more than 100 AB's
   ggplot(aes(ab,ba)) + 
     geom_point() + 
     geom_smooth(se = F)
-## as ABs increase, BA barely increases, and its a wide range for small #'s of ABs (not surprising)
+## as ABs increase, BA has sharp incrase, then barely increases, and its a wide range for small #'s of ABs (not surprising)
 ## 2 patterns
-##    1) As above, variation in our aggregate decreases as we get more DPs.
+##    1) As with flights, variation in our aggregate decreases as we get more DPs.
 ##    2) Have positive correlation between skill (BA) + opportunities to hit the ball (AB)
 ##        - This is b/c teams control who gets to play will obviously pick best players.
 
@@ -458,10 +471,11 @@ non_cancelled_flights %>%
   group_by(year, month, day) %>%
   summarize(overall_avg_delay = mean(arr_delay),
             positive_avg_delay = mean(arr_delay[arr_delay > 0]))
-#     -see negative delays highly change data results
+#     -see negative delays highly change data results for mean
 
-##  - measures of spread = sd(), IQR(), mad() - median absolute deviation
-##      - 2nd two are more robust (less sensitive to outliers)
+##  - measures of spread = sd(), IQR(), mad() - median absolute deviation, add() - mean absolute deviation
+##      - IQR + MAD are more robust (less sensitive to outliers)
+
 # Why is distance to some destinations more variable than to others?
 non_cancelled_flights %>%
   group_by(dest) %>%
@@ -487,18 +501,17 @@ non_cancelled_flights %>%
             last_flight = last(dep_time, default = 2399))
 
 ## position functions = complementary to filtering on ranks. 
-##    - Filtering gives you all variables, w/ each observation in a separate row:
 non_cancelled_flights %>%
   filter(year,month,day) %>%
   mutate(rank = min_rank(desc(dep_time))) %>%
-  filter(rank %in% range(rank)) %>%
+  filter(rank %in% range(min(test$rank),max(test$rank)+1)) %>%
   select(1:9,rank)
 
 ## n() returns counts/size of current group
 ## count non-missing values -> sum(!is.na(x))
 ## count distinct values --> n_distinct(x)
 
-# Which destinations have the most carriers?
+# Which destinations have the most carriers that come to it?
 non_cancelled_flights %>%
   group_by(dest) %>%
   summarise(carriers = n_distinct(carrier)) %>%
@@ -511,9 +524,9 @@ non_cancelled_flights %>%
 
 ## can optionally provide a weight variable
 
-# use weights to count sum total number of miles a plane flew: 
+# use weights to sum the total number of miles a plane flew: 
 non_cancelled_flights %>% 
-  count(tailnum, wt = distance)
+  count(tailnum, wt = distance) # count distance for tailnum
 
 ## Counts + proportions of logical values: sum(x > 10), mean(y == 0). 
 ##  - When used w/ numeric functions, TRUE converted to 1, FALSE to 0. 
