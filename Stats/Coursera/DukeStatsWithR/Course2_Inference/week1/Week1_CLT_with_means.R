@@ -36,7 +36,9 @@ pnorm(X,3.6,se_x)
 
 
 
-
+# get cutoff values for 90% CI 
+qnorm(.05) # ~ -1.96
+qnorm(1-.05) # ~ 1.96
 
 # get cutoff values for 95% CI 
 qnorm(.025) # ~ -1.96
@@ -45,4 +47,23 @@ qnorm(1-.025) # ~ 1.96
 # get cutoff/critical values for 98% CI 
 qnorm((1 - .98)/2) # ~ -1.96
 qnorm(1-(1 - .98)/2) # ~ 1.96
+
+
+
+
+# required sample size for MoE
+target.MoE <- 4
+alpha = .9
+z = qnorm(1-((1-alpha)/2))
+sigma = 18
+
+(n.needed <- ((z*sigma)/target.MoE)^2)
+
+target.MoE <- 2
+alpha = .9
+z = qnorm(1-((1-alpha)/2))
+sigma = 18
+
+(n.needed <- ((z*sigma)/target.MoE)^2)
+
 
