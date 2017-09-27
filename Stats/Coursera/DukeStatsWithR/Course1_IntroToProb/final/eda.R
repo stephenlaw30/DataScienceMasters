@@ -61,6 +61,31 @@ top_every_day_smoker_states %>%
     xlab('State') + 
     ylab('Proportion') + 
     ggtitle('Proportion of Every Day Smokers Over All Smokers')
+
+#get those top 15 states
+top_every_day_states <- top_every_day_smoker_states %>%
+  head(15) %>% 
+  select(X_state) %>%
+  as.data.frame %>%
+
+top_every_day_states <- top_every_day_states[,1]
+  
+'West Virginia' %in% top_every_day_states
+
+smokers %>%
+  group_by(X_state, smokday2) %>%
+  summarise(count = n()) %>%
+  mutate(prop = count / sum(count)) %>%
+  arrange(desc(prop)) %>%
+  #head(10) %>%
+  filter(X_state %in% top_every_day_states) %>%
+  ggplot() + 
+    geom_bar(aes(X_state, prop, fill = smokday2), stat = "identity") + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))'' + 
+    xlab("State") + 
+    ylab("Proportion") + 
+    ggtitle("Proportion of Every Day Smokers Over All Smokers")'
+
   
   
 stop_smoke <- brfss2013 %>%
