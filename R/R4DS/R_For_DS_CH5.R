@@ -486,6 +486,7 @@ non_cancelled_flights %>%
 
 ## measures of rank = min(), max(), quantile(x, .25) = value which 25% of data in x are below 
 ##    - quantiles = generalization of median
+
 # When do the first and last flights leave each day?
 non_cancelled_flights %>%
   group_by(year, month, day) %>%
@@ -504,7 +505,7 @@ non_cancelled_flights %>%
 non_cancelled_flights %>%
   filter(year,month,day) %>%
   mutate(rank = min_rank(desc(dep_time))) %>%
-  filter(rank %in% range(min(test$rank),max(test$rank)+1)) %>%
+  filter(rank %in% range(min(rank),max(rank)+1)) %>%
   select(1:9,rank)
 
 ## n() returns counts/size of current group
@@ -556,7 +557,6 @@ daily <- flights %>%
 (per_month <- per_day %>%
     summarize(num_flights = sum(num_flights)))
 
-
 (per_year <- per_month %>%
     summarize(num_flights = sum(num_flights)))
 
@@ -578,17 +578,17 @@ daily %>%
 ##  - Flight is 15 minutes early 50% of the time, and 15 minutes late 50% of the time.
 non_cancelled_flights %>%
   group_by(flight) %>%
-  summarise(prop_early_over_half = mean(arr_delay < -15, na.rm = T),
+  summarise(prop_early_over_half = mean(arr_delay < -15, na.rm = T), # get the average of 1's and 0's for those leaving > 15 min early
             prop_late_over_half = mean(arr_delay > 15,  na.rm = T)) %>%
-  filter(prop_early_over_half == .5 & prop_late_over_half == .5)
+  filter(prop_early_over_half == .5 & prop_late_over_half == .5) 
 # there are none
 
-##  - A flight is always 10 minutes late.
+##  - A flight is always exactly 10 minutes late.
 non_cancelled_flights %>%
   group_by(flight) %>%
   filter(arr_delay == 10)
 
-## A flight is 30 minutes early 50% of the time, and 30 minutes late 50% of the time.
+## A flight is 30 minutes or more early 50% of the time, and 30 minutes or more late 50% of the time.
 non_cancelled_flights %>%
   group_by(flight) %>%
   summarise(prop_early_over_half = mean(arr_delay < -30, na.rm = T),
@@ -603,28 +603,30 @@ non_cancelled_flights %>%
   filter(prop_on_time == .99 & prop_2hrs_late == .01)
 
 ## Which is more important: arrival delay or departure delay?
+# totally depends on what's important to you
+# are we more concerned with flights leaving late or taking "too long" in the air
 
 ## Come up w/ another approach to get the same output as: (without using count()).
 non_cancelled_flights %>% count(dest)
-
+#alt
 non_cancelled_flights %>% group_by(dest) %>% summarize(count = n())
 
 ## Come up w/ another approach to get the same output as: (without using count()).
 non_cancelled_flights %>% count(tailnum, wt = distance) 
-
+# alt
 non_cancelled_flights %>% group_by(tailnum) %>% summarize(distance = sum(distance))
 
-## Definition of cancelled flights ==> (is.na(dep_delay) | is.na(arr_delay) ) is slightly suboptimal. 
-# only need flights that did not depart, as they cannot arrive if they didn't depart
+## Definition of cancelled flights ==> (is.na(dep_delay) | is.na(arr_delay) ) is slightly suboptimal. Why? 
+# we only need flights that did not DEPART, as they cannot arrive if they didn't depart
 
 ## Look at # of cancelled flights per day. Is there a pattern? Is the proportion of cancelled
 ##  flights related to the average delay?
 flights %>%
   group_by(year,month,day) %>%
-  summarise(cancelled_flights = sum(!is.na(dep_delay)),
-            prop_cancelled = mean(is.na(dep_delay)),
-            avg_delay = mean(dep_delay, na.rm = T)) %>%
-  arrange(desc(prop_cancelled)) %>%
+  summarise(cancelled_flights = sum(!is.na(dep_time)), # flights that did not depart are cancelled for that day
+            prop_cancelled = mean(is.na(dep_time)), # proportion of flights that didn't depart that day
+            avg_delay = mean(dep_delay, na.rm = T)) %>% # average delay of the day
+  arrange(desc(prop_cancelled)) %>% 
   ggplot(aes(avg_delay,prop_cancelled)) +
     geom_point()
 # looks like a slight positive one, with outliers
@@ -632,22 +634,25 @@ flights %>%
 ## Which carrier has the worst delays? Challenge: 
 non_cancelled_flights %>% 
   group_by(carrier) %>%
-  summarise(avg_delay = mean(dep_delay, na.rm = T)) %>%
+  summarise(count = n(), avg_delay = mean(dep_delay, na.rm = T)) %>%
   arrange(desc(avg_delay))
+# Frontier Airlines has the worst delays, barely beating out Atlantic Southeast Airlines, but they have a lot more flights, so maybe
+#   we should say they are the "worst"
 
 ## can you disentangle the effects of bad airports vs. bad carriers? Why/why not? 
 non_cancelled_flights %>% group_by(carrier, dest) %>% summarise(n())
 
-## What does the sort argument to count() do. When might you use it?
+## What does the sort argument to ?count() do. When might you use it?
+# sort, by default = F, while sort output in ascending order unless specified T to make it descending
 
 '*****************5.7 Grouped mutates (and filters)********************'
 ## Grouping = most useful in conjunction w/ summarise(), but can also do convenient operations
 ##    w/ mutate() and filter():
   
-# Find the worst members of each group: find words delay for each day
+# Find the worst members of each group: find worst arrival delay for each day
 flights_sml %>% 
   group_by(year, month, day) %>%
-  filter(rank(desc(arr_delay)) < 10)
+  filter(rank(desc(arr_delay)) < 10) # get top 10
 
 ## Find all groups bigger than a threshold: find all flights to destinations w/ > 365 flights to it
 (popular_dests <- flights %>% 
@@ -657,7 +662,7 @@ flights_sml %>%
 ## Standardise to compute per group metrics:
 popular_dests %>% 
   filter(arr_delay > 0) %>% # get all delayed flights
-  mutate(prop_delay = arr_delay / sum(arr_delay)) %>% # how much did this delay contribute to overall
+  mutate(prop_delay = arr_delay / sum(arr_delay)) %>% # how much did this delay contribute to overall delay
   select(year:day, dest, arr_delay, prop_delay)
 
 ## grouped filter = a grouped mutate followed by an ungrouped filter. 
@@ -671,13 +676,28 @@ popular_dests %>%
 '5.7 EXERCISES'
 '******************************************************'
 ## Refer back to the lists of useful mutate + filtering functions. Describe how each operation changes when you combine it with grouping.
+# They will perform these functions for a GROUPED set of data
+#   - i.e creating a mean of average departure delay w/ mutate() when data is grouped by year and month will calculate that for the entire
+#       month-year combo
 
 ## Which plane (tailnum) has the worst on-time record?
 non_cancelled_flights %>% 
   group_by(tailnum) %>%
-  rank(desc(arr_delay))
-  #filter(rank(desc(mean(is.na(arr_delay))))
-What time of day should you fly if you want to avoid delays as much as possible?
+  mutate(prop_on_time = mean(arr_time != sched_arr_time)) %>%
+  select(prop_on_time, tailnum, everything()) %>%
+  arrange(prop_on_time)
+
+## What time of day should you fly if you want to avoid delays as much as possible?
+non_cancelled_flights %>%
+  mutate(dep_hour = dep_time %/% 100) %>%
+  group_by(dep_hour) %>%
+  summarise(avg_delay = mean(dep_delay, na.rm = T),
+            prop_delayed = mean(dep_delay > 0, na.rm = T)) %>%
+  arrange(prop_delayed)
+# 4 AM seems to leave early a majority of the time with on delays
+flights %>%
+  ggplot(aes(x=factor(hour), fill=arr_delay>5 | is.na(arr_delay))) + geom_bar()
+  
 
 For each destination, compute the total minutes of delay. For each, flight, compute the proportion of the total delay for its destination.
 
