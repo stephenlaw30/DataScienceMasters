@@ -87,12 +87,29 @@ smokers %>%
     ggtitle("Proportion of Every Day Smokers Over All Smokers")'
 
   
-  
-stop_smoke <- brfss2013 %>%
-  filter(!is.na(stopsmk2))
 
-'****************************************college students who drink
-  
+stop_smoke <- brfss2013 %>%
+  filter(!is.na(stopsmk2))'
+
+'****************************************college grads'
+
+brfss2013 %>%
+  filter(educa == "College 4 years or more (College graduate)") %>%
+  count
+
+# calculate chance of having income > mean income for college grads
+# overall prob of having 70+ power-user friends
+sum(dbinom(70:n,n,prob_success))
+
+college_grads <- brfss2013 %>%
+  filter(educa == "College 4 years or more (College graduate)")
+table(college_grads$income2)
+as.numeric(gsub("([0-9]+).*$", "\\1", college_grads$income2), na.rm = T)
+
+
+
+
+
 
 head(brfss2013$sleptim1) # hours
 head(brfss2013$smokday2)
