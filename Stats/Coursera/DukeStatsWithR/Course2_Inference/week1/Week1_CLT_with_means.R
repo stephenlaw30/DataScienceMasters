@@ -66,4 +66,19 @@ sigma = 18
 
 (n.needed <- ((z*sigma)/target.MoE)^2)
 
+## sample of 50 college students = avg 3.2 relationships w/ SD = 1.74, sample distribution skewed slightly right
+# find 95% CI for the true avg. # of relationships
+n = 50
+sigma = 1.74
+x.bar = 3.2
+## since n = 50 < 10% of all US college students, we meet the indepedence assumption (sampling w/out replacement)
+## since distribution is not THAT skewed and n >= 30, we can assume population is not that skewed
+## therefore we meet the sample size/skew condition
+z.crit <- qnorm(1-(1 - .95)/2) # ~ 1.96
+
+se.x <- sigma/sqrt(n)
+mOe <- z.crit*se.x
+
+(ci.low <- x.bar - mOe)
+(ci.low <- x.bar + mOe)
 
