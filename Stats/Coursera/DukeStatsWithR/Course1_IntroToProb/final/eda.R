@@ -1,5 +1,4 @@
 load("C:/brfss2013.RData")
-
 who()
 
 library(tidyverse)
@@ -43,17 +42,25 @@ levels(smokers$X_state)
 `%not in%` <- function (x, table) is.na(match(x, table, nomatch=NA_integer_))
 
 # keep only us official states
-smokers_test <- smokers %>% 
+smokers <- smokers %>% 
   filter(X_state %not in% c("0", "80", "Guam", "Puerto Rico"))
-table(smokers_test$X_state)
+table(smokers$X_state)
 
-smokers_test %>%
+top_every_day_smoker_states <- smokers %>%
   group_by(X_state, smokday2) %>%
   summarise(count = n()) %>%
   mutate(prop = count / sum(count)) %>%
   filter(smokday2 == "Every day") %>%
   arrange(desc(prop))
-  
+
+top_every_day_smoker_states %>%
+  head(15) %>%
+  ggplot() + 
+    geom_bar(aes(reorder(X_state, -prop), prop), stat = "identity") + 
+    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+    xlab('State') + 
+    ylab('Proportion') + 
+    ggtitle('Proportion of Every Day Smokers Over All Smokers')
   
   
 stop_smoke <- brfss2013 %>%
