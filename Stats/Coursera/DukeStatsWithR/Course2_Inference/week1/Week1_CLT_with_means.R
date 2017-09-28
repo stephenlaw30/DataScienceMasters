@@ -82,3 +82,18 @@ mOe <- z.crit*se.x
 (ci.low <- x.bar - mOe)
 (ci.low <- x.bar + mOe)
 
+## quiz # 6
+n = 36
+sigma = 4.31
+x.bar = 30.69
+## since n = 36 < 10% of all gifted children in a large city, we meet the indepedence assumption (sampling w/out replacement)
+## since distribution is not THAT skewed and n >= 30, we can assume population is not that skewed
+## therefore we meet the sample size/skew condition
+z.crit <- qnorm(1-(1 - .90)/2) # ~ 1.64
+
+se.x <- sigma/sqrt(n)
+mOe <- z.crit*se.x
+
+(ci.low <- x.bar - mOe)
+(ci.low <- x.bar + mOe)
+
