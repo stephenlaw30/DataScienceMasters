@@ -161,7 +161,7 @@ prop.table(table(non_healthy_prelim2$exerany2)) # more did not exercise
 
 healthy %>%
   filter(exerany2 == "Yes") %>%
-  group_by(exeroft1) %>%
+  group_by(exract11) %>%
   summarize(count = n()) %>%
   mutate(prop = count / sum(count)) %>%
   arrange(desc(prop)) %>%
