@@ -102,12 +102,7 @@ smokers %>%
     theme(axis.text.x = element_text(angle = 90, hjust = 1))'' + 
     xlab("State") + 
     ylab("Proportion") + 
-    ggtitle("Proportion of Every Day Smokers Over All Smokers")'
-
-  
-
-stop_smoke <- brfss2013 %>%
-  filter(!is.na(stopsmk2))'
+    ggtitle("Proportion of Every Day Smokers Over All Smokers")
 
 '****************************************college grads'
 
@@ -120,7 +115,8 @@ brfss2013 %>%
 sum(dbinom(70:n,n,prob_success))
 
 college_grads <- brfss2013 %>%
-  filter(educa == "College 4 years or more (College graduate)")
+  filter(educa == "College 4 years or more (College graduate)",
+         employ1 != "Retired")
 table(college_grads$income2)
 as.numeric(gsub("([0-9]+).*$", "\\1", college_grads$income2), na.rm = T)
 
