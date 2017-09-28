@@ -106,6 +106,9 @@ smokers %>%
     ggtitle("Proportion of Every Day Smokers Over All Smokers")
 
 
+
+'****************************************college grads'
+
 brfss2013 %>%
   filter(educa == "College 4 years or more (College graduate)") %>%
   count
@@ -116,7 +119,7 @@ sum(?dbinom(70:n,n,prob_success))
 
 college_grads_not_retired <- brfss2013 %>%
   filter(educa == "College 4 years or more (College graduate)",
-         employ1 != "Retired")
+         employ1 %in% c("Employed for wages","Self-employed"))
 table(college_grads_not_retired$income2)
 
 # rename factors to numerics
@@ -131,6 +134,6 @@ ggplot(college_grads_not_retired) +
 college_grads_not_retired %>%
   group_by(income2) %>%
   summarize(prop = mean(as.numeric(incomeRank) > 6, na.rm = T))
-
+#0.7699314 = 76%
 
 '****************************************college grads'
