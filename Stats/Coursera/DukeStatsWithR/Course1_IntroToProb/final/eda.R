@@ -1,7 +1,10 @@
-load("C:/brfss2013.RData")
+load("C:/Users/NEWNSS/Dropbox/brfss2013.RData")
 who()
 
 library(tidyverse)
+library(ggplot2)
+library(maps)
+#library(mapproj)
 glimpse(brfss2013)
 names(brfss2013)
 
@@ -53,14 +56,29 @@ top_every_day_smoker_states <- smokers %>%
   filter(smokday2 == "Every day") %>%
   arrange(desc(prop))
 
+'***********HEAT MAP************************'
+top_every_day_smoker_states$region <- tolower(top_every_day_smoker_states$X_state)
+library(mapproj)
+
+states <- map_data("state")
+map.df <- merge(states,top_every_day_smoker_states, by="region", all.x=T)
+map.df <- map.df[order(map.df$order),]
+ggplot(map.df, aes(x=long,y=lat,group=group))+
+  geom_polygon(aes(fill=prop))+
+  geom_path()+ 
+  scale_fill_gradientn(colours=rev(heat.colors(10)),na.value="grey90")+
+  coord_map()
+
+#top 15 states
 top_every_day_smoker_states %>%
   head(15) %>%
   ggplot() + 
-    geom_bar(aes(reorder(X_state, -prop), prop), stat = "identity") + 
-    theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
-    xlab('State') + 
-    ylab('Proportion') + 
-    ggtitle('Proportion of Every Day Smokers Over All Smokers')
+  geom_bar(aes(reorder(X_state, -prop), prop), stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  xlab('State') + 
+  ylab('Proportion') + 
+  ggtitle('Proportion of Every Day Smokers Over All Smokers')
+
 
 #get those top 15 states
 top_every_day_states <- top_every_day_smoker_states %>%
@@ -70,7 +88,7 @@ top_every_day_states <- top_every_day_smoker_states %>%
 
 top_every_day_states <- top_every_day_states[,1]
   
-'West Virginia' %in% top_every_day_states
+#'West Virginia' %in% top_every_day_states
 
 smokers %>%
   group_by(X_state, smokday2) %>%
