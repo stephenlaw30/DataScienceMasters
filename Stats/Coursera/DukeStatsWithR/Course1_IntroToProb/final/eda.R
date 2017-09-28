@@ -1,6 +1,7 @@
 load("C:/Users/NEWNSS/Dropbox/brfss2013.RData")
 who()
 
+library(plyr)
 library(tidyverse)
 library(ggplot2)
 library(maps)
@@ -104,7 +105,6 @@ smokers %>%
     ylab("Proportion") + 
     ggtitle("Proportion of Every Day Smokers Over All Smokers")
 
-'****************************************college grads'
 
 brfss2013 %>%
   filter(educa == "College 4 years or more (College graduate)") %>%
@@ -112,37 +112,25 @@ brfss2013 %>%
 
 # calculate chance of having income > mean income for college grads
 # overall prob of having 70+ power-user friends
-sum(dbinom(70:n,n,prob_success))
+sum(?dbinom(70:n,n,prob_success))
 
-college_grads <- brfss2013 %>%
+college_grads_not_retired <- brfss2013 %>%
   filter(educa == "College 4 years or more (College graduate)",
          employ1 != "Retired")
-table(college_grads$income2)
-as.numeric(gsub("([0-9]+).*$", "\\1", college_grads$income2), na.rm = T)
+table(college_grads_not_retired$income2)
+
+# rename factors to numerics
+college_grads_not_retired$incomeRank <- mapvalues(college_grads_not_retired$income2, from = c("Less than $10,000","Less than $15,000",
+                                                                                "Less than $20,000","Less than $25,000","Less than $35,000",
+                                                                                "Less than $50,000","Less than $75,000","$75,000 or more"), 
+                                            to = c(1, 2, 3, 4, 5, 6, 7, 8))
+ggplot(college_grads_not_retired) + 
+  geom_histogram(aes(as.numeric(incomeRank)), binwidth = 1)
+
+# percent of people making more than 50k
+college_grads_not_retired %>%
+  group_by(income2) %>%
+  summarize(prop = mean(as.numeric(incomeRank) > 6, na.rm = T))
 
 
-
-
-
-
-head(brfss2013$sleptim1) # hours
-head(brfss2013$smokday2)
-head(brfss2013$avedrnk2)
-
-
-'
-library(ggplot2)
-ggplot(brfss2013, aes(avedrnk2, sleptim1)) + 
-  geom_point() + 
-  geom_smooth() + 
-  coord_cartesian(ylim = c(0,15))
-
-brfss2013 %>%
-  arrange(desc(sleptim1)) %>%
-  select(sleptim1)
-
-smpl <- ?sample_n(brfss2013, 1000)
-
-ggplot(smpl, aes(exerhmm1, sleptim1)) + 
-  geom_point() + 
-  geom_smooth()'
+'****************************************college grads'
