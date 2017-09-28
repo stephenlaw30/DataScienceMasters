@@ -165,12 +165,25 @@ healthy %>%
   summarize(count = n()) %>%
   mutate(prop = count / sum(count)) %>%
   arrange(desc(prop)) %>%
-  #head(10) %>%
-  #filter(X_state %in% top_every_day_states) %>%
+  head(10) %>%
   ggplot() + 
-  geom_bar(aes(X_state, prop, fill = smokday2), stat = "identity") + 
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))'' + 
-  xlab("State") + 
-  ylab("Proportion") + 
-  ggtitle("Proportion of Every Day Smokers Over All Smokers")
+  geom_bar(aes(reorder(exract11, -prop), prop), stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  xlab('State') + 
+  ylab('Proportion') + 
+  ggtitle('Proportion of Every Day Smokers Over All Smokers')
+
+healthy %>%
+  filter(exerany2 == "Yes") %>%
+  group_by(exract11) %>%
+  summarize(count = n()) %>%
+  mutate(prop = count / sum(count)) %>%
+  arrange(desc(prop)) %>%
+  head(10) %>%
+  ggplot() + 
+  geom_bar(aes(reorder(exract11, -count), count), stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  xlab('State') + 
+  ylab('Proportion') + 
+  ggtitle('Proportion of Every Day Smokers Over All Smokers')
 
