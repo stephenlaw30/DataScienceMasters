@@ -11,9 +11,10 @@ output:
 
 ### Load packages
 
-```{r load-packages, message = FALSE}
+```{r load-packages, message = FALSE, warning = FALSE}
+library(tidyverse)
 library(ggplot2)
-library(dplyr)
+library(maps)
 ```
 
 ### Load data
@@ -23,7 +24,7 @@ your data file will be called `brfss2013`. Delete this note when before you subm
 your work. 
 
 ```{r load-data}
-load("rfss2013.RData")
+load("brfss2013.RData")
 ```
 
 
@@ -37,11 +38,11 @@ load("rfss2013.RData")
 
 ## Part 2: Research questions
 
-**Research quesion 1:**
+**Research quesion 1: What are the US states with highest proportion of smokers who smoke every day relative to all those respondents who smoke?**
 
-**Research quesion 2:**
+**Research quesion 2: What percentage of non-retired, employed college graduates and non-retired non-college graduates make more than $50,000 per year?**
 
-**Research quesion 3:**
+**Research quesion 3: What are the most popular types of exercise for individuals who have no bad mental health days and those who have bad mental health days?**
 
 
 * * *
