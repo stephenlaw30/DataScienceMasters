@@ -42,7 +42,7 @@ load("brfss2013.RData")
 
 **Research quesion 2: What percentage of non-retired, employed college graduates and non-retired non-college graduates make more than $50,000 per year?**
 
-**Research quesion 3: What are the most popular types of exercise for individuals who have no bad mental health days and those who have bad mental health days?**
+**Research quesion 3: What are the most popular types of exercise for individuals who have no bad mental health days in the past 30 days and those who have more than 15 bad mental health days in the past 30 days?**
 
 
 * * *
@@ -55,8 +55,97 @@ in the project you submit. Delete this note when before you submit your work.
 
 **Research quesion 1:**
 
-```{r}
+```{r state counts} 
+# get count observations from each states
+brfss2013 %>%
+  group_by(X_state) %>%
+  summarise(count = n())
+```
 
+So there's a state "0"? That can't be right, but it might just be some kind of header.
+
+Now to look at the frequency table of the **smokday2** variable, which is a description of the frequency of days a respondent is now smoking, ranging from not at all to every day.
+
+```{r smoke frequency}
+summary(brfss2013$smokday2)
+```
+
+# get only those who answered frequency of smoking question
+smokers <- brfss2013 %>%
+  filter(!is.na(smokday2))
+
+# get proportion of each level of smoking by state
+smokers %>%
+  group_by(X_state, smokday2) %>%
+  summarise(count = n()) %>%
+  mutate(prop = count / sum(count)) %>%
+  filter(smokday2 == "Every day") %>%
+  arrange(desc(prop))
+
+# guam?
+levels(smokers$X_state)
+
+# function to be opposite of %IN%
+`%not in%` <- function (x, table) is.na(match(x, table, nomatch=NA_integer_))
+
+# keep only us official states
+smokers <- smokers %>% 
+  filter(X_state %not in% c("0", "80", "Guam", "Puerto Rico"))
+table(smokers$X_state)
+
+top_every_day_smoker_states <- smokers %>%
+  group_by(X_state, smokday2) %>%
+  summarise(count = n()) %>%
+  mutate(prop = count / sum(count)) %>%
+  filter(smokday2 == "Every day") %>%
+  arrange(desc(prop))
+
+'***********HEAT MAP************************'
+top_every_day_smoker_states$region <- tolower(top_every_day_smoker_states$X_state)
+
+states <- map_data("state")
+map.df <- merge(states,top_every_day_smoker_states, by="region", all.x=T)
+map.df <- map.df[order(map.df$order),]
+ggplot(map.df, aes(x=long,y=lat,group=group))+
+  geom_polygon(aes(fill=prop))+
+  geom_path()+ 
+  scale_fill_gradientn(colours=rev(heat.colors(10)),na.value="grey90")+
+  coord_map()
+
+#top 15 states
+top_every_day_smoker_states %>%
+  head(15) %>%
+  ggplot() + 
+  geom_bar(aes(reorder(X_state, -prop), prop), stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  xlab('State') + 
+  ylab('Proportion') + 
+  ggtitle('Proportion of Every Day Smokers Over All Smokers')
+
+
+#get those top 15 states
+top_every_day_states <- top_every_day_smoker_states %>%
+  head(15) %>% 
+  select(X_state) %>%
+  as.data.frame() #%>%
+
+top_every_day_states <- top_every_day_states[,1]
+  
+#'West Virginia' %in% top_every_day_states
+
+smokers %>%
+  group_by(X_state, smokday2) %>%
+  summarise(count = n()) %>%
+  mutate(prop = count / sum(count)) %>%
+  arrange(desc(prop)) %>%
+  #head(10) %>%
+  filter(X_state %in% top_every_day_states) %>%
+  ggplot() + 
+    geom_bar(aes(X_state, prop, fill = smokday2), stat = "identity") + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+    xlab("State") + 
+    ylab("Proportion") + 
+    ggtitle("Proportion of Every Day Smokers Over All Smokers")
 ```
 
 

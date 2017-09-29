@@ -124,10 +124,32 @@ college_grads_not_retired$incomeRank <- recode(college_grads_not_retired$income2
 ggplot(college_grads_not_retired) + 
   geom_histogram(aes(as.numeric(incomeRank)), binwidth = 1)
 
+
 # percent of people making more than 50k
 college_grads_not_retired %>%
   summarize(prop = mean(as.numeric(incomeRank) > 6, na.rm = T))
 #0.7699314 = 77%
+
+
+
+
+non_grads_not_retired <- brfss2013 %>%
+  filter(educa %not in% c("College 4 years or more (College graduate)","Refused"),
+         employ1 %in% c("Employed for wages","Self-employed"))
+table(non_grads_not_retired$educa)
+
+# rename factors to numerics
+non_grads_not_retired$incomeRank <- recode(non_grads_not_retired$income2, "Less than $10,000" = 1, "Less than $15,000" = 2,
+                                               "Less than $20,000" = 3, "Less than $25,000" = 4,
+                                               "Less than $35,000" = 5, "Less than $50,000" = 6,
+                                               "Less than $75,000" = 7,"$75,000 or more" = 8)
+ggplot(non_grads_not_retired) + 
+  geom_histogram(aes(as.numeric(incomeRank)), binwidth = 1)
+
+# percent of people making more than 50k
+non_grads_not_retired %>%
+  summarize(prop = mean(as.numeric(incomeRank) > 6, na.rm = T))
+#0.4310216 = 43%
 
 '****************************************p[hys mentakl health veggies and exercise'
 table(brfss2013$physhlth)
