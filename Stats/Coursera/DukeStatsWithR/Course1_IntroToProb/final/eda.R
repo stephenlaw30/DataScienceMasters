@@ -134,29 +134,29 @@ table(brfss2013$physhlth)
 table(brfss2013$menthlth)
 
 healthy <- brfss2013 %>%
-  filter(physhlth == 0 & menthlth == 0 & !(is.na(physhlth)) & !(is.na(menthlth)))
+  filter(menthlth == 0 & !(is.na(menthlth)))
 
 non_healthy_prelim <- brfss2013 %>%
-  filter(physhlth %not in% c(0, 60) & menthlth %not in% c(0,247,5000) & !(is.na(physhlth)) & !(is.na(menthlth)))
+  filter(menthlth %not in% c(0,247,5000) & !(is.na(menthlth)))
 
-summary(non_healthy_prelim$physhlth)
-hist(non_healthy_prelim$physhlth)
+#summary(non_healthy_prelim$physhlth)
+#hist(non_healthy_prelim$physhlth)
 
 summary(non_healthy_prelim$menthlth)
 hist(non_healthy_prelim$menthlth)
 
 non_healthy_prelim2 <- non_healthy_prelim %>%
-  filter(physhlth > 15 & menthlth > 15)
+  filter(menthlth > 15)
 
-summary(non_healthy_prelim2$physhlth)
-hist(non_healthy_prelim2$physhlth)
+#summary(non_healthy_prelim2$physhlth)
+#hist(non_healthy_prelim2$physhlth)
 
 summary(non_healthy_prelim2$menthlth)
 hist(non_healthy_prelim2$menthlth)
 
 prop.table(table(healthy$exerany2)) #many healthy exercises
 
-prop.table(table(non_healthy_prelim2$exerany2)) # more did not exercise
+prop.table(table(non_healthy_prelim2$exerany2)) # more did exercise, not as much
 
 
 healthy %>%
@@ -171,7 +171,7 @@ healthy %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab('State') + 
   ylab('Proportion') + 
-  ggtitle('Proportion of Every Day Smokers Over All Smokers')
+  ggtitle('Most popular exercises for those with no bad mental health days')
 
 healthy %>%
   filter(exerany2 == "Yes") %>%
@@ -185,5 +185,19 @@ healthy %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab('State') + 
   ylab('Proportion') + 
-  ggtitle('Proportion of Every Day Smokers Over All Smokers')
+  ggtitle('Most popular exercises for those with no bad mental health days')
 
+
+non_healthy_prelim2 %>%
+  filter(exerany2 == "Yes") %>%
+  group_by(exract11) %>%
+  summarize(count = n()) %>%
+  mutate(prop = count / sum(count)) %>%
+  arrange(desc(prop)) %>%
+  head(10) %>%
+  ggplot() + 
+  geom_bar(aes(reorder(exract11, -count), count), stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  xlab('State') + 
+  ylab('Proportion') + 
+  ggtitle('Most popular exercises for those with more than 15 bad mental health days')
