@@ -684,7 +684,7 @@ popular_dests %>%
 non_cancelled_flights %>% 
   group_by(tailnum) %>%
   mutate(prop_on_time = mean(arr_time != sched_arr_time)) %>%
-  select(prop_on_time, tailnum, everything()) %>%
+  select(prop_on_time, tailnum) %>%
   arrange(prop_on_time)
 
 ## What time of day should you fly if you want to avoid delays as much as possible?
@@ -694,17 +694,30 @@ non_cancelled_flights %>%
   summarise(avg_delay = mean(dep_delay, na.rm = T),
             prop_delayed = mean(dep_delay > 0, na.rm = T)) %>%
   arrange(prop_delayed)
-# 4 AM seems to leave early a majority of the time with on delays
-flights %>%
-  ggplot(aes(x=factor(hour), fill=arr_delay>5 | is.na(arr_delay))) + geom_bar()
-  
+# 4 AM seems to leave early a majority of the time with on delays, with most delays not happening in the early hours of the day
 
-For each destination, compute the total minutes of delay. For each, flight, compute the proportion of the total delay for its destination.
+## For each destination, compute total minutes of delay. 
+non_cancelled_flights %>% 
+  group_by(dest) %>%
+  summarise(total_delay = sum(dep_delay)) %>%
+  arrange(desc(total_delay))
 
-Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later flights are delayed to allow earlier flights to leave. Using lag() explore how the delay of a flight is related to the delay of the immediately preceding flight.
+## For each, flight, compute the proportion of the total delay for its destination (i.e. how much delay was at each destination
+##   of the flight)
+'non_cancelled_flights %>% 
+  group_by(tailnum, dest) %>%
+  summarise(total_delay = sum(dep_delay),
+         delay_prop = mean(total_delay)) %>%
+  arrange(tailnum, dest)'
 
-Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry error). Compute the air time a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
+## Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later
+##  flights are delayed to allow earlier flights to leave. Using lag() explore how the delay of a flight is related to the delay of
+##  the immediately preceding flight.
 
-Find all destinations that are flown by at least two carriers. Use that information to rank the carriers.
+## Look at each destination. Can you find flights that are suspiciously fast? (i.e. flights that represent a potential data entry 
+##  error). Compute the air time a flight relative to the shortest flight to that destination. Which flights were most delayed in
+##  the air?
 
-For each plane, count the number of flights before the first delay of greater than 1 hour.
+## Find all destinations that are flown by at least two carriers. Use that information to rank the carriers.
+
+## For each plane, count the number of flights before the first delay of greater than 1 hour.
