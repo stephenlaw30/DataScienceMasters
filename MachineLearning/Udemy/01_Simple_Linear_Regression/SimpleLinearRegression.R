@@ -9,8 +9,6 @@ is it?
 Business Value of the project = If the business does not have set policies on setting salaries,
 we can use this model to say that they should set it based off of this model and years experience'
 
-setwd('C:/Users/NEWNSS/Dropbox/DataScienceMasters/MachineLearning/Udemy/01_Simple_Linear_Regression')
-
 # library for splitting data
 library(caTools)
 
