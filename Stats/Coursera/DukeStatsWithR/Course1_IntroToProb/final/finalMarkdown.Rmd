@@ -1,16 +1,16 @@
 ---
-title: "Exploring the BRFSS data"
+  title: "Exploring the BRFSS data"
 output: 
   html_document: 
-    fig_height: 4
-    highlight: pygments
-    theme: spacelab
+  fig_height: 4
+highlight: pygments
+theme: spacelab
 ---
-
+  
 ## Setup
-
+  
 ### Load packages
-
+  
 ```{r load-packages, message = FALSE, warning = FALSE}
 library(tidyverse)
 library(ggplot2)
@@ -30,32 +30,32 @@ load("brfss2013.RData")
 
 
 * * *
-
-## Part 1: Data
-
-
-* * *
-
-## Part 2: Research questions
-
-**Research quesion 1: What are the US states with highest proportion of smoking who smoke every day relative to all those respondents who smoke?**
-
-**Research quesion 2: What percentage of non-retired, employed college graduates and non-retired non-college graduates make more than $50,000 per year?**
-
-**Research quesion 3: What are the most popular types of exercise for individuals who have no bad mental health days in the past 30 days and those who have more than 15 bad mental health days in the past 30 days?**
-
-
-* * *
-
-## Part 3: Exploratory data analysis
-
-NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
+  
+  ## Part 1: Data
+  
+  
+  * * *
+  
+  ## Part 2: Research questions
+  
+  **Research quesion 1: What are the US states with highest proportion of smoking who smoke every day relative to all those respondents who smoke?**
+  
+  **Research quesion 2: What percentage of non-retired, employed college graduates and non-retired non-college graduates make more than $50,000 per year?**
+  
+  **Research quesion 3: What are the most popular types of exercise for individuals who have no bad mental health days in the past 30 days and those who have more than 15 bad mental health days in the past 30 days?**
+  
+  
+  * * *
+  
+  ## Part 3: Exploratory data analysis
+  
+  NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
 button (green button with orange arrow) above. Make sure that your code is visible
 in the project you submit. Delete this note when before you submit your work.
 
 **Research quesion 1:**
-
-```{r state counts} 
+  
+  ```{r state counts} 
 # get count observations from each states
 brfss2013 %>%
   group_by(X_state) %>%
@@ -106,12 +106,12 @@ I can create a function to do the opposite of **%in%** to remove those records w
 
 # keep only us official states
 (top_every_day_smoker_states <- smoking %>% 
-  filter(X_state %not in% c("0", "80", "Guam", "Puerto Rico")) %>%
-  group_by(X_state, smokday2) %>%
-  summarise(count = n()) %>%
-  mutate(prop = count / sum(count)) %>%
-  filter(smokday2 == "Every day") %>%
-  arrange(desc(prop)))
+    filter(X_state %not in% c("0", "80", "Guam", "Puerto Rico")) %>%
+    group_by(X_state, smokday2) %>%
+    summarise(count = n()) %>%
+    mutate(prop = count / sum(count)) %>%
+    filter(smokday2 == "Every day") %>%
+    arrange(desc(prop)))
 ```
 
 I now want to create a heatmap to see which states have the highest proportion of those who smoke every day.
@@ -128,25 +128,32 @@ ggplot(map.df, aes(x=long,y=lat,group=group))+
   coord_map()
 ```
 
+
+Now I want to see the proportions of the top 10 states with the highest proportion of everyday smokers
+```{r}
 #top 15 states
 top_every_day_smoker_states %>%
-  head(15) %>%
+  head(10) %>%
   ggplot() + 
-  geom_bar(aes(reorder(X_state, -prop), prop), stat = "identity") + 
+  geom_bar(aes(reorder(X_state, -prop), prop, fill = "Red"), stat = "identity") + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab('State') + 
   ylab('Proportion') + 
-  ggtitle('Proportion of Every Day smoking Over All smoking')
+  ggtitle('Proportion of Every Day Smoking') + 
+  guides(fill=FALSE)
+```
 
+Let's also look at the the proportions of those who don't smoke at all and those who smoke some days for these states.
 
+```{r}
 #get those top 15 states
 top_every_day_states <- top_every_day_smoker_states %>%
-  head(15) %>% 
+  head(10) %>% 
   select(X_state) %>%
   as.data.frame() #%>%
 
 top_every_day_states <- top_every_day_states[,1]
-  
+
 #'West Virginia' %in% top_every_day_states
 
 smoking %>%
@@ -157,25 +164,25 @@ smoking %>%
   #head(10) %>%
   filter(X_state %in% top_every_day_states) %>%
   ggplot() + 
-    geom_bar(aes(X_state, prop, fill = smokday2), stat = "identity") + 
-    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
-    xlab("State") + 
-    ylab("Proportion") + 
-    ggtitle("Proportion of Every Day smoking Over All smoking")
+  geom_bar(aes(X_state, prop, fill = smokday2), stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  xlab("State") + 
+  ylab("Proportion") + 
+  ggtitle("Proportion of Different Smokers")
 ```
 
 
 
 **Research quesion 2:**
-
-```{r}
+  
+  ```{r}
 
 ```
 
 
 
 **Research quesion 3:**
-
-```{r}
+  
+  ```{r}
 
 ```

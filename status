@@ -1,0 +1,2435 @@
+[33mcommit fe19551eedae50917cce15f2b69244a909f5a643[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Oct 2 16:02:15 2017 -0400
+
+    Finish up to 16.9 in LSR
+
+[33mcommit 5a84d60584fe646ea11b1e53e0756b8680d089ba[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Oct 2 06:59:01 2017 -0400
+
+    Finish Ch 16.6 in LSR
+
+[33mcommit a1921420b13712c576e4395a91c8fbfc89a2fd73[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Sep 30 14:56:46 2017 -0400
+
+    Continue on with exercises in Ch5 for 'R for Data Science' and continue with RMarkdown file for Duke Intro to Prob final project
+
+[33mcommit fafc09c0ecf0d09e900813b90e37af45fcae0572[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Sep 30 07:52:36 2017 -0400
+
+    Work up to 16.6.3 in LSR
+
+[33mcommit 76ede1248b7c860de9214861fd8251f7229f13ed[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 29 15:02:32 2017 -0400
+
+    Finish R lab assignment for week 1 in Duke Stats with R - Inference
+
+[33mcommit db410a40e686d4d175ef0acae908319cfa064f62[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 29 12:45:51 2017 -0400
+
+    Copy over code to markdown and start write-up for 1st research question
+
+[33mcommit aac78eea89caaaf2d96b0992ab8cd99ae14db8b1[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 29 11:23:45 2017 -0400
+
+    Reframe 3rd research question to just those with bad MENTAL health days in Duke intro to prob final and make bar chart for most popular exercises for those with 'bad' mental health
+
+[33mcommit da92426abeb049598d7f1c89d02b5f977618f282[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 29 11:19:10 2017 -0400
+
+    Add research questions to Duke Intro to Probability final project template
+
+[33mcommit fb58c1966fbb8f3c97885cf45447928efadedda5[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 29 09:33:02 2017 -0400
+
+    Finish up to 16.6 in LSR
+
+[33mcommit 98bf5305a646a2d9e6258855cf899ec229eab359[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 28 14:40:59 2017 -0400
+
+    Create both proportion and count bar graphs for types of activities 'healthy' individuals do
+
+[33mcommit afd4776c325959495835220027c6aebe2a5045b4[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 28 14:39:22 2017 -0400
+
+    Create some bar graphs for types of activities 'healthy' individuals do
+
+[33mcommit 116d7ca19664181aca1059be8e3b211cf2b8d9c0[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 28 14:36:05 2017 -0400
+
+    Remove plyr from being loaded at same time as dplyr so I can actually summarize, figure out new way to recode income level as needed
+
+[33mcommit 05e87ab38595c80dae1ef739e4eff039fc69578d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 28 13:50:06 2017 -0400
+
+    Filter only to employed and self-employed college grads
+
+[33mcommit 7a96aa33489ee535db12f42ee8ac7c13b296f119[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 28 13:42:10 2017 -0400
+
+    Examine distribution of salaries of non-retired college grads
+
+[33mcommit f447f352b4d412f711186d6e68297de88f328c90[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 28 13:17:14 2017 -0400
+
+    filter out non-retired college graduates
+
+[33mcommit f6d430863a24b7f0ba418880e30e58d85ab8c098[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 28 13:14:47 2017 -0400
+
+    Add heatmap of top everyday smoker states
+
+[33mcommit 502e796fc8186e617212772c9901e1fb2d4d8990[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 28 11:33:41 2017 -0400
+
+    Finish Week 1 Quiz in Duke Stats with R - Inference from Coursera
+
+[33mcommit 8bb5e482bd351fdd26e65890c47469e043737110[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Sep 28 07:04:46 2017 -0400
+
+    Finish up to Ch 16.3 in LSR
+
+[33mcommit a53a483c46804ee8a97ebc59a472f80c6c41c209[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Sep 27 19:39:48 2017 -0400
+
+    Get back up to Ch 5.7 exercises in R for Data Science
+
+[33mcommit 8e80dc48deb65706d9210b2df0c4ff8a7b5767bc[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 27 16:25:42 2017 -0400
+
+    Start to look at college grads
+
+[33mcommit c5879af6795ac9e0fb8c59922f6760c769f42497[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 27 16:16:36 2017 -0400
+
+    Add stacked bar chart of types of smokers from states with highest proportion of every day smokers
+
+[33mcommit 5955dd0b9c183a05b4d3ad29dc5465e12811f4ad[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 27 16:07:04 2017 -0400
+
+    Add bar plot of top 10 states with proportion of everyday smokers
+
+[33mcommit 49a7a88608deea6492b9014a6e2d8c3947f1d0d6[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 27 13:48:49 2017 -0400
+
+    Filter down dataset to just smokers and US states to see which state has highest proportion of people who smoke every day
+
+[33mcommit 6dcad54c4aa44bf7573a5861c4e5eccd1741d871[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 27 13:16:46 2017 -0400
+
+    Finish Week 1 lectures in Duke Stats With R - Inference from Coursera
+
+[33mcommit 7ad9b87a57cc80c584cd7a5757648b77b91ad630[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Sep 27 06:23:42 2017 -0400
+
+    Finish Ch 16.3 in LSR
+
+[33mcommit 23a141ca69a2531fa31e63761b93ba699a3d8ab1[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Sep 26 19:33:38 2017 -0400
+
+    Continue to work back through Ch 5 review for R for Data Science
+
+[33mcommit 0b6489481870cb4e71bb85eb4fff2046be340da8[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Sep 26 17:38:13 2017 -0400
+
+    Start EDA for Intro to Prob final for Duke Stats With R from Coursera
+
+[33mcommit 9d118773c3c93a2c74b88e37e016a5ea8574081c[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 26 16:26:17 2017 -0400
+
+    Work up to final lecture in Week 1 of Duke Stats with R - Inference on Coursera
+
+[33mcommit a159b62837a46808b270e81b6b0280e6bdaa0c10[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 26 09:51:28 2017 -0400
+
+    Work up to Ch 16.1.5 in LSR
+
+[33mcommit c6cc3808107d1dd44acb828ce48c3ed2caa6dc59[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Sep 25 16:28:40 2017 -0400
+
+    Look back to Ch 5 in R for Data Science as review and repeat exercises up to 5.5
+
+[33mcommit 862304d1fbc5c344d4b60e63f8239c8a49e6504b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Sep 25 14:51:04 2017 -0400
+
+    Start Confidence Interval lectures in Duke Stats With R - Inference from Coursera
+
+[33mcommit 78e2d8f2d972b4a11efe20af089acd72549b1e58[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Sep 25 07:26:51 2017 -0400
+
+    Clean up Ch 5 R Script for LSR (still need to look at 5.8 - Missing Values, clean up Ch 5 word doc, find and add book's datasets
+
+[33mcommit bd3fa4038504801b73515008f4279fdf97aafe33[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 24 19:15:47 2017 -0400
+
+    Start Ch 16 in LSR
+
+[33mcommit 5399b97505a31a78432466ffb247b29a2aaefefc[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 24 10:33:06 2017 -0400
+
+    Clean up some Ch 5 notes in LSR
+
+[33mcommit 31da9ef448e9d10c360602669a518f88ed3358da[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 24 10:21:52 2017 -0400
+
+    Finish Ch 15 in LSR
+
+[33mcommit 9739ec8093a258471b0a3a26b75e94a15e32d155[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Sep 23 20:24:16 2017 -0400
+
+    Finish Ch 15.9 in LSR
+
+[33mcommit a47ac0f9af75034c21961c088b682f4fe412d0b5[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Sep 23 08:11:36 2017 -0400
+
+    Work up through Ch 15.9.2 in LSR
+
+[33mcommit d56ea28d6036135aa44bc3a85de8da3e3ac3f3fb[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 22 15:31:23 2017 -0400
+
+    Finish CLT lectures in Week 1 of Coursera Duke Stats With R - Inference
+
+[33mcommit f234f4b0b492d35011209adab317654fbea65937[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Sep 22 06:09:12 2017 -0400
+
+    Work up to Ch 15.7.2 in LSR
+
+[33mcommit 344bc196d60d978442858416ad779c7e56606ef1[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Sep 21 20:26:44 2017 -0400
+
+    Work up to Ch 7.4 in R for Data Science
+
+[33mcommit fde1bdcd0bfe3c38bf95dd42e8c2bfb15fa9c6ad[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 21 16:13:49 2017 -0400
+
+    Start week 1 in Inference Course for Coursera Duke Stats with R
+
+[33mcommit 7421b32ce8d4fd99273104251faeb57c2d24257c[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Sep 21 06:16:19 2017 -0400
+
+    Work through Ch 15.5, up to the 'regression hypothesis test in R' section in LSR
+
+[33mcommit 3056505b4c4ad2f4a3994e8e77f4f94e526167e2[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Sep 20 20:17:17 2017 -0400
+
+    Start and Finish Ch 6 in R for Data Science and start Ch 7
+
+[33mcommit b54d0b2413cf573ea8e3159d0c68332a12b29663[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 20 14:59:35 2017 -0400
+
+    Add files for final for Coursera Duke Stats With R - Intro to Prob
+
+[33mcommit f6fe2faaf7d83405c05428308d8227d8c1af8eb1[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 20 14:44:17 2017 -0400
+
+    Start Ch 15 in LSR and work up to 15.2
+
+[33mcommit 33cdff06cc056c57ca4fea909990b09c978ac31c[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 20 13:26:34 2017 -0400
+
+    Work to clean up and add comments to LSR Ch 5 R script to strengthen foundation of understanding
+
+[33mcommit 2a0e571a0dacb32f4385307cc98a86b9ab76e0ca[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 20 11:55:22 2017 -0400
+
+    Go through R code examples in script for Ch 14 in LSR
+
+[33mcommit 9fdf503614aee9b4b493be6c88e80baf9f5edbe1[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Sep 20 06:14:12 2017 -0400
+
+    Work through an ANOVA the long way in R for LSR Ch. 14
+
+[33mcommit 55a7cc9d12dcebb76e414c3c7330af8d227fbc28[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Sep 19 19:53:16 2017 -0400
+
+    Finish Ch 14 in LSR, still need to do R exercises
+
+[33mcommit f9089efe91806eeb5a32071134695a206bb22291[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 19 13:12:57 2017 -0400
+
+    Finish Ch 5 in R for Data Science, still must do exercises
+
+[33mcommit 5c6e2271e2990cb04ac798f2e30229dfdc8a07cd[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Sep 19 07:25:40 2017 -0400
+
+    Work up through Ch 14.3 in LSR
+
+[33mcommit 7e090cd5420d4cfcce5114b749ca358075b18f57[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Sep 18 20:20:10 2017 -0400
+
+    Work up to Ch 5.6.3 Counts in R for Data Science
+
+[33mcommit 841a6152b8135e371ed8755d4b81d641b105e09b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Sep 18 16:28:06 2017 -0400
+
+    Finish Ch 13 and start Ch 14 in LSR
+
+[33mcommit 2479c429cbbf52a61b1978d412ada9ffcc432453[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Sep 18 14:08:17 2017 -0400
+
+    Finish Wk 4 Lectures and Quiz in Coursera Duke Stats With R - Intro to Prob
+
+[33mcommit 3ec9a2f26f8b6aefed1dec243d3359eb307bd757[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Sep 18 06:42:51 2017 -0400
+
+    Work up through half of Ch 5.5 exercises in R For Data Science
+
+[33mcommit 1abe8a02caae060ac4f4aede40c39ad7260b53ab[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 17 20:09:02 2017 -0400
+
+    Finish Ch 13.9 in LSR
+
+[33mcommit 22806d2df96a8c76278da1d8a684d420dbf1a64e[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 17 19:48:10 2017 -0400
+
+    Finish Ch 5.3 in R for Data Science
+
+[33mcommit e874cf18429828d5a1115112e114a06855ddcf6d[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 17 19:38:10 2017 -0400
+
+    Finish Module 3 Part 1 - E - Examine Data in EDX R Server
+
+[33mcommit 756e939417e559ebe1bf093a57f80197894bfe8d[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 17 16:20:29 2017 -0400
+
+    Filter down data to just Manhattan data and get a sample of the data in its own data frame for visualization and quick analysis for EDX R Server
+
+[33mcommit b3f830368840abf40f98548df88c3834787266e3[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 17 15:40:07 2017 -0400
+
+    Examine outliers and save plots of histograms for Module 3 in EDX R Server
+
+[33mcommit 96136c31f117222393700bd6b8aca5de843da04f[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Sep 16 20:48:55 2017 -0400
+
+    Work up to Ch 5.3 in R for Data Science book
+
+[33mcommit e45a7fa7f2f383222e6e84869d511c19552c9d17[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Sep 16 19:53:16 2017 -0400
+
+    Work up to 'Examining Outliers' in EDX R Server's module 3
+
+[33mcommit 08accbb6e72607b4399efd6071f88534a78a7fc7[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Sep 16 15:01:44 2017 -0400
+
+    Finish Lab for Module 2 in EDX R Server
+
+[33mcommit f0821bdb5b5c24257bc85e1bc1ea631fb669a298[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Sep 16 08:39:31 2017 -0400
+
+    Add new neighborhoods for dropoff and pickup in XDF file for EDX R Server
+
+[33mcommit a3616355d1f76ecfce61551b63c76cb21358b50e[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Sep 15 20:08:00 2017 -0400
+
+    Plot Manhattan neighborhoods from Zillow data
+
+[33mcommit d17bcb282551e362ab9f01ba7634f702887af916[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Sep 15 20:07:42 2017 -0400
+
+    Finish 'Complex Transformations' and 'Examining New Columns' in EDX R Server
+
+[33mcommit 85ddeba39aa723d3a59001f16727a8054c1a8261[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 15 16:09:20 2017 -0400
+
+    Finish Normal approximation to Binomial in Coursera Duke Stats With R - Intro to Probability
+
+[33mcommit 430413a93fba7d66bcecef75fdbebbe65eb78061[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 15 15:32:49 2017 -0400
+
+    Work up to 13.9 Checking the normality of a sample
+    in LSR
+
+[33mcommit b067e36274693127a88721d60d73e22a6c244b6f[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 15 10:16:56 2017 -0400
+
+    Finish Module 1 Letures in MITx Intro to Probability Part 1
+
+[33mcommit 738173e27db53266e379c8d215863c431b4526dd[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 15 08:28:02 2017 -0400
+
+    Reattempt SVM Quiz again in Coursera Stanford ML
+
+[33mcommit 3794a77b4a26cbc747dc93201a40fa16a35958ea[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Sep 15 07:00:12 2017 -0400
+
+    Finish Module 1, start Module 2 in MS EDX R Server
+
+[33mcommit 2eefa93fb3838924befe6f7951df2b96077dd95c[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Sep 15 06:14:02 2017 -0400
+
+    Combine all 6 Taxi CSVs into 1 XDF file, move out of repo due to size (EDX MS - R Server)
+
+[33mcommit cbaed8a73637bffd9d456b2079e194a5443e4db7[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Sep 14 20:00:55 2017 -0400
+
+    Install and load necessary packages for MS EDX R Server course and begin script for Module 2 with test data frame
+
+[33mcommit bdeff4757445480ecde77c0ee616c4f5b7c4d0c9[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Sep 14 19:49:21 2017 -0400
+
+    Remove incorrect file format for data dictionary and add correct one, add script to install and load packages and libraries needed for the Analyzing Big Data with R Server course from MS EDX
+
+[33mcommit 1d5241c4f2efcc846932b7fbc1ea1fb77199f8ca[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Sep 14 19:38:54 2017 -0400
+
+    Add NYC taxi data and data dictionary
+
+[33mcommit f0edd5173529505e8620d7f0d43ef3b9f6d283f4[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 14 15:47:26 2017 -0400
+
+    Finish 1st video in Binomial Distribution Lectures for Coursera Duke Stats With R - Intro to Prob.
+
+[33mcommit 1fdb1b46e150170fda6ab57c5d7b9d26a3af5b8b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 14 14:57:52 2017 -0400
+
+    Work up to Ch 13.6 in LSR
+
+[33mcommit 648280358f8c1e06c3d2015fb04f1a68f89494ea[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 14 13:44:56 2017 -0400
+
+    Finish Ch 3 in R for Data Science
+
+[33mcommit 5fa7913c6e2948cb1850ba3c629b039437529b08[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Sep 14 06:35:32 2017 -0400
+
+    Retry quizzes with 80% gr grade, get 100% of Wk 10
+
+[33mcommit 15b7625c99a9dce89b9110130a71c11652db8268[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Sep 13 19:55:47 2017 -0400
+
+    Finish Ch 3.7 in R for Data Science
+
+[33mcommit 4192ccf38d52a5617b334f7b0e973ed15bab1d6d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 13 16:00:20 2017 -0400
+
+    Start lesson 4 in EDA with R from Udacity
+
+[33mcommit c3821678a14b820ee4d9930dcd5dcac1d12de7ab[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 13 15:32:19 2017 -0400
+
+    Finish Unit 1.2 and start Unit 1.3 in MITx Intro to Probability Part 1
+
+[33mcommit 0dee8f56a66eb55d43e98fe6c073509c9bfff44b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 13 14:47:20 2017 -0400
+
+    Finish Normal Distribution lectures in Coursera Stats With R - Intro to Probability
+
+[33mcommit d8b7d4c89e8b6dcfe90bddb91a6a4f0b37699d81[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 13 10:32:49 2017 -0400
+
+    Finish Wk 11 in Coursera Stanford ML
+
+[33mcommit 14d10cf732bd88bed3dc00a60224e8cdd970dd64[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 13 09:15:40 2017 -0400
+
+    Finish Ch 13.3 in LSR
+
+[33mcommit 2eb989c1ab6f130a315fe1cf660c8d67086112d7[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 12 16:01:07 2017 -0400
+
+    Run 2 sided (1 sample) t-test with LSR package function
+
+[33mcommit be58ba3da3e999d981a519ff34cfb9a10e7407a6[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 12 15:57:56 2017 -0400
+
+    Finish Ch 13.3 in LSR
+
+[33mcommit 2e20abc90a66f14a5c205e88ce8864bcccd18cf4[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 12 14:47:28 2017 -0400
+
+    Finish Wk 3 in Coursera Duke Stats With R - Intro to Probability
+
+[33mcommit f342a87a8fe4cab100be9ebeb57c73e01c7a2ffa[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 12 13:25:59 2017 -0400
+
+    Finish Order of Summation Lecture in Unit 1-2 for MITx Intro to Probability
+
+[33mcommit 8c27f20fa1b9a0d461a7171d4a0966ee1ab04965[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 12 13:08:09 2017 -0400
+
+    Download forest data for Lesson 3 Problem set in Udacity EDA with R
+
+[33mcommit 437097afdebce5190689706fb5fa678a44d1af1b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 12 12:27:18 2017 -0400
+
+    Continue up  to Order of Series Summation lecture video in Week 1 Unit 2 of MITx Intro to Probability part 1
+
+[33mcommit 5cad6bdd6c040f61bf67ee828825f60ecc430e9e[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 12 11:16:09 2017 -0400
+
+    Finish Question 5 and 6 for Week 2 Quiz in Intro to Data Science in Python for Coursera Michigan, hold off on Python until advanced in R
+
+[33mcommit a08d448b5b5d853c72f181a08ec2c335fe6e8df2[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 12 10:43:28 2017 -0400
+
+    Continue with Week 11 in Coursera Stanford ML
+
+[33mcommit 8376b3ac462c94f070d7cbf33514d429226e349c[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Sep 11 20:27:32 2017 -0400
+
+    Get up to Ch 3.6 in R For Data Science textbook
+
+[33mcommit c4135f7b9b34bac2b36199f1310968863eae439c[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Sep 11 16:18:11 2017 -0400
+
+    Complete Bayesian Inference Lecture from Coursera Duke Intro to Probability (Stats with R)
+
+[33mcommit 733789507a9bbd1cc4a87064e68449d54caaa922[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Sep 11 15:48:25 2017 -0400
+
+    Start Week 2 Assignment from Michigan Coursera Intro to DS in Python
+
+[33mcommit a256cc53e69e71972dd8c0be456d670cfeba6a5f[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Sep 11 14:46:49 2017 -0400
+
+    Get up to Infinite Series Lecture in Unit 1 Section 2 in MITx Intro to Probability
+
+[33mcommit 7243f026aad8a73a0d8848c2c15607fd1f65d9ea[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Sep 11 13:55:11 2017 -0400
+
+    Start Week 11 Lectures in Coursera Stanford ML
+
+[33mcommit 2c8621a35a142b2f3a924d8299e1867f332ce8e0[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Sep 11 12:01:41 2017 -0400
+
+    Finish Week 7 coding exercise in Coursera Stanford ML
+
+[33mcommit a08fa4199cca650b039b1c6a753cb949d52b328b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 8 16:38:15 2017 -0400
+
+    Finish R script for CH 13.1 R in LSR
+
+[33mcommit fe2ad2bc89ed10158244d25d6fc77729b2bee978[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 8 16:37:44 2017 -0400
+
+    Finish CH 13.1 in LSR
+
+[33mcommit 384ffaff52b028d3c25197f36f48ddbfd10fe77b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 8 15:19:51 2017 -0400
+
+    Get up to last 2 problems in Lesson 3 problem set for Udacity's EDA with R
+
+[33mcommit 91154fc190740b31b8ec4bcd97e1f4de9591da11[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 8 13:59:52 2017 -0400
+
+    Finish Exploring 1 Variable in EDA with R from Udacity
+
+[33mcommit 49b722371a04cc00bc1a1f8a9bd63c64f34717ad[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 8 13:46:46 2017 -0400
+
+    Work more through Wk 3 in Intro to Prob. from Coursera Duke Stats with R
+
+[33mcommit ed75c89b047e584f8ef205ffe940c006ff00b3ae[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 8 11:06:39 2017 -0400
+
+    Start Lecture 2 from Unit 1 for Intro to Probability Part 1 from MITx
+
+[33mcommit ea127b38039100903255d08a23ff9302baebe488[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 8 10:20:42 2017 -0400
+
+    Finish Unit 1 Lecture 1 in Intro to Probability Part 1 from MITx
+
+[33mcommit a999b4646c193ff54e1180dbb603b3c42e0e774a[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Sep 8 10:00:53 2017 -0400
+
+    Finish Wk 10 in Coursera Stanford ML, still need to get 100% on this week's quiz and SVM machine quiz
+
+[33mcommit 641ae2e7affcdc773b5eee366aa657d2175d013a[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 7 15:56:39 2017 -0400
+
+    Finish Ch 12 and start Ch 13 in LSR
+
+[33mcommit 8acec39ba0b26a508c8bc2a2cbd403cd276c879d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 7 15:03:13 2017 -0400
+
+    Work up to logical variable videos in Exploring 1 Variable in Udacity EDA with R
+
+[33mcommit 2ede0a329ffe0bd6e6e19221e1940c6def570193[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 7 11:16:46 2017 -0400
+
+    Continue on with Unit 1 for EDX MIT Intro to Prob.
+
+[33mcommit 4595ce487e26e0173e3f26708717e1434073a969[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Sep 7 09:53:17 2017 -0400
+
+    Finish 1st set of Wk 3 lectures in Coursera Duke Stats w/ R - Intro To Probability
+
+[33mcommit 346126c206a64eadbad246d9a7e643290d6728bb[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Sep 7 06:34:37 2017 -0400
+
+    Start Advanced Topics Lectures in Coursera Stanford ML
+
+[33mcommit d892686074fdf374a1245cc2161e8e3c4528b8df[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Sep 6 20:03:02 2017 -0400
+
+    Work more through EDAExploring 1 Variable in EDA with R from Udacity
+
+[33mcommit 335cdda452e4a3b90e457ae98b8784253f9cb575[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Sep 6 19:42:17 2017 -0400
+
+    Finish up to Ch 12.8 in LSR
+
+[33mcommit 86c70059271729ac1a24947c75a062d40a836968[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 6 16:13:28 2017 -0400
+
+    Continue on with EDX MIT Intro To Probability
+
+[33mcommit f4d9857c8109cadaa127b0cb4bb9bec3d0e5c655[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 6 15:48:15 2017 -0400
+
+    Continue on with Wk 3 in Intro to Prob with Coursera Duke
+
+[33mcommit 81432a00b7026c2dcf32e3308b727c7e83f55d8e[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 6 09:51:03 2017 -0400
+
+    Reattempt Wk 7 Quiz for Coursera Stanford ML
+
+[33mcommit 78ca74c4a7cf3967b293355df4c85ae604f25852[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 6 09:42:36 2017 -0400
+
+    Finish Gradient Descent With Large Datasets lectures in Coursera Stanford ML
+
+[33mcommit 0d9721b91bf590ed00a42be92b8589c50f94873b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Sep 6 08:35:34 2017 -0400
+
+    Get 100% on Wk 3 Logistic Regression Quiz in Coursera ML
+
+[33mcommit 89440a89ae9f2cd586c36efff9e0bf9a5585634f[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Sep 5 19:57:51 2017 -0400
+
+    Work up to Ch 12.6 in LSR
+
+[33mcommit a6126b221d5aa49edb109deeff90ce0fd40eb09b[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Sep 5 19:57:25 2017 -0400
+
+    Work about halfway through Exploring 1 Variable lesson in Udacity EDA with R
+
+[33mcommit 55f55836a2af476f54a4c2891dfbfb83c126a774[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 5 16:06:45 2017 -0400
+
+    Start notes for Data Cleaning videos in Udacity Data Wrangling
+
+[33mcommit 02322b2eff055d3d219c7e5315023acaffb7ccc8[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 5 16:05:44 2017 -0400
+
+    Start Wk 2 in Intro to Data Science in Python for Michigan Coursera
+
+[33mcommit b69813ce850ec935115f174c0cfcb50f0eb4f2dc[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 5 14:54:25 2017 -0400
+
+    Start Wrangling JSON quiz in Udacity Data Wrangling
+
+[33mcommit dd82243d66f3289060be7fe7f4aabeca437946e6[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 5 14:40:21 2017 -0400
+
+    Complete Excel to CSV quiz in Udacity Data Wrangling
+
+[33mcommit af17d0ed300e84023d4c3d4957078850122709b5[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 5 14:28:10 2017 -0400
+
+    Fix range to loop through to grab all stations in Excel to CSV quiz from Data Wrangling from Udacity
+
+[33mcommit 06834907d805ff6fe9215621e7a2225d82d233a6[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 5 14:21:03 2017 -0400
+
+    Start Intro To Probability from MIT of EDX
+
+[33mcommit 9d72252d836d4e938240319979060ff9e695e39b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 5 09:53:35 2017 -0400
+
+    Finish Mini-Batch Gradient Descent lecture in Coursera Stanford ML
+
+[33mcommit da6b093d72f598667b866bed803428e79c7a2288[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Sep 5 09:32:17 2017 -0400
+
+    Pass Week 9 Quiz in Coursera Stanford ML, but not 100% yet
+
+[33mcommit 1573791e0a3f9768736f1c631b3f5018a60e094a[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Sep 4 16:26:21 2017 -0400
+
+    Finish up to 12.3 in LSR, find and add data files for LSR
+
+[33mcommit bfe2a8fdcb487decb34fc0f09957349f34ff5101[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Sep 4 07:54:43 2017 -0400
+
+    Start Wk 10 Lectures for Co Coursera Stanford ML
+
+[33mcommit c10d2d83a19e710f0c176bb87b524bd6683c72c4[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Sep 4 07:05:46 2017 -0400
+
+    Finish coding exercise foror Wk 6 in Coursera Stanford ML
+
+[33mcommit 0c26891b17d5cdc8cb85dbc7c6248ec53e05b175[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 3 15:36:16 2017 -0400
+
+    Finish Lesson 2 in EDA with R from Udacity
+
+[33mcommit 1c3c9f04c82084e3aadcd7c4eb4c252bae9adfde[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 3 14:35:32 2017 -0400
+
+    Start Data Analysis With R iR from Udacity, start week 2 for Coursera Duke Into to Probability
+
+[33mcommit cdaaed881bcab5395d7cfecdb025a9b1428b014c[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Sep 3 09:20:33 2017 -0400
+
+    Finish Low Rank Matrix Factorization lectures and attempt Quiz 2 in Wk 9 of Coursera Stanford ML
+
+[33mcommit 13dee425c4306427d81e2c0856c4d387a8be6fa3[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Sep 2 22:17:16 2017 -0400
+
+    Work more on Excel to CSV quiz in Udacity Data Wrangling
+
+[33mcommit 6609c23157c49089d80e31dbc45ddbeb4f79b379[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Sep 2 20:31:36 2017 -0400
+
+    Finish Collaborative Filtering lectures for Coursera Stanford ML
+
+[33mcommit ad94a12db169a9f625981abb61b90477309bb9e0[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Sep 1 21:29:59 2017 -0400
+
+    Work more on Excel to CSV ddata wrangling quiz in Udacity Data Wrangling
+
+[33mcommit 7059dc435cc9900e94142f3becfcd409aea73d55[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Sep 1 06:31:30 2017 -0400
+
+    Start Collaborative Filtering Lectures in Coursera Stanford ML
+
+[33mcommit efb257e4b42fd237f4ed1b95731b5c8a941f54af[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Sep 1 06:28:33 2017 -0400
+
+    Finish Predicting Movie Ratings lectures in Coursera Stanford ML
+
+[33mcommit 2221bc1b2c6a0fa3f7c78bc4d88031fabfe4d938[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 31 15:13:22 2017 -0400
+
+    Resync Dropbox, continue on with final project in Udacity Intro to Data Analysis, finish Week 1 in Coursera Michigan Intro to DS with Python
+
+[33mcommit df14c5bbfe8eabf30d8a9c0f41bce256b57d6b10[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Aug 31 06:29:40 2017 -0400
+
+    Start Predicting Movie RAtRatings lectures in Coursera Stanford ML
+
+[33mcommit 2cfe4f35533810dd85dc663ce9040713bae5a815[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Aug 30 19:37:21 2017 -0400
+
+    Start work on Excel to CSV quiz for Udacity Data Wrangling
+
+[33mcommit d1a11b6c0d0aa47e6041bd4e372618d37009c43d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 30 16:09:28 2017 -0400
+
+    Start Ch12 in LSR
+
+[33mcommit eb973909e5ed3aa1b9030ede32703ed67a77250d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 30 15:53:04 2017 -0400
+
+    Finish Ch 11 in LSR
+
+[33mcommit 7c299ac324cd9975b00f4f8d159d3e65a779d84f[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 30 15:37:55 2017 -0400
+
+    Finish Week 2 in Coursera Duke Intro To Prob.
+
+[33mcommit c51484f531a7464bbfa6f7aad0fbe98bc5bafd89[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 30 12:46:15 2017 -0400
+
+    Add back in code to group salaries by college and by state which was accidentally removed in last commit
+
+[33mcommit 03303836174bad1215bbf3ed5582cacdf44631d6[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 30 09:49:28 2017 -0400
+
+    Finish Anomaly Detection System lectures and quiz in Coursera Stanford ML
+
+[33mcommit 799c49fd30d246568dbdd8b1954312b26611670f[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Aug 29 20:15:31 2017 -0400
+
+    Finish CSV problem in Problem Set 1 for Udacity Data Wrangling
+
+[33mcommit 3799dd58106d0defa19fcb7c93583b9623e91be5[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Aug 29 19:29:52 2017 -0400
+
+    Finish Lesson 1 in Udacity Data Wrangling
+
+[33mcommit c3f5f90efcb8fcb01efd1f33d6e23cac7ab7799e[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 29 16:42:14 2017 -0400
+
+    Work up to Intro to Inference in Wk 2 of Duke Intro to Prob. on Coursera
+
+[33mcommit 3d6d9f026665f56509f74a5ff38eebaacb561ee3[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 29 10:31:43 2017 -0400
+
+    Continue on with Wk 9 lectures in Coursera Stanford ML
+
+[33mcommit 092ba8194e38ffca20852146000d9247abb0963f[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Aug 28 19:58:54 2017 -0400
+
+    Get up to 11.9 in LSR
+
+[33mcommit 35f0e1eb7e123c7b8ec08441c66909647c6877dd[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Aug 28 19:47:17 2017 -0400
+
+    Change name of UofAdelaide to 'LSR' for 'Learning Stats With R
+
+[33mcommit ffc92455351ff8c32f625d9fb6893d87f7f92e7c[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 28 16:10:52 2017 -0400
+
+    Work up to 11.8.3 in LSR'
+
+[33mcommit 04bfa271be577132f4b1cfdae2cc1e3bdf71b659[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 28 15:31:23 2017 -0400
+
+    Start Wk 2 In Coursera Duke Stats w/ R Course 1 - Intro to Probability
+
+[33mcommit 330a468d6f5a1e503cfe2933e8610fc31b7aa874[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 28 09:17:44 2017 -0400
+
+    Continue on with Wk 9 in Coursera Stanford ML
+
+[33mcommit ca014af62faee802fba85ab33a21421ed3aa3c01[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Aug 27 21:01:41 2017 -0400
+
+    Work through Ch 11.6 in LSR
+
+[33mcommit 839a9f658539c2766353dc6f62eb31dc2aec43cd[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Aug 27 20:37:39 2017 -0400
+
+    Finish Wk 5 assignment for Coursera Stanford ML
+
+[33mcommit ec1e09bd57dcf68369b8a1c6c364dcab33777bf8[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Aug 26 08:30:44 2017 -0400
+
+    Finish Density Estimation Lectures in Coursera Stanford ML
+
+[33mcommit 61e36adee66c33d8efb167cdec6ac77f5d768ef8[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Aug 25 21:36:16 2017 -0400
+
+    Finish Beautiful Soup Pt. 1 for EDX Columbia Analytics in Python
+
+[33mcommit 1d5ed45bee29720e377a5eb0c698518bc852ad1c[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Aug 25 19:43:36 2017 -0400
+
+    Get up to 11.6 in LSR
+
+[33mcommit a3ed14d45a86e4ffc22383b8c5f08f4141a4eec9[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 25 15:38:57 2017 -0400
+
+    Start Wk 4 for EDX Columbia Analytics With Python
+
+[33mcommit 96a297e1deb08cf06fc1c7a92f185f3a7e677436[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 25 09:46:46 2017 -0400
+
+    Start Wk 9 in Coursera Stanford ML
+
+[33mcommit 61b31fbceafdb6ae695d3f36aaf779317bcc4764[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Aug 24 20:28:10 2017 -0400
+
+    Start Ch 11 in LSR
+
+[33mcommit 8c51fbaf38790c38d239ec3e2e60d2978375637a[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 24 16:00:28 2017 -0400
+
+    Start JSON quiz for Udacity Data Wrangling and make Jupyter notebook for it
+
+[33mcommit eb04974d0981b3d3da67525970376088b186d97b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 24 15:23:38 2017 -0400
+
+    Finish Ch 10 in LSR
+
+[33mcommit 01152f7fb96474ca49d931564d289f76880bf709[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 24 09:58:12 2017 -0400
+
+    Finish
+    Wk 3 for EDX Columbia Analytics in Python
+
+[33mcommit 26b35092b50b6fc60d8236d4fb423f2aa2a1929d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 24 09:34:38 2017 -0400
+
+    Attempt 3 in Week 2 Word Count assignment and check to see if punctuation appears at the start first rather than the end
+
+[33mcommit 174a59dd85e0805c4bfa0ba5c130993ea2e70f14[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 24 09:11:01 2017 -0400
+
+    Finish Wk 8 in Coursera Stanford ML
+
+[33mcommit 585ed77e9e836f10e5d327f35b1fa6bfc86d7823[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 23 16:25:11 2017 -0400
+
+    Work up through Date and Time in Coursera Michigan Intro to Data Science in Python
+
+[33mcommit 87e654e484b599e47a37b86dee9060b53886c049[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 23 15:49:00 2017 -0400
+
+    Clean up some Markdown text and add histograms for average career salary by state and by college to Udacity Intro to Data Analysis Final Project
+
+[33mcommit ef1daf5eda3c3745a832ab05e52ec0f9ab2219f3[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 23 15:12:06 2017 -0400
+
+    Work up to XML in Wk 3 of Analytics in Python for EDX Columbia
+
+[33mcommit 9d72a87f48850e051483b9ec0516ca3d4c1b71c2[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 23 09:32:46 2017 -0400
+
+    Continue on with Wk 8 in Coursera Stanford ML
+
+[33mcommit 347ca69dd8d2483ce08b46228562e2f6836917ed[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Aug 22 19:56:49 2017 -0400
+
+    Finish Week 2 in Analytics in Python for EDX Columbia
+
+[33mcommit b9af5a2e0cc621124c5e17d751d831bafad87e77[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 22 16:30:26 2017 -0400
+
+    Get halway through week 1 for Intro to DS with Python from Coursera Michigan
+
+[33mcommit 7cf1d3127872f5b97398d493db1cddfabc39308a[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 22 16:03:54 2017 -0400
+
+    Review week 1 notes, quiz, and assignment from Coursera Duke Intro to Probability
+
+[33mcommit fcfe6a2a2c372132695e00b4064830dc88be6de2[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 22 15:05:29 2017 -0400
+
+    Add JSON playground file for Udacity Data Wrangling
+
+[33mcommit 4813a2a4c71d1102f90bdb63b9af1468bc95a9a1[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 22 15:04:24 2017 -0400
+
+    Finish PCA lectures in Coursera Stanford ML
+
+[33mcommit 69a8df48b0b63a71d8591be4a9082114eceabbc7[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Aug 21 20:56:27 2017 -0400
+
+    Start Ch 10 in LSR
+
+[33mcommit 0d4788ded2d35d237e055fea79ef2ef028d622bf[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 21 14:41:24 2017 -0400
+
+    Finish Chapter 9 in LSR
+
+[33mcommit e397cb74c193afca10a03a211424c1e3963a2811[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Aug 20 21:44:30 2017 -0400
+
+    Finish Week 4 Lesson in Coursera Stanford ML
+
+[33mcommit cbd553c1f2a2ac9170401628f012c490484f7e75[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Aug 20 20:59:47 2017 -0400
+
+    Continue with
+    Week 8 Coursa Stanford Machine Learning
+
+[33mcommit 85e3eded2a1a7d241841c8108e57a88c80aa5cc2[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 18 16:31:01 2017 -0400
+
+    Finish Ch5 and start Ch9 in Learning Stats with R
+
+[33mcommit 61a6d6fdaae2179a65b85ea82ac5264768369d4f[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 18 12:29:09 2017 -0400
+
+    Finish 1st 2 exercises in Advanced Select for SQL in HackerRank
+
+[33mcommit 0152d95331e2741a4e49600d5981e9b17471449c[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 18 11:57:00 2017 -0400
+
+    Finish Day 3 of 10 Days of Statistics on HackerRank
+
+[33mcommit 79cc368214cee5a2cb11d535e915a7c09ad46c26[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 18 11:30:34 2017 -0400
+
+    Finish Motivation Lectures for Coursera Stanford Machine Learning
+
+[33mcommit 521505d0dd153fac00c5d6f2f9a2d16567f0e058[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 17 16:35:05 2017 -0400
+
+    Finish Day 1 and 2 of HackerRank 10 days of Stats (in Python3 and normal text files
+
+[33mcommit 679308706685b97e6a915b25ef9b30c96c5f31db[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 17 15:45:16 2017 -0400
+
+    Work up to ch 5.8 in Learning Statistics With R
+
+[33mcommit 5fbad83098950929fc07a9e08c3f432486c225ae[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 17 10:46:01 2017 -0400
+
+    Finish first set of Week 8 Lectures and 1st Quiz in Coursera Stanford ML
+
+[33mcommit ca992f46d2b36e9ad551842ab1399032202fd0ca[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 16 16:11:12 2017 -0400
+
+    Fix positioning on folium map and add in more states for Udacity Intro to Data Analysis Final Project
+
+[33mcommit a8479ea11e8ee91e02f043e0285c1ebc18211118[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 16 15:42:17 2017 -0400
+
+    Work up through 5.6 in Learning Statistics With R
+
+[33mcommit dfc19638e74fddf6620da596f49c5f5932cf9a83[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 16 11:47:10 2017 -0400
+
+    Finish xlrd quiz and alternate solution for Udacity Data Wrangling
+
+[33mcommit c7b59039df7fbed107f13cad751a3dd53c050479[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 16 11:17:14 2017 -0400
+
+    Complete Intro to XLRD module in Udacity Data Wrangling
+
+[33mcommit 5bc377202828c2a778ac27e4f75a144041850f1e[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 16 10:46:02 2017 -0400
+
+    Add notes on DictReader to Simple.py
+
+[33mcommit 00f183b0459444b3a4b11803ccff39202f40f902[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 16 10:39:46 2017 -0400
+
+    Finish Simple CSV parser in Udacity Data Wrangling with MongoDB
+
+[33mcommit 121a8025cac29be281ba3a42eb6e90bda2394ee8[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 16 09:55:03 2017 -0400
+
+    Finish Basic Select SQL in HackerRank
+
+[33mcommit 5ede200efcc311e9e874d2bdcfc9d420508594fd[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Aug 16 07:21:24 2017 -0400
+
+    Continue on with Clustering Lectures in Stanford ML
+
+[33mcommit 2ed0e15aed7bd4b290f03620d6d3cda6de07c991[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Aug 15 20:27:25 2017 -0400
+
+    Finish part 7 in Udemy Machine Learning AZ
+
+[33mcommit 46e410496b3e43e8689c9951f588e15a9e9edd86[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Aug 15 20:05:53 2017 -0400
+
+    Start Algorithms track in HackerRank for Python3
+
+[33mcommit 363e582e5e22f8279e9a083a38c5ba61f3f41568[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Aug 15 19:45:52 2017 -0400
+
+    Clean up graphs, remove machine learning aspects (too much for now) for Udacity Intro to Data Analysis Final project
+
+[33mcommit 66cc72f907e06d9ba2551fb99c71318f3e767ac3[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 15 16:44:00 2017 -0400
+
+    Start Wk 8 in Coursera Stanford ML
+
+[33mcommit a48edea5b5bc42632210fc9e964639a6e8894be2[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 15 15:26:01 2017 -0400
+
+    Pass Week 7 quiz in Coursera Stanford ML, but not get 100% yet
+
+[33mcommit 6bc2a5b898c8442f4acbcc1233a13a0dc28dfab1[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 15 15:07:14 2017 -0400
+
+    Get halfway through SQL Basic Select on HackerRank
+
+[33mcommit 8f6859d2c93af660d81a925262f42de2b810dd09[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 15 14:49:36 2017 -0400
+
+    Complete Day0 and most of Day1 of 10 days of Stats for Python3 in HackerRank
+
+[33mcommit 1a53792d56806a9076767343dcc551c71596f7d8[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 15 12:28:46 2017 -0400
+
+    Finish Wk. 7 Lectures in Coursera Stanford ML
+
+[33mcommit 3de4354756f8f6b8d74804979bbd70fdef5cb3b6[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Aug 14 20:04:43 2017 -0400
+
+    Finish Kernels lecture and start SVM in practice lecture from Coursera Stanford ML
+
+[33mcommit b1e1442ad7474438f722bfb613d4c6aad796e3b7[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Aug 14 19:57:33 2017 -0400
+
+    Change college labels to abbreviations in Udacity Intro to Data Analysis Final project for plotting purposes
+
+[33mcommit ed394fdc557f834f7bf3fd783f76cfa053a8a4f4[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Aug 13 12:22:15 2017 -0400
+
+    Start Kernel Lecture in Coursera Stanford ML
+
+[33mcommit 766347cebde3e2d18a2098faf09554d68b184337[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 11 16:08:50 2017 -0400
+
+    Add more markdown text, work on fixing x tick labels on college bar graphs
+
+[33mcommit 43ee143867936d6b3ead562e5541b86ce8fabf9b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 11 09:50:31 2017 -0400
+
+    Finish 1st set of lectures for Wk 7 in Coursera Stanford ML
+
+[33mcommit d3dbd4c848660b2d66a387285702607449ad8c77[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 10 16:03:28 2017 -0400
+
+    Start Data Wrangling with Mongo DB from Udacity Data Analyst NanoDegree cirriculum
+
+[33mcommit 8a82e5f6a692e99c9938c522593f5358384eb2bb[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 10 15:48:13 2017 -0400
+
+    Change schoolID to full college name in analysis with name_full field
+
+[33mcommit 28126c437d3936bf964908446de9a9d85d9e2134[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 10 15:42:50 2017 -0400
+
+    Clean up some code and begin adding Markdown explainations to Udacity Into to Data Analysis final project
+
+[33mcommit 984b3136bf2bf5d616b6507f0b257cca3fad599d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 10 09:50:51 2017 -0400
+
+    Start Wk 7 lectures for Coursera Stanford ML
+
+[33mcommit f7ca5a027f98c30af88dc5f6d19d08cf01e75c57[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Aug 9 20:20:50 2017 -0400
+
+    Work through Octave programming exercise 1 in Coursera Stanford ML
+
+[33mcommit dce9647043da0cad8e7b4d9b505bf9c83bf26d4d[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Aug 9 17:57:44 2017 -0400
+
+    Finish Wk 6 Lectures and atemp quiz for 1st 3 times, still only 80% in Coursera Stanford ML
+
+[33mcommit 9edaffeef83ee98a31c584860799b1acbaee3cd9[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 9 09:27:02 2017 -0400
+
+    Finish 3rd set of lectures for Wk 6 of Coursera Stanford ML
+
+[33mcommit e85aa5fb6ba36ff6721ae2b53b44b13aeb3b3356[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Aug 9 06:22:51 2017 -0400
+
+    Start work on 3rd series of lectures for Wk 6 Coursera Stanford ML
+
+[33mcommit 5152e5dafb9c61d6276ecc5e7485a90dc7253648[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 8 16:07:20 2017 -0400
+
+    Work up to pg 45 in ISL
+
+[33mcommit 0c89611294c78bc7f508295f7dbfd4df719866aa[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 8 11:56:57 2017 -0400
+
+    Add some regression to the analysis, see nothing significant
+
+[33mcommit f6c283258a55837fc3fc9fbc6fcf994b937d3208[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 8 11:40:04 2017 -0400
+
+    Create test folium plot for median salaries by college state
+
+[33mcommit 71527ac006b5a1202bef49215709d76c9ba759f7[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 8 11:32:57 2017 -0400
+
+    Clean up code and clarify more of what is done with comments in Udacity Into to Data Analysis final project
+
+[33mcommit d7600c81625efa9d6faf2b4c99f9d057d5515b83[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 8 10:08:59 2017 -0400
+
+    Finish next section of lectures in Coursera Wk 6 of Stanford ML
+
+[33mcommit c57e94b8be18de748c067722190debf023fc97e3[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Aug 7 20:36:23 2017 -0400
+
+    Work up to pg 40 in ISL
+
+[33mcommit 9680f858c4215240e0cd04f05fed01d15400b24c[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 7 13:48:14 2017 -0400
+
+    Create correlation matrix and plot for career average batting stats and salary
+
+[33mcommit e3103eafbddecdd48e331f36b0cb032d03eb67a7[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 7 12:23:02 2017 -0400
+
+    Bring in batting data to check associations with career stats and career salaries
+
+[33mcommit c60bfb24f7cd6dd8a467e2905260ba12a3c3db87[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 7 12:08:05 2017 -0400
+
+    Graph top average and median career salaries by teams:
+
+[33mcommit 700fe0b1db2cf3e7dbc8f677641f8499717ea07b[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 7 12:02:33 2017 -0400
+
+    Remove 'top team' from college and college state data, as it is not related to it
+
+[33mcommit bc7da9340861ad13cbea5c3d81c0871f53382ee3[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 7 11:41:07 2017 -0400
+
+    clean up data cleaning + prep for most popular colleges and college states
+
+[33mcommit ec72742ace4f00a223b89129603cdd3fa37adfa0[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 7 11:13:17 2017 -0400
+
+    Finish 1st 2 sections of lectures and 1st quiz in Coursera Wk 6 of Stanford ML
+
+[33mcommit 28f031f4eeac2d60a90eaa725027232945841323[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Aug 7 10:08:04 2017 -0400
+
+    Work towards getting median and mean salaries for most popular states of colleges in Udacity Data Analysis final
+
+[33mcommit 4b59f3a5d169c582c32df6979f8fbd77c584a066[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Aug 6 13:31:47 2017 -0400
+
+    Continue with Wk 6 for Coursera Stanford ML
+
+[33mcommit 145c1d57199d198acc2d6b8ed57cf479ec618999[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Aug 5 22:00:07 2017 -0400
+
+    Work to pg 35 in ISL
+
+[33mcommit 6b307ebbee1f60ab29efdeef6b668e52f33b0a2a[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Aug 5 21:46:04 2017 -0400
+
+    Continue with Wk 6 for Coursera Stanford ML
+
+[33mcommit eeaa9fedf6198a46460c3233265b6ebf17ae140c[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 4 15:49:37 2017 -0400
+
+    Create plots for top 10 average and median career salaries by teams
+
+[33mcommit cd5bfd958b281d72fe7c85b65bd1e968df012102[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 4 15:18:05 2017 -0400
+
+    Get the average and median salaries for top 10 schools (in terms of count of player IDs), plot bar graphs of each
+
+[33mcommit 4aa9b139db678e365b151f81f2094d4cc10e4149[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 4 11:16:33 2017 -0400
+
+    Finish final exam for EDX UCSD Python For Data Science
+
+[33mcommit c205bfa1506c6f0582cf7472e1697428cfa77268[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Aug 4 10:33:36 2017 -0400
+
+    Finish first lectures for Wk 6 of Coursera Stanford ML
+
+[33mcommit 0804fe570f80782d1fba9eaf93b3cc42cc5e085d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 3 19:43:15 2017 -0400
+
+    Work halfway through R2 intuition for Udemy ML AZ
+
+[33mcommit 3ee96c70ded4009b26a9254aae608abc2edd224a[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Aug 3 16:06:24 2017 -0400
+
+    Finish Wk 5 for Coursera Stanford ML
+
+[33mcommit fcd28ec04d2253d701611baea91d3a68399cbaec[m
+Author: Newns <NEWNSS@CHOP.EDU>
+Date:   Wed Aug 2 20:00:50 2017 -0400
+
+    Finish Random Forest Intuition and R tutorial for Udemy MachineLearning AZ
+
+[33mcommit 7303c6adce933dd717148df2d3a0d9a7e24efb88[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 2 15:54:59 2017 -0400
+
+    Begin working throuhg ISL text, get to page 31
+
+[33mcommit 67167821f8e2dd33fce488f272e02c0a6ea0253f[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 2 13:57:45 2017 -0400
+
+    Contiune with Intro to Data Analysis Final Project for Udacity, realize too many outliers with salaries, decide to change research question
+
+[33mcommit 821c75c417e9e9eb614b9339c8cd8fde30c86ea4[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Aug 2 10:53:39 2017 -0400
+
+    Continue work of Wk 5 in Coursera Stanford ML
+
+[33mcommit 952ef419d21752dae1e73615be3e827fd67bc358[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 1 20:22:58 2017 -0400
+
+    Finish R tutorial for Decision Tree Regression for Udemy Machine Learning AZ
+
+[33mcommit 373b9ce97e2bf93a0ac79ea412dd94d03806db4a[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 1 11:26:49 2017 -0400
+
+    Add PNG of f-table
+
+[33mcommit 06bdfcc247b097806f3522118d698ddb770a5030[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 1 11:23:56 2017 -0400
+
+    Remove bad PDF of iPython notebook
+
+[33mcommit 94923bddeed6bfb1ba0ec66ac8312a870add0b7f[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 1 11:21:26 2017 -0400
+
+    Cut down on NULL value inspection output
+
+[33mcommit 9abe49ff7004934b62731df8ee959b58aae109d5[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 1 10:18:30 2017 -0400
+
+    Change 'American' label to 'USA' since American is a continent, proofread and edit final draft of powerpoint presentation for EDX UCSD Python For Data Science final project
+
+[33mcommit fe9027bfdbd2903186d4c9fb706208ed37574a42[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Aug 1 09:42:15 2017 -0400
+
+    Proofread and edit final draft of iPython notebook for final project for EDX UCSD Python for Data Science, continue on with Wk 5 Coursera Stanford ML
+
+[33mcommit 8e9b46dbe698773c12854ba0caa618a41cc2f37d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 31 20:25:16 2017 -0400
+
+    Start work on Decision Tree Regression in R for Udemy Machine Learning AZ
+
+[33mcommit 9edea479823d911775ec84c8e91c1690aff82522[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 31 15:26:31 2017 -0400
+
+    Add rough draft of final project presentation for EDX UCSD Python for Data Science
+
+[33mcommit 2421b97519078da5bcc5e78c737150a1df976b4a[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 31 06:58:45 2017 -0400
+
+    Start Wk 5: NN - Learning in Coursera Stanford ML
+
+[33mcommit 7d07a89e28277a629b79c4fd465569e52cb330b9[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 31 06:31:01 2017 -0400
+
+    Pass Wk 4 NN quiz in Coursera Stanford ML
+
+[33mcommit 2006163c11573ac9fa86c3cea5a60f8b49993d3e[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Sun Jul 30 20:21:32 2017 -0400
+
+    Finish Neural Networks Lectures in Wk 4 of Coursera Stanford ML
+
+[33mcommit f335ee43ff3403629b897b01f5030709f8359cba[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Sat Jul 29 11:05:15 2017 -0400
+
+    Continue on with NN lectures in Wk 4 Coursera Stanford ML
+
+[33mcommit 1a699bbd215010baf9c3a9121f659b1ca035f905[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Jul 28 06:52:25 2017 -0400
+
+    Start Wk. 4 - Neural Networks for Coursera Stanford ML
+
+[33mcommit 7cf6eabf97cd4c254e7f6dd55dbafdfaaaf5aa12[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 27 20:28:06 2017 -0400
+
+    Watch lecture on Decision Tree Regression in Udemy Machine Learning AZ
+
+[33mcommit bd2c5ee5e8ddbc535e7dbb9b634ae68ea506b16f[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 27 15:45:24 2017 -0400
+
+    Reduce sample size, produce boxplot of review scores, re-run t-tests, run ANOVA
+
+[33mcommit d331c2c5c1af9988361f40fd87991455c21d730d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 27 12:43:35 2017 -0400
+
+    Start final project for Udacity Intro to Data Analysis
+
+[33mcommit 1149770ed1664fb6ed0d3dbfa2835dd9229a295d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 27 07:18:27 2017 -0400
+
+    Finish Wk 3 Lectures and Quizzes in Coursera Stanford ML, set up for week 4, prep to retake quiz 1 from Wk 3 for 100% score
+
+[33mcommit 25ff7b76608405602869a0811fc05f2b40b78d67[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 26 20:26:52 2017 -0400
+
+    Complete SVR and set up Decision Tree regression in Udemy Machine Learning AZ
+
+[33mcommit 80ee80a15a025345f7b6c360767d81ba22ae6f58[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 26 16:25:37 2017 -0400
+
+    Work up to Plotting for DataFrames Quiz (19) in Udacity Intro to Data Analysis
+
+[33mcommit 589b208a1ee9e7d286df10b004dc50f88642689d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 26 14:13:18 2017 -0400
+
+    Add example notebooks to EDX UCSD Python for Data Science
+
+[33mcommit 80e43b6f7fdaf66b9ffc21618d43e115cf71c53c[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 26 13:45:15 2017 -0400
+
+    Create bar plot of origins with > 10000 reviews, create histograms on Belgian, American, and German beer reviews, inspect others next
+
+[33mcommit 8381ffc637fbb139e9462b7bec10bcd562983c44[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 26 13:30:12 2017 -0400
+
+    Clean up data type in origins CSV, figure out bar plot of counts of beer origin with Counter from collections library
+
+[33mcommit 4632ffdeb6d224e671898a8f404806742c3e3a3d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 26 12:51:07 2017 -0400
+
+    Start Final Project for EDX UCSD Python for Data Science
+
+[33mcommit d6dbcbbc04ac000f5706c75a484567eba1ebd5aa[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 26 10:17:35 2017 -0400
+
+    Work up to halfway through Solving Overfitting in Coursera Stanford Machine Learning
+
+[33mcommit 29c3566756b8f91169668b76430e7308186d4a00[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Jul 25 16:10:13 2017 -0400
+
+    Work further through Udacity Intro to Data Analysis
+
+[33mcommit abd15a3c57600e640a8aaa26e2b71e13f367df75[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Jul 25 10:25:25 2017 -0400
+
+    Start Week 3 in Coursera Stanford Machine Learning
+
+[33mcommit ae86a10b9b6279623e06b16f579aff8295b48157[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Jul 25 09:44:11 2017 -0400
+
+    Finish Week 8 of EDX UCSD Python for Data Science
+
+[33mcommit 350b5f1b47ddef02851ab2105b924ccaefdcf3b5[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 24 16:29:03 2017 -0400
+
+    Work through Lesson 3 in Udacity Intro to Data Analysis
+
+[33mcommit 45fc6d864a65039cdca7ae4d15995e2db801e790[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 24 14:42:17 2017 -0400
+
+    Finish Lesson 2 in Udacity Into to Data Analysis
+
+[33mcommit f523a2d92fbbffd07238ba0f6f1d3a016ded040d[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 24 11:35:53 2017 -0400
+
+    Continue work through EDX Data Science for Python with Twitter API text analysis
+
+[33mcommit ed148355af79a0ceba07c6872313aba258693940[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 24 09:44:42 2017 -0400
+
+    Finish Week 2 Lectures for Coursera Stanford Machine Learning
+
+[33mcommit 7a4adf100d45a1058d4e18d0af3280de86c3562f[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Jul 21 16:13:15 2017 -0400
+
+    Work up to Week 2 project for ColumbiaX Analytics in Python
+
+[33mcommit 4ba0a0751579fb40b3cbb13c1e2237c8d7564fa3[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Jul 21 15:19:23 2017 -0400
+
+    Finish Lesson 1 in Udacity Data Analysis, set up for Lesson 2
+
+[33mcommit 1e71353fbfa3f145d53764c5abc0a168d95261dd[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Jul 21 14:29:28 2017 -0400
+
+    Start week 2 for Coursera Stanford ML
+
+[33mcommit 2bb7c7649cdd90a16f6202fadec0bbf955418fc6[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Jul 21 11:57:44 2017 -0400
+
+    Finish Week 1 of Coursera Stanford ML
+
+[33mcommit 95ddce5e910033b2906bf918a3c92258a8089bfa[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Jul 21 11:03:17 2017 -0400
+
+    Work through NLP for EDX UCSD Python for Data Science (Week 8)
+
+[33mcommit 81aba1db0f300df800156075e6ee6ee66f243aad[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 20 15:58:03 2017 -0400
+
+    Finish polynomial regression for Udemy Machine Learning AZ
+
+[33mcommit 2414c6060205b86ab6508e905ed010f1581a8856[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 20 11:52:14 2017 -0400
+
+    Finish histograms section for Udacity Data Analysis
+
+[33mcommit 72528f2958a457e77b226ee6d89ce9dd0b3f3b85[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 20 11:06:10 2017 -0400
+
+    Work on Week 2 in ColumbiaX Python for Data Analysis
+
+[33mcommit 6d041c53fdee20e55cdc502df4158bc22c5ec752[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 20 09:53:26 2017 -0400
+
+    Start Week 8 for EDX UCSD Python for Data Science early
+
+[33mcommit 99f23102fc50bd0ebd80355cdd2f4a9e957cbfbe[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 20 09:08:41 2017 -0400
+
+    Finish Week 7 for EDX UCSD Python for Data Science
+
+[33mcommit 77feeeb8f8e2755679e54b00c86fdced17a41ff1[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 20 08:16:39 2017 -0400
+
+    Continue with Week 1 in Coursera Stanford ML
+
+[33mcommit 58c0f9c9dec3b12144e6ef3287ac44c9c27670c9[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 19 20:31:18 2017 -0400
+
+    Start polynomial linear regression for Udemy Data Science
+
+[33mcommit 185bee3befd03d6c77d4e9e5feefd51b7d10d032[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 19 20:05:19 2017 -0400
+
+    Get up to making histograms in Udacity Intro to Data Analysis
+
+[33mcommit 8b1386a2f14950b7c43c266adcb71c89b34847d9[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 19 16:19:59 2017 -0400
+
+    Continue on with week 1 in Coursera Machine Learning
+
+[33mcommit 5ba58a942986342f9ef28523c18afb575f0fc07a[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 19 16:18:51 2017 -0400
+
+    Start Linear Regression lectures for EDX UCSD Python for Data Science
+
+[33mcommit df7f7a46e6368c5c7f5885d765f1ccfccdaa3155[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 19 10:57:18 2017 -0400
+
+    Finish clustering lecture for EDX UCSD Python for Data Science
+
+[33mcommit 7c8252f8c1eaf8e5c85fb8010a8ff858545c82c5[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Jul 18 20:41:45 2017 -0400
+
+    Finish Multiple Linear Regression in R for Udemy Data Science AZ
+
+[33mcommit 9ceb9b20b53371ba056904d2128a514e2107d655[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Jul 18 15:31:27 2017 -0400
+
+    Continue on with Udacity Data Analysis
+
+[33mcommit 70cb3bad01458fe023b554ee76c3e4f3de090af0[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Jul 18 11:32:45 2017 -0400
+
+    Start Week 7 Clustering Lectures in EDX UCSD
+
+[33mcommit 91467f7db88a062a614a6675c530c19d8233c6dc[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Jul 18 11:08:02 2017 -0400
+
+    Finish Classification lectures and notebook for UCSD Week 7
+
+[33mcommit abf02315e1e71d2884f27bcd7bce9cb445eb5cf1[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Tue Jul 18 06:53:02 2017 -0400
+
+    Get back into Stanford ML on Coursera before course starts
+
+[33mcommit b5fa61195ce988b9be85b2816fc08aab49566a32[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 17 16:28:42 2017 -0400
+
+    Get back to Udacity Data Analysis
+
+[33mcommit 7780190f1b6ccaa3af8d444856bc92187366cab1[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 17 15:45:53 2017 -0400
+
+    Start and complete Week 1 for ColumbiaX: Analytics in Python
+
+[33mcommit b5ea1eee99a6bfef4cab77e35d36ac6159a98c98[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Mon Jul 17 14:41:58 2017 -0400
+
+    Start Week 7 for EDX Python for Data Science
+
+[33mcommit d40adcf06fe01a4648ba92eacbb819db3ec7ec69[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Jul 14 11:23:02 2017 -0400
+
+    Add PDF version of mini-project powerpoint
+
+[33mcommit b11da4fb4dc08be60d6295c7bb5bb41921be6282[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Jul 14 11:20:44 2017 -0400
+
+    Clean-up iPython notebook and PowerPoint presentation for EDX UCSD Pyton For Data Science Mini-Project
+
+[33mcommit ac7fc5943e0d56b49b63bdeb7ec745d292a87844[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Fri Jul 14 10:52:09 2017 -0400
+
+    Start and complete PowerPoint presentation for EDX UCSD Pyton For Data Science Mini-Project
+
+[33mcommit 299bf0b31bacbd44e17234bb9a711965566cec23[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Thu Jul 13 10:55:05 2017 -0400
+
+    Add t-table image to explain t-test results
+
+[33mcommit 5202ff2fbc1d3df3b08b105f1dc36cc89f29f3d0[m
+Author: Author Name <s.newns92@gmail.com>
+Date:   Wed Jul 12 20:14:04 2017 -0400
+
+    Progress on setting up and running t-test for Python for Data Science mini-project
+
+[33mcommit 4298adda3012d42130705c78b23a62fafdab99a7[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 12 14:28:48 2017 -0400
+
+    See that distribution of Animated movie ratings are not normal, start to create sampling distributoins of the scores
+
+[33mcommit 1c26ec8e51aa30a05798248a25112e69cdd5250e[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 12 12:00:15 2017 -0400
+
+    Fix Index HTML file for Inferential Stats Final Project, Start Mini-Project for Week 6 in EDX UCSD Python for Data Science
+
+[33mcommit 6db9585c18653faae3a48d86d2c6ab202ff9432e[m
+Author: Newns <s.newns92@gmail.com>
+Date:   Wed Jul 12 08:33:37 2017 -0400
+
+    Moved Inferential stats notes into own dir
+
+[33mcommit 8a546c9b6f0d6032be801ea4d04382d53850680f[m
+Author: Newns <NEWNSS@CHOP.EDU>
+Date:   Wed Jul 12 08:26:22 2017 -0400
+
+    Clean up Inferential Stats Final Project HTML file
+
+[33mcommit 9f7cb5765a3ebdd419d47cd559bd32a87dfcdf3d[m
+Author: Newns <NEWNSS@CHOP.EDU>
+Date:   Tue Jul 11 21:08:21 2017 -0400
+
+    Start to set up final markdown file for Inferential Stats Final Project
+
+[33mcommit eb18d074280b86b8a733d87aba19751ac44b1645[m
+Author: Newns <NEWNSS@CHOP.EDU>
+Date:   Tue Jul 11 21:00:02 2017 -0400
+
+    Finally fix past error of adding too large of a file in multiple commits
+
+[33mcommit 904fbdcb9dd12ae809cbd2e07b3cd54d2a486d26[m
+Merge: 5178848 02e4903
+Author: Newns <NEWNSS@CHOP.EDU>
+Date:   Tue Jul 11 20:58:04 2017 -0400
+
+    Start to try and fix adding too large of a file in multiple commits again
+
+[33mcommit 5178848b30b2605c7601763b2375212954269839[m
+Author: Newns <NEWNSS@CHOP.EDU>
+Date:   Tue Jul 11 20:57:34 2017 -0400
+
+    Start to try and fix adding too large of a file in multiple commits
+
+[33mcommit 02e49037c71c5312e1007ad5eaddd3c70b3fbe4a[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Jun 21 20:10:52 2017 -0400
+
+    Continue work in EDX UT and UCSD, in Udacity Data Analysis, and Udemy Data Science AZ
+
+[33mcommit d53508423225dbd987cf3d7abedf90b08afa6e22[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Jun 20 20:01:28 2017 -0400
+
+    Continue work in EDX UT Stats + USCD Python, and Udacity Data Analysis
+
+[33mcommit a652aea91b0c7b7b25f7b117ad6a15bc33dc447e[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Jun 19 20:38:53 2017 -0400
+
+    Remove random q file
+
+[33mcommit c003b1017e5f31ccf3051cddec2214e06c79df16[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Jun 19 20:37:37 2017 -0400
+
+    Remove daily_engagement_full.csv due to Github size constraints
+
+[33mcommit 8694910c1fee1027c53c4252758c0047f526a375[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Jun 19 20:23:53 2017 -0400
+
+    Start Week 3 for EDX UCSD, work more on Udacity Data Analysis, work more on Udemy Data Science AZ
+
+[33mcommit dc0398533802595007fa3cae461e9ceedb886230[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Jun 16 17:26:21 2017 -0400
+
+    Finish Week for EDX UCSD and UT, finish lectures for Udacity Inferential Stats, Start Udacity Data Analysis
+
+[33mcommit a8618ed6f460c1d15d7e6c307d13fe2f543384b6[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Jun 15 19:51:36 2017 -0400
+
+    Finish Udemy SQL
+
+[33mcommit be1d1dcb087ca0219b11a4b5edc97063111e410d[m
+Author: Newns <NEWNSS@CHOP.EDU>
+Date:   Thu Jun 15 16:48:35 2017 -0400
+
+    Continue with EDX UT and UCSD (on-time graded) and Udacity Inferential Stats
+
+[33mcommit 2335ab22a7484269ce4c1836a50450677a9d489c[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Jun 14 21:08:36 2017 -0400
+
+    Continue with EDX, Udacity, and Udemy work and restore accidentally old versions of Week 1 notes from EDX UCSD and GATech
+
+[33mcommit 5a3a79cc38f16eb5eeaf26c32fea988160d7fe74[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Jun 13 20:28:50 2017 -0400
+
+    Continue with the 3 EDX classes
+
+[33mcommit 369a744654ecd4fffdc0f0bc731ed5b51e815d2b[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Jun 12 21:01:51 2017 -0400
+
+    Continue on with EDX, Udacity, and Udemy work
+
+[33mcommit 6bb43db82cc02da29673fbb9a44d8a513b801066[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Jun 8 20:56:34 2017 -0400
+
+    Continue with GATech Modeling, UCSD Python for DS, Udacity Inferential Stats, and Udemy SQL Courses
+
+[33mcommit d90010ea8a6ce0612b6679de884ae727e25175a6[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Jun 7 20:35:28 2017 -0400
+
+    Work more through Udacity Inferential Stats, EDX UCSD, and Udemy SQL
+
+[33mcommit 3e470635740643fcd3959ccbbfc3a89667b36928[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Jun 6 21:39:00 2017 -0400
+
+    Contiue with Udacity Inferential Stats, Udemy SQL, and GATech Modeling, start UT Data Analysis 2 and UCSD Python for Data Science
+
+[33mcommit 87759fd1feb61a982fc3f7bb2b0504065a27b0cd[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Jun 1 21:40:50 2017 -0400
+
+    Start HackerRack Python, work more through Udacity Inferential Stats, work more through Udemy SQL
+
+[33mcommit 6c125d71b82c69b36cc53f39ae51afad4e928d48[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue May 30 21:31:30 2017 -0400
+
+    Work more through Udacity Inferential Stats and being Udemy Data Science track
+
+[33mcommit 23857f7fb9bd48487326e046a287cd7727a3367f[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon May 29 14:34:10 2017 -0400
+
+    Work through Finch quiz in Udacity Inferential Stats
+
+[33mcommit 2a2728a0f79485a8425b795a1d89ed14279bc038[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri May 26 22:25:44 2017 -0400
+
+    Work through degrees of freedom videos in Lesson 4 for Udacity Inferential Stats
+
+[33mcommit 8059c32dd67e80a247a7ea639b36b07176fca02f[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu May 25 20:53:38 2017 -0400
+
+    Start Lesson 4 - t-tests Part 1 in Udacity Inferential Stats
+
+[33mcommit afbb80787280f9f295c2d49edcf9507e93382731[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu May 25 20:26:00 2017 -0400
+
+    Finish Lesson 3 Hypothesis Testing and Problem Set in Udacity Inferential Stats
+
+[33mcommit 5bd2b01fad4734dc9d27651980da522962049979[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed May 24 20:57:10 2017 -0400
+
+    Work more through Udacity Inferential Stats up to Decision Errors
+
+[33mcommit 014a534b1c8daf26ae557f73c28ffff810794a46[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon May 15 22:40:08 2017 -0400
+
+    Start Hypothesis Testing lesson in Udacity Inferential Stats
+
+[33mcommit 6a98c2853f528605c1d0892bcc169e27280cf5fc[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun May 14 17:26:23 2017 -0400
+
+    Finish Distribution plots in Python for DS and ML from Udemy, finish Estimation from Udacity Inferential Stats
+
+[33mcommit a3ee3f685c90d788afb8a463b64130cffca74774[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Thu May 11 13:52:11 2017 -0400
+
+    Progress more through Estimation lesson in Udacity Inferential Stats
+
+[33mcommit 3e9b7254f8ed75d3f32d55ccc21df4189c8ff552[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Wed May 10 15:22:49 2017 -0400
+
+    Start Udacity Intro to Inferential Stats
+
+[33mcommit f8b4c25c315dea47f3191a39c3150673a5ae6337[m[33m ([m[1;31morigin/descriptiveStats[m[33m)[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue May 9 20:38:14 2017 -0400
+
+    Add fixed typos to markdown
+
+[33mcommit 57f283028276a3d38bceb08766ff051ec940db6e[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue May 9 20:27:39 2017 -0400
+
+    Fix typo in title
+
+[33mcommit 1340080b6261d34f603a1ef2e976da3cfc156b73[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue May 9 20:25:33 2017 -0400
+
+    Save z-table document
+
+[33mcommit a6a6ab2c0b317406650fbf30da56a38ffabf2f84[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue May 9 20:24:52 2017 -0400
+
+    Finish final project for Udacity Descriptive Stats
+
+[33mcommit 55afcf7eeaea517e0aaccffa16503ef9fc57de10[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Tue May 9 15:52:56 2017 -0400
+
+    Start work on final project for Udacity Descriptive Stats
+
+[33mcommit 83c35072e0af4d250aecda2890e1c41998cede53[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri May 5 15:02:23 2017 -0400
+
+    Work up to CTL in Udacity Intro to Descriptive Stats, Lesson 7
+
+[33mcommit 5016e9b83b95a67024157e76de37357d144b2b60[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri May 5 14:29:00 2017 -0400
+
+    Start Regularization lectures in Stanford ML
+
+[33mcommit d9260bbd18ad05608161e2766dae48bfe5aa7935[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri May 5 07:02:39 2017 -0400
+
+    Attempt 1-3 of Logistic Regression Quiz for Stanford ML
+
+[33mcommit 59139b4ab00523464759163a9b3d9f8a6dceb6f0[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Wed May 3 15:23:39 2017 -0400
+
+    Work through Multiclass Classification in Stanford ML
+
+[33mcommit 2fc64a919c4a2cc7c617238ead11b560c3fc62ca[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue May 2 21:16:41 2017 -0400
+
+    Work up through Simplified Cost Function and Gradient Descent
+    
+     in Stanford ML
+
+[33mcommit 7b99847dd525bd5fe0b75be106eceafe61aaa9d2[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon May 1 21:30:52 2017 -0400
+
+    Start Lesson 6 - Sampling Distributions from Udacity Intro to Descriptive Stats
+
+[33mcommit de5e731544b254af538aa7321f75c89bbf1b3e88[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon May 1 21:06:06 2017 -0400
+
+    Work through Decision Boundary lecture
+
+[33mcommit 55294bd2fc6184d508875ac14254203a27d3c58b[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Mon May 1 12:07:20 2017 -0400
+
+    Start week 3 of Stanford Machine Learning
+
+[33mcommit 8a6ca26bae3e0d149a903da34fcaf21deb12742b[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Mon May 1 11:02:13 2017 -0400
+
+    Finish week 2 in Stanford Machine Learning (quiz, programming quiz, programming assignment)
+
+[33mcommit b93c8a7c7b3220c05ac1e32be68b39e75d280fac[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri Apr 28 14:54:59 2017 -0400
+
+    Finish Lesson 6 - Normal Distribution
+
+[33mcommit f5061467bc5d3f8f7eaf96ac1096bd9396c359fd[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri Apr 28 11:50:06 2017 -0400
+
+    Finish Lesson 5 - Standardizing
+
+[33mcommit e5f7fb1a2be4873b874cd97a2002c7c8193bea26[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Thu Apr 27 12:46:40 2017 -0400
+
+    Finish Week 2 and quiz for Stanford ML
+
+[33mcommit c206909e9fabe931ad673aa737871df67df5a607[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Wed Apr 26 15:25:25 2017 -0400
+
+    Start Seaborn lectures in Udemy Python for DS and ML
+
+[33mcommit d0e88785c4c51f5aec2b14174c4e26c6568829d2[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Wed Apr 26 13:44:50 2017 -0400
+
+    Finish the Normal Equation lecture in Stanford ML
+
+[33mcommit 60c149cde818bcc85046d05e8a10924861eea1e6[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Tue Apr 25 13:29:25 2017 -0400
+
+    Finish MatPlotLib exercise for Udemy Python For DS and ML
+
+[33mcommit f0c02deee9968d35bb5c7d30340a024d17254bb7[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Tue Apr 25 11:48:26 2017 -0400
+
+    Add workbook for Multivariate Linear Regression Quiz
+
+[33mcommit 078095b4db7ac756210981eff462fd79ea759b28[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Tue Apr 25 11:47:09 2017 -0400
+
+    Finish Multivariate Linear Regression lectures
+
+[33mcommit c1d7a51ae2249b625bc84ab2dd1b4fc9d1031b3d[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Apr 24 18:02:59 2017 -0400
+
+    Finish Lesson 4 in Udacity Intro to Descriptive Stats
+
+[33mcommit 576ebdbbd07357c8ddf3f3919d0bf172beb32a3d[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Mon Apr 24 15:57:22 2017 -0400
+
+    Start week 2 for Stanford Machine Learning up to Gradient Descent in Practice II
+
+[33mcommit 732687ecf0e9b720c3ed59ed7c1517476991a99a[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Apr 22 10:56:39 2017 -0400
+
+    Start Linear Algebra Review in Stanford ML, work up to Matrix Mult. Properties
+
+[33mcommit b200f15439e3da8826420b5115228a71f1064090[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Apr 22 10:17:53 2017 -0400
+
+    Finish Parameter Learning and Gradient Descent for Stanford Machine Learning, move on to Linear Algebra Review
+
+[33mcommit 10d781951fe314a8347fde26e3965b2de8f3092d[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Fri Apr 21 21:08:36 2017 -0400
+
+    Start working through Advanced MatPlotLib topics, start Gradient Descent in Stanford ML
+
+[33mcommit d04082c2db7e1d3d88dbb6f8a2d4a1fb4adcb426[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Thu Apr 20 20:23:39 2017 -0400
+
+    Work up to Cost Function - Intuition II for Standard Machine Learning
+
+[33mcommit 74e4d1b92c64dc610013735d7d6601f8749924c4[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Thu Apr 20 14:30:09 2017 -0400
+
+    Finish Lesson 2 and Lesson 3 for Udacity Intro to Descriptive Stats
+
+[33mcommit 9fcd4db038fd25527eced941590164a0bb1d4e9a[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Thu Apr 20 10:53:24 2017 -0400
+
+    Finish 1st MatPlotLib lecture in Udemy Python for DS and ML, start 2nd descriptive stats lecture for Udacity
+
+[33mcommit 77c00e284a7efc8ee467800417f2eb0dd380f9df[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Apr 19 21:07:56 2017 -0400
+
+    Start Wk 2 Notes up to Robust Statistics lecture
+
+[33mcommit 7d18b7ecbd6dfd238653f578494adab652e70cc1[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Apr 18 20:31:24 2017 -0400
+
+    Finish Week 1 notes, quiz, and lab for Coursera Intro to Probability with R from Duke
+
+[33mcommit 272b321a91e1904be85fa549830cc79c758f0ec5[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Tue Apr 18 15:50:32 2017 -0400
+
+    Work up to 5.4 in U of Adelaide stats and work through half of unsupervised learning lecture in week 1 of Standord ML at Coursera
+
+[33mcommit bd0f4e4eebeda34c5ce16e10d9453ce459eb0e7b[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Apr 17 20:30:45 2017 -0400
+
+    Add dataset and code files for lesson 1 for Udemy SQL
+
+[33mcommit d68534c949d213acaaf1bf5597ce3826171a84ab[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Apr 17 20:02:17 2017 -0400
+
+    Finish lesson 1, add notes, still must add quizzes
+
+[33mcommit 3840117321530c0a6e7e648c7b34dc1d84fc1e4f[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Mon Apr 17 15:55:53 2017 -0400
+
+    Finish supervised learning video and enter unsupervised learning notes from Stanford ML
+
+[33mcommit 9e15e1c2b5e96e234254190c28027f8c5bb87683[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri Apr 14 15:09:49 2017 -0400
+
+    Add Coursera Stats in R, since cannot find UT Stats Pt. 2 for EDX
+
+[33mcommit 3e7c2db394cc36a53032bb399839359a308db8b5[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri Apr 14 12:31:20 2017 -0400
+
+    Finish UT Stats Course, Part 1
+
+[33mcommit 815cbda03304092db2255aab747a7264e8c8c3f2[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Thu Apr 13 15:38:53 2017 -0400
+
+    Finish matplotlib lectures up to part 2
+
+[33mcommit 89d86b2b28e0db45ef52f6923d5c80477097c327[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Thu Apr 13 14:55:50 2017 -0400
+
+    Go over Pandas ECommerce exercise, start Matplotlib lectures, add notes from Coursera Machine Learning
+
+[33mcommit 2cd5c83d765047ca4de96e62021edd2fb6d02bed[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Thu Apr 13 14:31:37 2017 -0400
+
+    Do week 6 lectures and comprehension questions
+
+[33mcommit 486bd2a1229ce2643dc17f4a58f9fe58664c5b69[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Wed Apr 12 17:50:20 2017 -0400
+
+    Add image to first mockup
+
+[33mcommit a7ee59253b203ca2ac88ac3e6e70a3600fbb0f07[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Wed Apr 12 15:47:54 2017 -0400
+
+    Finish ECommerce Pandas Exercise
+
+[33mcommit 5a2359c75084cb55efcafbbd66efdc3bfae8075f[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Wed Apr 12 15:24:45 2017 -0400
+
+    Clarify some work in SF Execrises in Pandas exercises for Python Data Analysis
+
+[33mcommit d859e554cfc026996fe56e5e9ac085b10cead004[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Wed Apr 12 14:52:09 2017 -0400
+
+    Start working through online Stats w/ R book from U of Adelaide
+
+[33mcommit 120ec7d1e70e10ff7e9e9ff105e2aee96a2bc10d[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Wed Apr 12 11:04:06 2017 -0400
+
+    Remove temp files
+
+[33mcommit de84e42597aec3f8463abe0220f4f65104e0b841[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Wed Apr 12 11:03:25 2017 -0400
+
+    Finish Unit 5
+
+[33mcommit 75bfc62dd688c642dbdfb2fcc2cc609645430c82[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Tue Apr 11 20:51:30 2017 -0400
+
+    Finish Section 1 - Linear Regression in R, get up to step 5 of multivariate linear regression in R
+
+[33mcommit df2f92bcfbf811e24e0516905f1da7094b77edee[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Tue Apr 11 15:56:22 2017 -0400
+
+    Finish SF Salary exercises, now must review
+
+[33mcommit 74bfae438e2e1926bf22553745ef38065509f699[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Tue Apr 11 15:37:28 2017 -0400
+
+    Finish Pandas Input and Output notebook, rename notebooks in chronological order
+
+[33mcommit bf89cc4c80eb37e85b1aeeade24a319994f86e1f[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Tue Apr 11 14:23:40 2017 -0400
+
+    Finish Pre-lab 5 in UT Stats, pt. 1
+
+[33mcommit 5c9470fa6919e61b4e4d294f30ffa2912c84c5a0[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Mon Apr 10 19:16:12 2017 -0400
+
+    Get up to Positioning Boxes in Lesson 1 for Udacity HTML
+
+[33mcommit 7c4ef5499eb3d846fcc4acc230e15d70f473c6f6[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Mon Apr 10 13:31:36 2017 -0400
+
+    Finish pandas operations nnotebook
+
+[33mcommit 21669916997566bbf4c44622d45d2a1b796f7958[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Mon Apr 10 12:52:03 2017 -0400
+
+    Finish week 5 lecture comprehension questions for UT Stats pt. 1
+
+[33mcommit 24212b80e3c8ead827259c337c8d7d666cb2672d[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Apr 9 20:59:17 2017 -0400
+
+    Complete Lab 4 and Problem Set 3
+
+[33mcommit 32e32c18f94cf8bda1c9f4aa16a19f8fce7f1534[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Apr 9 20:14:19 2017 -0400
+
+    Finish Week 4 Pre-lab
+
+[33mcommit 0e6e43d73891adfadb24eaa56a17b1e6d8efe5ae[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sun Apr 9 17:14:55 2017 -0400
+
+    Work more on Pandas notebooks, add Contigency table work for UT stats
+
+[33mcommit 1cd1d741bb7ceb48421d6fd84fe12ec3261fffb0[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Apr 8 21:59:33 2017 -0400
+
+    Finish data frames video
+
+[33mcommit 767ea1051b63270f00f8f1ae6ed17b5686756d52[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Apr 8 20:22:21 2017 -0400
+
+    Start Udemy Machine Learning Course with preprocessing section
+
+[33mcommit 0ffd387f95455d0d1d754074c78a824ceeaf59f3[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Apr 8 12:29:51 2017 -0400
+
+    Finish pt. 2 of data frames section in Python Data Science/Machine Learning
+
+[33mcommit 960bfbd449e86104dec3a742e9847ae8ffc8fd01[m
+Author: Nimz <s.newns92@gmail.com>
+Date:   Sat Apr 8 11:08:52 2017 -0400
+
+    Add numerical indicators for order of 1st 3 lessons
+
+[33mcommit 9c64ef3ee481fa3f9061b349055b5f2f3a9b2383[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri Apr 7 15:42:37 2017 -0400
+
+    Started DataFrames in Pandas section
+
+[33mcommit ca508aa5606e564a4a3f58849f72b02ba5831aef[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri Apr 7 15:13:47 2017 -0400
+
+    Clarify some answers in NumPy exercises
+
+[33mcommit f4a3cd2ebbe8d1878f2276ef0fc27c848fe9ae0f[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri Apr 7 14:40:20 2017 -0400
+
+    Finish NumPy exercises, rename data analysis dir
+
+[33mcommit 769c50a0bcd2148448857ad421bd52fef199c520[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri Apr 7 13:52:20 2017 -0400
+
+    Edit folder and notebook titles to make more intuitive of chronological order
+
+[33mcommit e3863104cd3801f7a43c293275241a476b1b209e[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Fri Apr 7 12:00:30 2017 -0400
+
+    Add work up to and not including Week 4 work
+
+[33mcommit 708faf6b400075db9c8888d36ee85bed1090219b[m
+Author: newns92 <s.newns92@gmail.com>
+Date:   Thu Mar 30 13:42:50 2017 -0400
+
+    Add initial folders for R, Python, and Stats Review work
