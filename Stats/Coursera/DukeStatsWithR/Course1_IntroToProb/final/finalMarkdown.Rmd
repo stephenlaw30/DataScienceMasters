@@ -1,5 +1,5 @@
 ---
-  title: "Exploring the BRFSS data"
+title: "Exploring the BRFSS data"
 output: 
   html_document: 
   fig_height: 4
@@ -55,16 +55,18 @@ in the project you submit. Delete this note when before you submit your work.
 
 **Research quesion 1:**
   
-  ```{r state counts} 
+1st, let's look at the number of records in each state.
+  
+```{r state counts} 
 # get count observations from each states
 brfss2013 %>%
   group_by(X_state) %>%
   summarise(count = n())
 ```
 
-So there's a state "0"? That can't be right, but it might just be some kind of header.
+So there's a state "0"? That can't be right, but it might just be some kind of header. I'll come back to that later.
 
-Now to look at the frequency table of the **smokday2** variable, which is a description of the frequency of days a respondent is now smoking, ranging from not at all to every day.
+Now to look at the frequency table of the **smokday2** variable, which is a description of the frequency of days a respondent is now smoking, ranging from "not at all"" to "every day".
 
 ```{r smoke frequency}
 summary(brfss2013$smokday2)
@@ -72,7 +74,7 @@ summary(brfss2013$smokday2)
 
 It looks like the majority of people do not smoke, which is good. But there's a lot of NA values in this dataset for this variable. Let's get only those who answered the smoking question into a subset titled **smoking**.
 
-```{r smoking answered}
+```{r smoking answered, message = FALSE}
 # get only those who answered frequency of smoking question
 smoking <- brfss2013 %>%
   filter(!is.na(smokday2))
@@ -90,13 +92,13 @@ smoking %>%
   arrange(desc(prop))
 ```
 
-It seems Guam is the highest proportion. This is because it is a US territory. Now I want to check if there are any other options for X_state other than US states.
+It seems Guam has the highest proportion of people who say the smoke every day. According to the codebook for this dataset, Guam and Puerto Rico are includedbecause they are US territories. Now I want to check if there are any other options for X_state other than US states and territories.
 
 ```{r check states}
 levels(smoking$X_state)
 ```
 
-Okay, so it looks like I need to remove Guam and Puerto Rico, the US territories. I also need to remove the "0" and the "80".
+Okay, so it looks like I need to remove Guam and Puerto Rico, the US territories. I also need to remove the "0" and the "80". I'll keep the District of Columbia even though it's not really a *state*.
 
 I can create a function to do the opposite of **%in%** to remove those records with the above values for X_state, then get the proportions of those who smoke every day relative to every respondent to the question and then arranging the results by descending proportion of those who smoke every day.
 
@@ -115,21 +117,29 @@ I can create a function to do the opposite of **%in%** to remove those records w
 ```
 
 I now want to create a heatmap to see which states have the highest proportion of those who smoke every day.
+
 ```{r heat map}
 top_every_day_smoker_states$region <- tolower(top_every_day_smoker_states$X_state)
 
 states <- map_data("state")
-map.df <- merge(states,top_every_day_smoker_states, by="region", all.x=T)
+map.df <- merge(states,top_every_day_smoker_states, by = "region", all.x = T)
 map.df <- map.df[order(map.df$order),]
-ggplot(map.df, aes(x=long,y=lat,group=group))+
-  geom_polygon(aes(fill=prop))+
-  geom_path()+ 
-  scale_fill_gradientn(colours=rev(heat.colors(10)),na.value="grey90")+
-  coord_map()
+ggplot(map.df, aes(x = long, y = lat, group = group)) +
+  geom_polygon(aes(fill=prop)) +
+  geom_path() + 
+  scale_fill_gradientn(colours = rev(heat.colors(10)), na.value="grey90") +
+  coord_map() + 
+  theme(rect = element_blank(), axis.text.x = element_blank(), 
+        axis.text.y = element_blank(), axis.ticks = element_blank()) + # remove grid background and ticks and tick labels
+  ggtitle("Heatmap of the Proportion of Everyday Smokers in the United States") + 
+  labs(caption="* Data reflects statistics for those who have responses for the variable smokday2: 54516 respondents", 
+       x = element_blank(), y = element_blank())
+  
 ```
 
 
-Now I want to see the proportions of the top 10 states with the highest proportion of everyday smokers
+Now I want to see the proportions of the top 10 states with the highest proportion of everyday smokers.
+
 ```{r}
 #top 15 states
 top_every_day_smoker_states %>%
