@@ -138,7 +138,7 @@ ggplot(map.df, aes(x = long, y = lat, group = group)) +
 ```
 
 
-Now I want to see the proportions of the top 10 states with the highest proportion of everyday smokers.
+Now I want to visualize the proportions of the top 10 states with the highest proportion of everyday smokers.
 
 ```{r}
 #top 15 states
@@ -149,11 +149,11 @@ top_every_day_smoker_states %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab('State') + 
   ylab('Proportion') + 
-  ggtitle('Proportion of Every Day Smoking') + 
+  ggtitle('Top 10 State Proportions of Every Day Smoking') + 
   guides(fill=FALSE)
 ```
 
-Let's also look at the the proportions of those who don't smoke at all and those who smoke some days for these states.
+Let's also look at the these proportions along those who don't smoke at all and those who smoke some days for these same states.
 
 ```{r}
 #get those top 15 states
@@ -162,31 +162,83 @@ top_every_day_states <- top_every_day_smoker_states %>%
   select(X_state) %>%
   as.data.frame() #%>%
 
+# array of character elements of the state names
 top_every_day_states <- top_every_day_states[,1]
-
-#'West Virginia' %in% top_every_day_states
 
 smoking %>%
   group_by(X_state, smokday2) %>%
   summarise(count = n()) %>%
   mutate(prop = count / sum(count)) %>%
   arrange(desc(prop)) %>%
-  #head(10) %>%
-  filter(X_state %in% top_every_day_states) %>%
+  filter(X_state %in% top_every_day_states) %>% # get only top 10 states
   ggplot() + 
-  geom_bar(aes(X_state, prop, fill = smokday2), stat = "identity") + 
+  geom_bar(aes(X_state, prop, fill = smokday2), stat = "identity") + # stacked bar chart
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   xlab("State") + 
   ylab("Proportion") + 
-  ggtitle("Proportion of Different Smokers")
+  ggtitle("Proportion of Smoker Frequency") + 
+  guides(fill=guide_legend(title="Frequency"))
 ```
 
 
 
 **Research quesion 2:**
-  
-  ```{r}
 
+Now I want to see if there is a discrepency in the proportions of the salaries of both college graduates and non-college graduates compared to the median household salary in the US. First, I need to filter out the US territories like above and also filter down to just college gradutes to start with.
+  
+```{r}
+united.states <- brfss2013 %>%
+  filter(X_state %not in% c("0", "80", "Guam", "Puerto Rico"))
+
+united.states %>%
+  filter(educa == "College 4 years or more (College graduate)") %>%
+  count
+```
+
+We end up with about 168,000 observations. I also want to filter down to those that are actually working, which would only include those respondents that are employed for wages or are self-employed.
+```{r working grads}
+us_college_grads_not_retired <- brfss2013 %>%
+  filter(educa == "College 4 years or more (College graduate)",
+         employ1 %in% c("Employed for wages","Self-employed"))
+```
+
+I also know the income level has been put into buckets that have levels that are character strings, such as "Less than $20,000". I want to recode that into numerics so I can rank them and then look at a histogram of the distribution of the incomes of non-retired, working college graduates in the United States.
+
+```{r recode}
+# rename factors to numerics
+us_college_grads_not_retired$incomeRank <- recode(us_college_grads_not_retired$income2, "Less than $10,000" = 1, "Less than $15,000" = 2,
+                                                                                "Less than $20,000" = 3, "Less than $25,000" = 4,
+                                                                                "Less than $35,000" = 5, "Less than $50,000" = 6,
+                                                                                "Less than $75,000" = 7,"$75,000 or more" = 8)
+ggplot(us_college_grads_not_retired) + 
+  geom_histogram(aes(as.numeric(incomeRank)), binwidth = 1)
+```
+
+# percent of people making more than 50k
+college_grads_not_retired %>%
+  summarize(prop = mean(as.numeric(incomeRank) > 6, na.rm = T))
+#0.7699314 = 77%
+
+
+
+
+non_grads_not_retired <- brfss2013 %>%
+  filter(educa %not in% c("College 4 years or more (College graduate)","Refused"),
+         employ1 %in% c("Employed for wages","Self-employed"))
+table(non_grads_not_retired$educa)
+
+# rename factors to numerics
+non_grads_not_retired$incomeRank <- recode(non_grads_not_retired$income2, "Less than $10,000" = 1, "Less than $15,000" = 2,
+                                               "Less than $20,000" = 3, "Less than $25,000" = 4,
+                                               "Less than $35,000" = 5, "Less than $50,000" = 6,
+                                               "Less than $75,000" = 7,"$75,000 or more" = 8)
+ggplot(non_grads_not_retired) + 
+  geom_histogram(aes(as.numeric(incomeRank)), binwidth = 1)
+
+# percent of people making more than 50k
+non_grads_not_retired %>%
+  summarize(prop = mean(as.numeric(incomeRank) > 6, na.rm = T))
+#0.4310216 = 43%
 ```
 
 
