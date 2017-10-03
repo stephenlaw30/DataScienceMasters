@@ -1,8 +1,10 @@
-# find percentile for a score of 21 from a normal distribution w/ mean 21 and SD 5
-pnorm(24,21,5)
-
-# calculate z-score for same observation
-(24-21)/5
+# calculate z-score for college kids in relationships where H0: mu = 3 and H1: mu > 3
+n = 50
+trueNull.mu <- 3
+x.bar = 3.2
+s <- 1.74
+se <- s/sqrt(n)
+z <- (x.bar - trueNull.mu)/se # test statistic of .81
 
 # find cutoff value for lowest score one could get to be in top 10% of normal SAT distribution
 # with mean = 1500 + SD = 300
