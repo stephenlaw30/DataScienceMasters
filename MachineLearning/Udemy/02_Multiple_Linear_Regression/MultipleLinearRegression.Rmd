@@ -122,7 +122,20 @@ summary(regressor.all)
 
 State 2 and 3 have the highest p-values (> .95), so they have minimal impact on profits. 
 
-Remove both by removing "State" from the model to remove all dummy variables
+Remove both by removing "State" from the model to remove all dummy variables.
+
+If we only used 1 of the state variables, the one *not* included will become the *default state* for the model and is included in the intercept term, **b0**. So, when the chosen State variable's coefficient = 0, we have an "alternate" equation for the non-included state.
+
+Then, when the chosen State *does* have a coefficient, the model is adding the difference between the chosen and excluded States to alter the formula into the chosen State (like an on/off switch).
+
+**Dummy Variable Trap**
+.	If we include all dummy variables above, we are then *duplicating* a variable
+.	D2 always = 1 - D1
+.	So, because of the above, there's **multicollinearity** = 1 or more independent variables predicts another 
+.	When this happens the model cannot differentiate the difference between the effects of D1 vs. the effects of D2 and therefore won't work properly
+.	Cannot have the intercept term b0 and all dummy variables in a model at the same time
+.	Must always remove ONE dummy variable (ex: 9 states = 8 dummy variables)
+.	If we have 2 sets of dummy variables, we'd apply the same rules to each set (ex: weather type + state)
 
 ```{r}
 regressor.noState <- lm(Profit ~ R.D.Spend + Administration + Marketing.Spend, training)
@@ -153,3 +166,37 @@ Now let's use the final model on the full dataset.
 finalModel.RD <- lm(Profit ~ R.D.Spend, startups)
 summary(finalModel.RD)
 ```
+
+## Building a model
+When building a linear regression. model, we	don't necessarily need *all* predictors/features in the model.
+What we *really* need is a simple model that is easy to explain/present, so we only want to keep *very important* variables that *significantly* predict/have an effect on the outcome.
+There are multiple methods to designing a model:
+  - **All-in**
+    - throw in all variables (only do this if we know *for sure* from our domain knowledge/previous knowledge that ALL ofthe factors are important)
+      - Or we may be required to do so due to some framework in the company (i.e. not your decision)
+  - **Backwards elimination** 
+    1) Select significance level for the variable to reach to STAY in the model
+    2) Fit all variables into a model
+    3) Consider predictor w/ highest p-value (worst predictor) + remove it
+    4) Fit new model w/out that variable 
+    5) Repeat step 3 and 4 until all variable p-values are < significance level
+  - **Forward selection**
+    1) Select significance level for the variable to ENTER the model
+    2) Fit all possible (i.e. multiple) SIMPLE regression models (y = b1*x1) 
+    3) Select simple linear regression model w/ lowest p-value
+    4) Fit all possible regression models w/ the variable from step 3 PLUS a 2nd predictor
+    5) Select new linear regression model w/ lowest p-value
+    6) Add 3rd, then 4th variable.. ??? repeat until variable added becomes > significance
+    7) Keep model prior to adding this variable that has too large of a p-value
+  - **Bidirectional elimination (Stepwise regression)**
+    1) Select a significance level for the variable to ENTER the model + to STAY in the model
+    2) Perform Step 2 of forward selection (fit all simple linear regression models)
+    3) Perform ALL steps of backward elimination
+    4) Repeat Step 2 and 3 until we cannot add nor remove any variables
+  - **Score comparison/All possible models**
+    1) Select criterion of goodness of fit (e.g. **Akaike information criterion (AIC)**)
+      - AIC = Given a collection of models for data, AIC estimates the *quality* of each model, relative to each of the other models
+      - AIC provides a means for model selection.
+    2) Construct all possible regression models (2^n - 1 total combinations) 
+    3) Select model that best meets the criterion
+    - NOTE: 10 columns = 1023 models
