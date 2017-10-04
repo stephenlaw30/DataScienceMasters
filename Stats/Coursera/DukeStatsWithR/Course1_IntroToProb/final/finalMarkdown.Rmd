@@ -31,12 +31,12 @@ load("brfss2013.RData")
 
 * * *
   
-  ## Part 1: Data
+## Part 1: Data
   
   
-  * * *
+* * *
   
-  ## Part 2: Research questions
+## Part 2: Research questions
   
   **Research quesion 1: What are the US states with highest proportion of smoking who smoke every day relative to all those respondents who smoke?**
   
@@ -45,9 +45,9 @@ load("brfss2013.RData")
   **Research quesion 3: What are the most popular types of exercise for individuals who have no bad mental health days in the past 30 days and those who have more than 15 bad mental health days in the past 30 days?**
   
   
-  * * *
+* * *
   
-  ## Part 3: Exploratory data analysis
+## Part 3: Exploratory data analysis
   
   NOTE: Insert code chunks as needed by clicking on the "Insert a new code chunk" 
 button (green button with orange arrow) above. Make sure that your code is visible
@@ -195,52 +195,89 @@ united.states %>%
   count
 ```
 
-We end up with about 168,000 observations. I also want to filter down to those that are actually working, which would only include those respondents that are employed for wages or are self-employed.
+We end up with about 168,000 observations. I also want to filter down to those graduates that are actually working, which would only include those respondents that are employed for wages or are self-employed.
+
 ```{r working grads}
 us_college_grads_not_retired <- brfss2013 %>%
   filter(educa == "College 4 years or more (College graduate)",
          employ1 %in% c("Employed for wages","Self-employed"))
 ```
 
-I also know the income level has been put into buckets that have levels that are character strings, such as "Less than $20,000". I want to recode that into numerics so I can rank them and then look at a histogram of the distribution of the incomes of non-retired, working college graduates in the United States.
+I also know the income level has been put into buckets that have levels made up of character strings, such as "Less than $20,000". I want to recode that into numerics so I can rank them and then look at a histogram of the distribution of the incomes of non-retired, working college graduates in the United States.
 
 ```{r recode}
 # rename factors to numerics
 us_college_grads_not_retired$incomeRank <- recode(us_college_grads_not_retired$income2, "Less than $10,000" = 1, "Less than $15,000" = 2,
                                                                                 "Less than $20,000" = 3, "Less than $25,000" = 4,
                                                                                 "Less than $35,000" = 5, "Less than $50,000" = 6,
-                                                                                "Less than $75,000" = 7,"$75,000 or more" = 8)
-ggplot(us_college_grads_not_retired) + 
-  geom_histogram(aes(as.numeric(incomeRank)), binwidth = 1)
+                                                                              "Less than $75,000" = 7,"$75,000 or more" = 8)
+
+us_college_grads_not_retired$incomeRank <- factor(us_college_grads_not_retired$incomeRank, labels = c("$10k","$15k","$20k","$25k",
+                                                                                                      "$35k","$50k","$75k","$75k+"))
+us_college_grads_not_retired %>%
+  filter(!is.na(incomeRank)) %>%
+  ggplot() + 
+   geom_histogram(aes(incomeRank, fill = employ1), binwidth = 1, stat = "count")
 ```
 
+The overwhelming majority of those college graduates currently working is over $75,000 per year in this dataset, with most of them being employed for wages, compared to self-employed respondents. The median household income in $56,516 in 2016. So, I want to see what percentage of employed college graduates are (most likely) making more than this. I'll use income buckets of greater than $50,000 per year as my minimum. The rank of this bucket was 6, so I need all records with income ranks greater than 6.
+
+```{r}
 # percent of people making more than 50k
-college_grads_not_retired %>%
+us_college_grads_not_retired %>%
   summarize(prop = mean(as.numeric(incomeRank) > 6, na.rm = T))
-#0.7699314 = 77%
 
+us_college_grads_not_retired %>%
+  group_by(employ1) %>%
+  summarize(prop = mean(as.numeric(incomeRank) > 6, na.rm = T))
+```
 
+So, it appears that about 77% of currently-employed college graduates make more than $50,000 per year, and are most likely making more than the median household income of the United States.
 
+And, after splitting out to self-employed and employed for wages, an ever higher of employed for wages employees are making above this bucket, while a smaller percentage of self-employed respondents are making above this bucket.
 
+Now, let's look at the same question, but for those who did not graduate college (and actually answered the question).
+
+```{r, warning=F}
 non_grads_not_retired <- brfss2013 %>%
   filter(educa %not in% c("College 4 years or more (College graduate)","Refused"),
          employ1 %in% c("Employed for wages","Self-employed"))
-table(non_grads_not_retired$educa)
 
 # rename factors to numerics
 non_grads_not_retired$incomeRank <- recode(non_grads_not_retired$income2, "Less than $10,000" = 1, "Less than $15,000" = 2,
                                                "Less than $20,000" = 3, "Less than $25,000" = 4,
                                                "Less than $35,000" = 5, "Less than $50,000" = 6,
                                                "Less than $75,000" = 7,"$75,000 or more" = 8)
-ggplot(non_grads_not_retired) + 
-  geom_histogram(aes(as.numeric(incomeRank)), binwidth = 1)
 
+
+non_grads_not_retired$incomeRank <- factor(non_grads_not_retired$incomeRank, labels = c("$10k","$15k","$20k","$25k","$35k","$50k",
+                                                                                        "$75k","$75k+"))
+
+non_grads_not_retired %>%
+  filter(!is.na(incomeRank)) %>%
+  ggplot() + 
+   geom_histogram(aes(incomeRank, fill = employ1), binwidth = 1, stat = "count")
+```
+
+Again, the majority of those who did not graduate from college who are currently working is over $75,000 per year in this dataset, with most of them being employed for wages, compared to self-employed respondents.
+
+But, we can note the disparity is not as large compared to those who did graduate college. The skew is not as severe.
+
+Now to check the percentage of employed non-college graduates that are (most likely) making more than the median US household income.
+
+```{r}
 # percent of people making more than 50k
 non_grads_not_retired %>%
   summarize(prop = mean(as.numeric(incomeRank) > 6, na.rm = T))
-#0.4310216 = 43%
+
+non_grads_not_retired %>%
+  group_by(employ1) %>%
+  summarize(prop = mean(as.numeric(incomeRank) > 6, na.rm = T))
 ```
 
+We see that only 43% of currently-employed non-college graduates make more than $50,000 per year, and are most likely making more than the median household income of the United States.
+
+If splitting out to self-employed and employed for wages, a negligible percentage of both employed for wages employees are making above this bucket.
 
 
 **Research quesion 3:**
