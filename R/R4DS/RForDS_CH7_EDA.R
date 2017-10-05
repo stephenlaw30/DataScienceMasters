@@ -263,3 +263,63 @@ diamonds %>%
 '*********************************
   7.5  Covariation
 *********************************'
+'If **variation** = the behavior *within* a variable, **covariation** = behavior *between* variables. 
+
+**Covariation** = tendency for the values of 2+ variables to vary together *in a related way.* 
+
+Best way to spot covariation = visualise the relationship between 2+ variables+ how to do that depends on variable types
+
+1) A categorical and continuous variable
+  - It's common to want to explore the distribution of a continuous variable broken down by a categorical variable, as in previous 
+      frequency polygons. 
+  - Default appearance of geom_freqpoly() is not that useful for that sort of comparison b/c height is given by the count. 
+  - If 1 of the groups is much smaller than the others, it's hard to see the differences in shape.'
+
+## explore how the price of a diamond varies w/ its quality:
+ggplot(diamonds) + 
+  geom_freqpoly(aes(price, colour = cut), binwidth = 500)
+# hard to see differences in distribution b/c overall counts differ so much
+
+ggplot(diamonds) + 
+  geom_bar(aes(cut))
+
+'To make the comparison easier, swap what is displayed on the y-axis from count to **density** = the count *standardised* so that the
+  area under each frequency polygon = 1'
+ggplot(diamonds) + 
+  geom_freqpoly(aes(price, ..density.., color = cut), bindwidth = 500)
+
+'Something surprising about this plot --> appears "fair" diamonds (lowest quality) have highest average price. But maybe that's b/c
+    frequency polygons are a little hard to interpret + there's a lot going on in this plot.
+
+Another alternative to display the distribution of a continuous variable broken down by a categorical variable = **boxplot**
+A boxplot is a type of visual shorthand for a distribution of values that is popular among statisticians. Each boxplot consists of:
+  - box that stretches from 25th to 75th percentile of a distribution = IQR
+  - middle of the box = a line = the median/50th percentile
+  - These 3 lines give a sense of the **spread** of the distribution + whether or not its symmetric about the median or skewed
+  - Outliers = Visual points that`re observations falling more than 1.5 times the IQR from either edge of the box
+  - Whiskers extends from each end of the box + go to the farthest non-outlier point in the distribution'
+
+ggplot(diamonds) + 
+  geom_boxplot(aes(cut, price))
+
+'There`s much less info about the distribution, but plots = much more compact = can more easily compare them (+ fit more on 1 plot).
+
+This supports the counterintuitive finding that better quality diamonds are cheaper on average
+
+**cut** = an *ordered* factor --> fair is worse than good, which is worse than very good and so on. 
+
+Many categorical variables DON`T have such an intrinsic order, so you might want to reorder them to make a more informative display, 
+such as with reorder()
+
+Ex: take the class variable in mpg --> might be interested to know how highway mileage varies across classes:'
+ggplot(mpg) + 
+  geom_boxplot(aes(class,hwy))
+
+'To make the trend easier to see, reorder class based on the median value of hwy:'
+ggplot(mpg) +
+  geom_boxplot(aes(reorder(class, hwy, FUN = median), hwy))
+
+'W/ long variable names, geom_boxplot() works better if you flip it 90° w/ coord_flip().'
+ggplot(mpg) +
+  geom_boxplot(aes(reorder(class, hwy, FUN = median), hwy)) + 
+  coord_flip()
