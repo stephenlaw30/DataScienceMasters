@@ -42,3 +42,38 @@ alpha <- .01
 (se <- (x.bar - trueNull.mu)/z)
 1 - pnorm(x.bar,trueNull.mu,se)
 2*(1 - pnorm(x.bar,trueNull.mu,se)) # two-tailed test
+
+'A 2010 Pew Research foundation poll indicates among 1,099 college graduates, 33% watch the Daily Show, an American late-night TV Show.
+The standard error of this estimate = 0.014. Estimate the 95% CI for the proportion of college graduates who watch The Daily Show.'
+n <- 1099
+x.bar <- .33
+alpha <- .05
+se.x <- .014
+(z.crit <- qnorm(1-(1 - .95)/2)) # ~ 1.96
+mOe <- z.crit*se.x
+(ci.low <- x.bar - mOe)
+(ci.low <- x.bar + mOe)
+'We are 95% confident between 30.3% and 35.7% of college graduates watch the Daily Show
+
+The 3rd National Health and Nutrition Examination Survey (NHANES), collected body fat % + gender data from over 13,000 subjects ages 
+20-80. Average BF% for the 6,580 men in the sample = 23.9 + this was 35% for the 7,021 women. SE for the difference between the average 
+male + female BF% = 0.114. Do these data provide convincing evidence that men and women have different average BF%`s? Assume the 
+distribution of the point estimate is nearly normal.'
+
+# know distribution of point estimate is normal = can use known framework
+# 1) set hypotheses --> h0: x.bar(m) = x.bar(f) ==> x.bar(m) - x.bar(f) = 0        h1 = x.bar(m) - x.bar(f) != 0
+# 2) point estimate = difference between means
+n.m <- 6580
+n.f <- 7021
+x.bar.m <- .239
+x.bar.f <- .35
+(x.bar.diff <- x.bar.m - x.bar.f)
+# 3) check conditions --> told distribution is nearly normal + since this is a *national* survery, we can assume the observations are 
+#   from a  random sample and are independent to each w/ respect to BF%
+se <- .114
+# null says difference = 0
+(z <- (x.bar.diff - 0)/se) 
+(1 - pnorm(x.bar,0,se))
+
+'In context, we've determined that these data provide convincing evidence that the average body fat percentages of men and women 
+are indeed different from each other.'
