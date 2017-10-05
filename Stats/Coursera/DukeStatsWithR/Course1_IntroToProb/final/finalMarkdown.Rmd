@@ -281,7 +281,86 @@ If splitting out to self-employed and employed for wages, a negligible percentag
 
 
 **Research quesion 3:**
-  
-  ```{r}
 
+For my 3rd research question, I wanted to see what were the most popular types of exercise for individuals who have no bad mental health days in the past 30 days and those who have more than 15 bad mental health days in the past 30 days.
+
+This might possibly lead to insights into how physical activity could affect mental health.
+
+```{r}
+table(brfss2013$menthlth)
 ```
+
+Looks ilke there's some value above 30, which is an error, since the question asked for the number of bad mental health days in the past 30 days, so there should be no value greater than 30.
+
+```{r}
+brfss2013 %>%
+  filter(menthlth <= 30) %>%
+  ggplot() + 
+    geom_histogram(aes(menthlth), binwidth = 2)
+```
+
+So, there's an incredibly large right skew here, so most people say they have had a low amount of bad mental health days in the past 30 days (at the time of questioning).
+
+Let's get all those records of individuals with no bad mental health days and those of individuals with more than bad mental health days for over half of the specified time frame.
+
+```{r}
+good_mental_hlth <- brfss2013 %>%
+  filter(menthlth == 0 & !is.na(menthlth))
+
+bad_mental_hlth <- brfss2013 %>%
+  filter(menthlth > 15 & menthlth <= 30)
+```
+
+```{r}
+bad_mental_hlth %>%
+  ggplot() + 
+    geom_histogram(aes(menthlth), binwidth = 1)
+```
+
+```{r} 
+prop.table(table(good_mental_hlth$exerany2)) #many healthy exercises
+
+prop.table(table(bad_mental_hlth$exerany2)) # more did exercise, not as much
+```
+
+```{r}
+good_mental_hlth %>%
+  filter(exerany2 == "Yes") %>%
+  group_by(exract11) %>%
+  summarize(count = n()) %>%
+  mutate(prop = count / sum(count)) %>%
+  arrange(desc(prop)) %>%
+  head(10) %>%
+  ggplot() + 
+  geom_bar(aes(reorder(exract11, -prop), prop), stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  xlab('State') + 
+  ylab('Proportion') + 
+  ggtitle('Most popular exercises for those with no bad mental health days')
+```
+
+Well, these labels sure make for an ugly chart, but we can see that about half of the exercise activites performed by those with no mental health days was walking, with most others making up less than 10% of activities.
+
+Now let's check on those with "poor" mental health.
+
+```{r}
+bad_mental_hlth %>%
+  filter(exerany2 == "Yes") %>%
+  group_by(exract11) %>%
+  summarize(count = n()) %>%
+  mutate(prop = count / sum(count)) %>%
+  arrange(desc(prop)) %>%
+  head(10) %>%
+  ggplot() + 
+  geom_bar(aes(reorder(exract11, -prop), prop), stat = "identity") + 
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  xlab('State') + 
+  ylab('Proportion') + 
+  ggtitle('Most popular exercises for those with more than 15 bad mental health days')
+```
+
+Walking makes up even more of the proportion of exercise activites performed by those with poor mental health, and gardening is now the 2nd highest-performed activity. Most activites are the same as those with good mental health, but wuth the addition of more yard work.
+
+
+
+
