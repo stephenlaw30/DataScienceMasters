@@ -1,3 +1,6 @@
+library(tidyverse)
+library(ggplot2)
+
 'Using visualisation + transformation to explore data in a systematic way = EDA, an iterative cycle.
   - Generate questions about your data.
   - Search for answers by visualising, transforming, + modeling data.
@@ -16,7 +19,6 @@ Data cleaning = just 1 application of EDA == ask questions about whether data me
 
 To do data cleaning, you`ll need to deploy ALL tools of EDA: visualisation, transformation, and modeling.'
 
-library(tidyverse)
 
 'Goal of EDA = to develop an understanding of your data using questions as tools to guide investigations 
   - questions focus attention on a specific part of a dataset + help decide which graphs, models, or transformations to make.
@@ -57,7 +59,6 @@ Variation = tendency of values of a variable to change from measurement to measu
 
 ## Categorical variables - only take on small set of values = FACTOR or CHARACTER vectors'
 ## Use bar chart for examining categorical distributions
-library(ggplot2)
 
 ggplot(diamonds) + 
   geom_bar(aes(cut)) # ideal is most common value, fair is least common
@@ -224,7 +225,7 @@ diamonds2 <- diamonds %>%
   mutate(y = ifelse(y < 3 | y > 20, NA, y))
 
 'ggplot2 = missing values should never silently go missing
-  - not obvious where to plot missing values, so ggplot2 doesn't include them, but does warn they've been removed
+  - not obvious where to plot missing values, so ggplot2 doesn`t include them, but does warn they`ve been removed
   - use na.rm = TRUE to remove the warning
 
 Other times you want to understand what makes observations w/ missing values different to observations w/ recorded values. 
@@ -241,7 +242,7 @@ nycflights13::flights %>%
   ggplot() + 
     geom_freqpoly(aes(sched_dep_time, color = cancelled), binwidth = 1/4)
 
-'This plot isn't great b/c there are many more non-cancelled flights than cancelled flights. 
+'This plot isn`t great b/c there are many more non-cancelled flights than cancelled flights. 
 
 *********************************
   7.4 Exercises
@@ -270,10 +271,10 @@ diamonds %>%
 Best way to spot covariation = visualise the relationship between 2+ variables+ how to do that depends on variable types
 
 1) A categorical and continuous variable
-  - It's common to want to explore the distribution of a continuous variable broken down by a categorical variable, as in previous 
+  - It`s common to want to explore the distribution of a continuous variable broken down by a categorical variable, as in previous 
       frequency polygons. 
   - Default appearance of geom_freqpoly() is not that useful for that sort of comparison b/c height is given by the count. 
-  - If 1 of the groups is much smaller than the others, it's hard to see the differences in shape.'
+  - If 1 of the groups is much smaller than the others, it`s hard to see the differences in shape.'
 
 ## explore how the price of a diamond varies w/ its quality:
 ggplot(diamonds) + 
@@ -288,8 +289,8 @@ ggplot(diamonds) +
 ggplot(diamonds) + 
   geom_freqpoly(aes(price, ..density.., color = cut), bindwidth = 500)
 
-'Something surprising about this plot --> appears "fair" diamonds (lowest quality) have highest average price. But maybe that's b/c
-    frequency polygons are a little hard to interpret + there's a lot going on in this plot.
+'Something surprising about this plot --> appears "fair" diamonds (lowest quality) have highest average price. But maybe that`s b/c
+    frequency polygons are a little hard to interpret + there`s a lot going on in this plot.
 
 Another alternative to display the distribution of a continuous variable broken down by a categorical variable = **boxplot**
 A boxplot is a type of visual shorthand for a distribution of values that is popular among statisticians. Each boxplot consists of:
@@ -323,3 +324,88 @@ ggplot(mpg) +
 ggplot(mpg) +
   geom_boxplot(aes(reorder(class, hwy, FUN = median), hwy)) + 
   coord_flip()
+
+'*********************************
+7.5.1.1 Exercises
+*********************************'
+  
+## Use what you've learned to improve the visualisation of the departure times of cancelled vs. non-cancelled flights.
+nycflights13::flights %>% 
+  mutate(cancelled = is.na(dep_time),
+    sched_hour = sched_dep_time %/% 100,
+    sched_min = sched_dep_time %% 100,
+    sched_dep_time = sched_hour + sched_min / 60
+  ) %>% 
+  ggplot() + 
+    geom_freqpoly(aes(sched_dep_time,..density.., color = cancelled), binwidth = 1/4)
+
+nycflights13::flights %>% 
+  mutate(cancelled = is.na(dep_time),
+         sched_hour = sched_dep_time %/% 100,
+         sched_min = sched_dep_time %% 100,
+         sched_dep_time = sched_hour + sched_min / 60
+  ) %>% 
+  ggplot() + 
+  geom_boxplot(aes(x = cancelled, y = sched_dep_time)) + 
+  coord_flip()
+
+## What variable in the diamonds dataset is most important for predicting the price of a diamond? How is that variable correlated 
+##  with cut? Why does the combination of those two relationships lead to lower quality diamonds being more expensive?
+
+cor(diamonds[,c("carat","depth","x","y","z","price")]) # carat
+
+ggplot(diamonds) + 
+  geom_boxplot(aes(cut,carat)) # very slight negative
+
+# Since these 2 relationships are correlated, they are ??
+
+## Install the ggstance package + create a horizontal boxplot. How does this compare to using coord_flip()?'
+install.packages("ggstance")
+library(ggstance)
+
+ggplot(diamonds, aes(cut,carat)) + 
+  geom_boxplot() + 
+  coord_flip()
+
+ggplot(diamonds, aes(x = carat, y = cut)) + 
+  geom_boxploth() # same plot, less verbose, variables must be switched before boxplot layer
+
+
+## One problem with boxplots is that they were developed in an era of much smaller datasets and tend to display a prohibitively 
+##  large number of "outlying values". One approach to remedy this problem is the letter value plot. Install the lvplot package,
+##  and try using geom_lv() to display the distribution of price vs cut. What do you learn? How do you interpret the plots?
+install.packages("lvplot")
+library(lvplot)
+
+ggplot(diamonds, aes(cut,price, fill = ..LV..)) + 
+  geom_lv()
+# we see much more boxes for more quantiles, represented by letters rather than numbers (q1, q2, etc.)
+# we can see tails moreso now, with less outliers being displayed
+# Median (1/2): depth = d.M = (1+n)/2)
+# Fourths (1/4): depth = d.F = (1+d.M)/2)
+# Eights (1/8): depth =  d.E = (1+d.F)/2)
+# tail quantiles become more reliable (include LVs beyond Fourths)
+
+## Compare and contrast geom_violin() with a facetted geom_histogram(), or a coloured geom_freqpoly(). What are the pros and cons of
+##  each method?
+ggplot(diamonds, aes(cut,price)) + 
+  geom_violin()
+
+ggplot(diamonds, aes(price)) + 
+  geom_histogram() +
+  facet_wrap(~cut)
+
+ggplot(diamonds) + 
+  geom_freqpoly(aes(price,..density.., color = cut))
+
+# frequency polygons and facetted histograms can 
+
+## If you have a small dataset, it's sometimes useful to use geom_jitter() to see the relationship between a continuous and
+# categorical variable. The ggbeeswarm package provides a number of methods similar to geom_jitter(). List them and briefly 
+# describe what each one does.
+install.packages("ggbeeswarm")
+library(ggbeeswarm)
+
+ggplot(diamonds) + 
+  geom_boxplot(aes(cut,carat)) + 
+  geom_beeswarm(aes(cut,carat), priority = "density")
