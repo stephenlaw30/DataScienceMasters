@@ -75,5 +75,31 @@ se <- .114
 (z <- (x.bar.diff - 0)/se) 
 (1 - pnorm(x.bar,0,se))
 
-'In context, we've determined that these data provide convincing evidence that the average body fat percentages of men and women 
+'In context, we`ve determined that these data provide convincing evidence that the average body fat percentages of men and women 
 are indeed different from each other.'
+
+'SAT scores are distributed w/ a mean = 1,500 + a SD = 300. You`re interested in estimating the average SAT score of 1st year 
+students at your college. If you'd like to limit the margin of error of your 98% CI to 40 points, at least how many students should 
+you sample?'
+sigma <- 300
+n <- 306
+SE <- sigma/sqrt(n)
+(z.crit <- qnorm(1-(1 - .98)/2)) # ~ 2.32
+(moe <- z.crit*SE)
+
+'Researchers investigating characteristics of gifted children collected data from schools in a large city on a random sample of 
+36 children IDed as gifted children soon after they reached the age of 4. 
+
+Suppose you read online that children first count to 10 successfully when 32 months old, on average. You perform a hypothesis test
+evaluating whether the average age at which gifted children first count to 10 is different than the general average of 32 months.
+What is the p-value of the hypothesis test?'
+n <- 36
+min <- 21
+x.bar <- 30.69
+trueNull.mu <- 32
+sigma <- 4.31
+max <- 39
+
+se <- sigma/sqrt(n)
+(z <- (x.bar - trueNull.mu)/se) # test statistic of .81
+1 - pnorm(x.bar,trueNull.mu,se)
