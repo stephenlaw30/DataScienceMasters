@@ -1,0 +1,290 @@
+---
+title: "Foundations for Inference - Confidence intervals"
+author: "Steve Newns"
+date: "October 10, 2017"
+output: html_document
+---
+
+If you have access to data on an entire population, say the size of every house in Ames, Iowa, it's straight forward to answer questions like, *"How big is the typical house in Ames?"* and *"How much variation is there in sizes of houses?"*.
+
+If you have access to only a *sample* of the population, as is often the case, the task becomes more complicated. What is your **best guess** for the typical size if you only know the sizes of several dozen houses? This sort of situation requires that you use your sample to make **inferences** on what your population looks like.
+
+### Setting a seed
+
+We will take some random samples + calculate **confidence** based on samples.
+
+Set a seed to make R sample the same sample each time we knit the document + make sure your results don't change each time you knit + ensure reproducibility of work.
+```{r set-seed}
+set.seed(2146854)                
+```
+
+## Getting Started
+
+### Load packages
+
+```{r load-packages, message=FALSE, warning=F}
+library(statsr) # data for lab
+library(dplyr) # explore data
+library(tidyverse)
+library(ggplot2) # viz
+```
+
+### The data
+
+We consider real estate data from the city of Ames, Iowa. This is the details of every real estate transaction in Ames as recorded by the City Assessor's office. Our particular focus for this lab will be **all residential home sales in Ames between 2006-2010**. 
+
+*This collection* represents our **population of interest** and we'd like to learn about these home sales by taking smaller samples from the full population.
+
+```{r load-data}
+data(ames)
+glimpse(ames)
+```
+
+Start with a simple random sample of size 60 from the population, focusing on the size of the house, represented by the variable `area`.
+
+```{r sample}
+n <- 60
+samp <- sample_n(ames,n)
+```
+
+**Exercise**: Describe the distribution of homes in your sample. What would you say is the "typical" size within your sample? Also state precisely what you interpreted "typical" to mean.
+</div>
+```{r describe-sample}
+ggplot(samp,aes(area)) + 
+  geom_histogram(binwidth = 250)
+
+summary(samp$area)
+```
+
+This data is right-skewed, with the "typical" (i.e. sample mean) size within this sample being around 1550.
+
+1. True or False: My distribution should be similar to others' distributions who also collect random samples from this population, but it is likely not exactly the same since it's a random sample.
+<ol>
+<li> **True.** </li>
+<li> False. </li>
+</ol>
+
+## Confidence intervals
+
+Return for a moment to the question that first motivated this lab: based on this sample, *what can we infer about the population?* Based only on this single sample, the best estimate of the average living area of houses sold in Ames would be the sample mean, usually denoted as $\bar{x}$ (`x.bar`). 
+
+That serves as a good **point estimate** but it would be useful to also communicate *how uncertain we are of that estimate*, and this uncertainty can be quantified using a **confidence interval**.
+
+A confidence interval for a population mean is of the following form
+\[ \bar{x} \pm z^\star \frac{s}{\sqrt{n}} \]
+
+You should by now be comfortable with calculating the mean and standard deviation ofa sample, and we know sample size is 60. So the only remaining building block is finding the appropriate **critical value** for a given confidence level. 
+
+We can use the `qnorm` = gives the critical value associated with a given percentile under the normal distribution. 
+
+Remember that confidence levels and percentiles are *NOT* equivalent. 
+<ul> 
+<li> For example, a 95% confidence level = the middle 95% of the distribution, and the critical value associated with this area will
+correspond to the 97.5th percentile. </li>
+</ul>
+
+We can find the critical value for a 95% confidence interal using
+
+```{r z_star_95}
+(z_star_95 <- qnorm(0.975))
+```
+
+This is roughly equal to the value critical value 1.96 that you're likely familiar with by now.
+
+Let's finally calculate the confidence interval:
+
+```{r ci}
+samp %>%
+  summarise(lower = mean(area) - z_star_95 * (sd(area) / sqrt(n)),
+            upper = mean(area) + z_star_95 * (sd(area) / sqrt(n)))
+```
+
+```{r ci2}
+(ci <- samp %>%
+  summarise(std.err.area = sd(area)/sqrt(n),
+            mOe.area = z_star_95*std.err.area,
+            lower = mean(area) - mOe.area,
+            upper = mean(area) + mOe.area) %>%
+  select(lower, upper))
+```
+
+So, even though we don't know what the full population looks like, we're 95% confident the true average size of houses in Ames lies between the values *lower = 1405* and *upper = 1692*. 
+
+There are a few conditions that must be met for this CI interval to be valid, such as **the sample mean must be normally distributed** and **have standard error $s / \sqrt{n}$.** 
+
+Which of the following is not a condition needed for this to be true?
+<ol>
+<li> The sample is random. </li>
+<li> The sample size, 60, is less than 10% of all houses. </li>
+<li> **The sample distribution must be nearly normal.** </li>
+</ol>
+
+## Confidence levels
+
+3.  What does "95% confidence" mean?
+<ol>
+<li> 95% of the time the true average area of houses in Ames, Iowa, will be in this interval. </li>
+<li> **95% of random samples of size 60 will yield confidence intervals that contain the true average area of houses in Ames, Iowa.** </li>
+<li> 95% of the houses in Ames have an area in this interval. </li>
+<li> 95% confident that the sample mean is in this interval. </li>
+</ol>
+
+In this case, we have the rare luxury of knowing the true population mean since we have data on the entire population. Let's calculate this value so that we can determine if our CI's actually capture it
+
+```{r pop-mean}
+(params <- ames %>%
+  summarise(mu = mean(area)))
+```
+
+<div id="exercise">
+**Exercise**: Does your confidence interval capture the true average size of houses in Ames?
+</div>
+```{r check-ci-contain-true-mean}
+if_else(between(params$mu,ci$lower,ci$upper),"yes","no")
+```
+
+4. What proportion of 95% confidence intervals would you expect to capture the true population mean?
+<ol>
+<li> 1% </li>
+<li> 5% </li>
+<li> **95%** </li>
+<li> 99% </li>
+</ol>
+
+To collect many samples to learn more about how sample means and confidence intervals vary from 1 sample to another, here is a rough outline:
+
+-   Obtain a random sample.
+-   Calculate the sample's mean and standard deviation, and use these to calculate the lower and upper bounds of the CI's.
+-   Repeat these steps 50 times.
+
+Take 50 random samples of size `n` = 60 from population and compute the upper and lower bounds of the CI's based on these samples, and view the 1st 5 intervals
+
+```{r calculate-50-cis}
+ci <- ames %>%
+  rep_sample_n(n, 50, replace = T) %>%
+  summarise(std.err.area = sd(area)/sqrt(n),
+            mOe.area = z_star_95*std.err.area,
+            lower = mean(area) - mOe.area,
+            upper = mean(area) + mOe.area) %>%
+  select(lower, upper)
+
+ci %>%
+  slice(1:5)
+```
+
+Next we'll create a plot similar to Figure 4.8 on page 175 of [OpenIntro Statistics, 3rd Edition](https://www.openintro.org/os). 
+
+1st, create a new variable in the **ci** that indicates whether an interval does or does not capture the true population mean. 
+
+```{r capture-mu}
+ci <- ci %>%
+  mutate(capture_mu = if_else(lower < params$mu & upper > params$mu, "yes", "no"))
+
+ci %>%
+  slice(1:5)
+```
+
+We now have all the info needed to create the plot, but we need to re-organize our data a bit for easy plotting. Specifically, we need to organize the data in a new data frame where each row = 1 *bound*, as opposed to one *interval.* So this
+
+~~~
+     lower    upper capture_mu
+1 1350.540 1544.360        yes
+2 1333.441 1584.425        yes
+3 1412.133 1663.801        yes
+...
+~~~
+
+should instead look like
+
+~~~
+  ci_id ci_bounds capture_mu
+1     1  1350.540        yes
+2     2  1333.441        yes
+3     3  1412.133        yes
+4     1  1544.360        yes
+5     2  1584.425        yes
+6     3  1663.801        yes
+...
+~~~
+
+We can accomplish this using the following:
+
+```{r create-ci-data-for-plot}
+ci_data <- data.frame(ci_id = c(1:50, 1:50),
+                      ci_bounds = c(ci$lower, ci$upper),
+                      capture_mu = c(ci$capture_mu, ci$capture_mu))
+head(ci_data)
+```
+
+And finally we can create the plot using the following:
+
+```{r plot-ci}
+ggplot(ci_data, aes(ci_bounds, ci_id, group = ci_id, color = capture_mu)) +
+  geom_point(size = 2) +  # add points at the ends, size = 2
+  geom_line() +           # connect with lines
+  geom_vline(xintercept = params$mu, color = "darkgray") # draw vertical line
+```
+
+<div id="exercise">
+**Exercise**: What proportion of your confidence intervals include the true population mean? 
+Is this proportion exactly equal to the confidence level? If not, explain why.
+</div>
+```{r}
+prop.table(table(ci$capture_mu))
+```
+
+96% of my  CI's include the true population mean, which is a bit above the confidence level of 95%.
+
+5. What is the appropriate critical value for a 99% confidence level?
+
+```{r find-99-perc-crit-val}
+(z_star_99 <- qnorm(1-(1 - .99)/2))
+```
+<ol>
+<li> 0.01 </li>
+<li> 0.99 </li> 
+<li> 1.96 </li>
+<li> 2.33 </li>
+<li> **2.58** </li>
+</ol>
+
+<div id="exercise">
+**Exercise**: Calculate 50 CI's at the 99% confidence level (do not need to obtain new samples, simply calculate new intervals based on the 95% CI endpoints already collected). 
+
+Plot all intervals and calculate the proportion of intervals that include the true population mean.
+
+</div>
+```{r plot-99-perc-cis}
+# type your code for the Exercise here, and Knit
+ci <- ames %>%
+  rep_sample_n(n, 50, replace = T) %>%
+  summarise(std.err.area = sd(area)/sqrt(n),
+            mOe.area = z_star_99*std.err.area,
+            lower = mean(area) - mOe.area,
+            upper = mean(area) + mOe.area) %>%
+  select(lower, upper) %>%
+  mutate(capture_mu = if_else(lower < params$mu & upper > params$mu, "yes", "no"))
+
+ci_data <- data.frame(ci_id = c(1:50, 1:50),
+                      ci_bounds = c(ci$lower, ci$upper),
+                      capture_mu = c(ci$capture_mu, ci$capture_mu))
+
+ggplot(ci_data, aes(ci_bounds, ci_id, group = ci_id, color = capture_mu)) +
+  geom_point(size = 2) +  # add points at the ends, size = 2
+  geom_line() +           # connect with lines
+  geom_vline(xintercept = params$mu, color = "darkgray") # draw vertical line
+
+prop.table(table(ci$capture_mu))
+```
+
+6. We would expect 99% of the intervals to contain the true population mean.
+<ol>
+<li> **True** </li>
+<li> False </li>
+</ol>
+
+<div id="license">
+This is a product of OpenIntro that is released under a [Creative Commons 
+Attribution-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-sa/3.0).
+This lab was written for OpenIntro by Andrew Bray and Mine &Ccedil;etinkaya-Rundel.
+</div>
