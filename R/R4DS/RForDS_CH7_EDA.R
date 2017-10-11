@@ -398,7 +398,7 @@ ggplot(diamonds, aes(price)) +
 ggplot(diamonds) + 
   geom_freqpoly(aes(price,..density.., color = cut))
 
-# frequency polygons and facetted histograms can 
+# violin and frequency polygons are all on same plot, facetted histograms can easily see skew and tell apart
 
 ## If you have a small dataset, it's sometimes useful to use geom_jitter() to see the relationship between a continuous and
 # categorical variable. The ggbeeswarm package provides a number of methods similar to geom_jitter(). List them and briefly 
@@ -406,6 +406,134 @@ ggplot(diamonds) +
 install.packages("ggbeeswarm")
 library(ggbeeswarm)
 
+diamonds %>%
+  sample_n(1000) %>% # beeswarm takes too long w/ large datasets for my laptop
+  ggplot(aes(cut,carat)) + 
+    geom_boxplot() +
+    #geom_jitter()
+    geom_beeswarm()
+
+'*********************************
+7.5.2 Categorical Variables
+*********************************'
+'To visualise covariation between *categorical* variables --> count the number of observations for each combination.'
+
+## base ggplot
+ggplot(diamonds,aes(cut,color)) + 
+  geom_count() # size of circle = counts --> Covariation appears as strong correlation between specific x + specific y values.
+
+## dplyr
+diamonds %>%
+  count(color,cut)
+
+# vizualize dplyr w/ geom_tile
+diamonds %>%
+  count(color,cut) %>%
+  ggplot(aes(color,cut)) + 
+    geom_tile(aes(fill = n))
+
+'If categorical variables are *unordered*, might want to use **seriation** package to simultaneously reorder rows + columns in
+order to more clearly reveal interesting patterns. 
+
+For larger plots, try **d3heatmap** or **heatmaply** packages, which create interactive plots.'
+install.packages("seriation")
+install.packages("d3heatmap")
+install.packages("heatmaply")
+
+'*********************************
+7.5.2.1 Exercises
+*********************************'
+## How could you rescale the count dataset above to more clearly show the distribution of cut w/in colour, or colour w/in cut?
+# we can show the proportions of cut within color
+diamonds %>%
+  count(color,cut) %>%
+  group_by(color) %>%
+  mutate(perc = n / sum(n)) %>%
+  ggplot(aes(color,cut)) + 
+    geom_tile(aes(fill = perc))
+# or color within cut
+diamonds %>%
+  count(color,cut) %>%
+  group_by(cut) %>%
+  mutate(perc = n / sum(n)) %>%
+  ggplot(aes(color,cut)) + 
+  geom_tile(aes(fill = perc))
+# more evenly distributed
+
+## Use geom_tile() w/ dplyr to explore how average flight delays vary by destination + month of year. 
+nycflights13::flights %>%
+  group_by(dest,month) %>%
+  summarise(avg_delay = mean(dep_delay)) %>%
+  ggplot(aes(dest,month)) + 
+  geom_tile(aes(fill = avg_delay))
+
+## What makes the plot difficult to read? How could you improve it?
+# way too many combos --> select certain subset of destinations, or make seperate plots by month, or don't use months
+  
+## Why is it slightly better to use aes(x = color, y = cut) rather than aes(x = cut, y = color) in the example above?
+diamonds %>%
+  count(color,cut) %>%
+  ggplot(aes(color,cut)) + 
+  geom_tile(aes(fill = n))
+
+diamonds %>%
+  count(color,cut) %>%
+  ggplot(aes(cut,color)) + 
+  geom_tile(aes(fill = n))
+# seems more intuitive to read left to right and up and down from the lighter values to the darker values
+
+'*********************************
+7.5.3 2 continuous Variables
+*********************************'
+'geom_point = good way to visualize covariation between 2 continuous variables'
+# exponential relationship between carat size + diamond price
 ggplot(diamonds) + 
-  geom_boxplot(aes(cut,carat)) + 
-  geom_beeswarm(aes(cut,carat), priority = "density")
+  geom_point(aes(carat,price))
+
+'scatterplots = less useful w/ more DPs (overplotting) --> can use alpha to mitigate'
+ggplot(diamonds) + 
+  geom_point(aes(carat,price), alpha = 0.1)
+'also hard for large datasets'
+
+# try geom_bin2d() or geom_hex to bin in 2 dimensions as opposed to histograms + freq. polygons that bin in 1D
+ggplot(diamonds) + 
+  geom_bin2d(aes(carat,price))
+# looks like the scatterplot but w/ deeper colors for higher counts in certain bins 
+
+#install.packages("hexbin")
+library(hexbin)
+ggplot(diamonds) + 
+  geom_hex(aes(carat,price))
+# similar to before but w/ hexagonal shapes + more bins
+
+'can bin 1 continous variable to *act* as a categorical variable + use one of the techniques to visualize combos of categorical
++ continous variables'
+
+# bin carat + view w/ price
+ggplot(diamonds) + 
+  geom_boxplot(aes(carat, price, group = cut_width(carat,.1)))
+# split carat into bins of width = .1 and these are its "categories" --> then viewed price for each bin
+
+'By default, boxplots look roughly the same (apart from # of outliers) regardless of how many observations there are, so 
+it's difficult to tell that each boxplot summarises a different # of points. 
+
+1 way to show this = make width of the boxplot proportional to the # of points with varwidth = TRUE.'
+ggplot(diamonds) + 
+  geom_boxplot(aes(carat, price, group = cut_width(carat,.1)), varwidth = T)
+
+'Or display the same # of points in each bin (setting max # of DPs)'
+ggplot(diamonds) + 
+  geom_boxplot(aes(carat, price, group = cut_number(carat,20)))
+
+'*********************************
+7.5.3.1 Exercises
+*********************************'
+## Instead of summarising the conditional distribution with a boxplot, you could use a frequency polygon. What do you need to consider when using cut_width() vs cut_number()? How does that impact a visualisation of the 2d distribution of carat and price?
+  
+  Visualise the distribution of carat, partitioned by price.
+
+How does the price distribution of very large diamonds compare to small diamonds. Is it as you expect, or does it surprise you?
+  
+  Combine two of the techniques you've learned to visualise the combined distribution of cut, carat, and price.
+
+Two dimensional plots reveal outliers that are not visible in one dimensional plots. For example, some points in the plot below have an unusual combination of x and y values, which makes the points outliers even though their x and y values appear normal when examined separately.
