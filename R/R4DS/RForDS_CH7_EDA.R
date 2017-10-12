@@ -515,7 +515,7 @@ ggplot(diamonds) +
 # split carat into bins of width = .1 and these are its "categories" --> then viewed price for each bin
 
 'By default, boxplots look roughly the same (apart from # of outliers) regardless of how many observations there are, so 
-it's difficult to tell that each boxplot summarises a different # of points. 
+it`s difficult to tell that each boxplot summarises a different # of points. 
 
 1 way to show this = make width of the boxplot proportional to the # of points with varwidth = TRUE.'
 ggplot(diamonds) + 
@@ -529,11 +529,12 @@ ggplot(diamonds) +
 7.5.3.1 Exercises
 *********************************'
 ## Instead of summarising the conditional distribution with a boxplot, you could use a frequency polygon. What do you need to consider when using cut_width() vs cut_number()? How does that impact a visualisation of the 2d distribution of carat and price?
-  
-  Visualise the distribution of carat, partitioned by price.
 
-How does the price distribution of very large diamonds compare to small diamonds. Is it as you expect, or does it surprise you?
-  
-  Combine two of the techniques you've learned to visualise the combined distribution of cut, carat, and price.
+## Visualise the distribution of carat, partitioned by price.
 
-Two dimensional plots reveal outliers that are not visible in one dimensional plots. For example, some points in the plot below have an unusual combination of x and y values, which makes the points outliers even though their x and y values appear normal when examined separately.
+## How does the price distribution of very large diamonds compare to small diamonds. Is it as you expect, or does it surprise you?
+  
+## Combine two of the techniques you've learned to visualise the combined distribution of cut, carat, and price.
+
+## Two dimensional plots reveal outliers that are not visible in one dimensional plots. For example, some points in the plot below have an unusual combination of x and y values, which makes the points outliers even though their x and y values appear normal when examined separately.
+install.packages("skimr")
