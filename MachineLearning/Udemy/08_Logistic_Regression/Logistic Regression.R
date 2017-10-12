@@ -1,3 +1,63 @@
+install.packages("shiny")
+install.packages("RPresto")
+devtools::install_github("ricardo-bion/ggtech", dependencies=TRUE)
+install.packages("extrafont")
+library(extrafont)
+library(utils)
+## Facebook 
+download.file("http://social-fonts.com/assets/fonts/facebook-letter-faces/facebook-letter-faces.ttf", "C:/Users/NEWNSS/Dropbox/facebook-letter-faces.ttf", method="curl")
+
+font_import(pattern = "C:/Users/NEWNSS/Dropbox/facebook-letter-faces.ttf", prompt=FALSE)
+
+
+## Google 
+download.file("http://social-fonts.com/assets/fonts/product-sans/product-sans.ttf", "C:/Users/NEWNSS/Dropbox/product-sans.ttf", method="curl")
+
+font_import(pattern = 'product-sans.ttf', prompt=FALSE)
+
+
+## Airbnb 
+download.file("https://github.com/ricardo-bion/ggtech/blob/master/Circular%20Air-Medium%203.46.45%20PM.ttf", "C:/Users/NEWNSS/Dropbox/Circular Air-Medium 3.46.45 PM.ttf", method="curl")
+
+download.file("https://github.com/ricardo-bion/ggtech/blob/master/Circular%20Air-Bold%203.46.45%20PM.ttf", "C:/Users/NEWNSS/Dropbox/Circular Air-Bold 3.46.45 PM.ttf", method="curl")
+
+font_import(pattern = 'Circular', prompt=FALSE)
+
+
+## Etsy 
+download.file("https://www.etsy.com/assets/type/Guardian-EgypTT-Text-Regular.ttf", "C:/Users/NEWNSS/Dropbox/Guardian-EgypTT-Text-Regular.ttf", method="curl")
+
+font_import(pattern = 'Guardian-EgypTT-Text-Regular.ttf', prompt=FALSE)
+
+
+## Twitter 
+download.file("http://social-fonts.com/assets/fonts/pico-black/pico-black.ttf", "C:/Users/NEWNSS/Dropbox/pico-black.ttf", method="curl")
+
+download.file("http://social-fonts.com/assets/fonts/arista-light/arista-light.ttf", "C:/Users/NEWNSS/Dropbox/arista-light.ttf", method="curl")
+
+font_import(pattern = 'pico-black.ttf', prompt=FALSE)
+font_import(pattern = 'arista-light.ttf', prompt=FALSE)
+
+library(devtools)
+install.packages("RTools")
+install_github("susanathey/causalTree")
+
+install.packages("NLopt")
+
+install.packages("dygraphs")
+
+install.packages("leaflet")
+
+install.packages("DiagrammeR")
+
+install.packages("plotly")
+
+install.packages("broom")
+
+install.packages("pwr")
+
+
+
 library(tidyverse)
 library(caTools)
 library(ggplot2)
@@ -40,6 +100,9 @@ head(test)
 ## fit to training data
 log.reg <- glm(Purchased ~ ., training, family = "binomial") # binomial regression (1 or 0, yes or no, etc.)
 summary(log.reg)
+library(broom)
+tidy(log.reg)
+
 
 # Both age and salary are "good" predictors of purchased, but our R2 is quite low
 
