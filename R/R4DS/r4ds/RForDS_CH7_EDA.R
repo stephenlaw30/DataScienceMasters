@@ -1,5 +1,6 @@
 library(tidyverse)
 library(ggplot2)
+library(modelr)
 
 'Using visualisation + transformation to explore data in a systematic way = EDA, an iterative cycle.
   - Generate questions about your data.
@@ -538,3 +539,65 @@ ggplot(diamonds) +
 
 ## Two dimensional plots reveal outliers that are not visible in one dimensional plots. For example, some points in the plot below have an unusual combination of x and y values, which makes the points outliers even though their x and y values appear normal when examined separately.
 install.packages("skimr")
+
+'*********************************
+7.6 Patterns + Models
+*********************************'
+'Patterns in data provide clues about relationships. If a systematic relationship exists between 2 variables it will appear 
+as a pattern in the data. If you spot a pattern, ask yourself:
+  
+* Could this pattern be due to coincidence (random chance)?
+* How can you describe the relationship implied by the pattern?
+* How *strong& is the relationship implied by the pattern?
+* What *other variables& might affect the relationship?
+* Does the relationship *change* if you look at individual subgroups of the data (Simpson`s paradox)?'
+
+# scatterplot of Old Faithful eruption lengths vs. wait time
+ggplot(faithful) + 
+  geom_point(aes(eruptions,waiting))
+'See a pattern  --> longer wait times = associated w/ longer eruptions. Also notice 2 clusters (same as histogram)'
+ggplot(faithful) + 
+  geom_histogram(aes(eruptions), binwidth = .25)
+
+'Patterns = 1 of the most useful tools for DS b/c *they reveal covariation*. 
+
+* variation = a phenomenon that creates uncertainty
+* covariation = a phenomenon that reduces uncertainty
+
+If 2 variables covary, can use values of 1 variable to make better predictions about values of the other.
+If covariation is due to a causal relationship (a special case), you can use the value of 1 variable to *control* the value of
+the second.
+
+Models = a tool for extracting patterns out of data. 
+
+It's hard to understand relationship between cut + price of diamonds, b/c cut + carat and carat + price are tightly related. It's
+possible to use a model to remove the very strong relationship between price + carat so we can explore the subtleties that remain.'
+
+# fit a model to predict price from carat + compute the residuals (difference between predicted + actual values).
+# residuals = a view of the price of the diamond once the effect of carat has been removed.
+cor(diamonds$carat,diamonds$price)
+
+model <- lm(log(price) ~ log(carat), diamonds) # scale price + carat b/c they're on very different scales
+
+diamonds2 <- diamonds %>% 
+  add_residuals(model) %>%  # add the residuals of a model to a data frame (modelr)
+  mutate(resid = exp(resid))
+
+summary(diamonds2$resid)
+
+ggplot(diamonds2) + 
+  geom_point(aes(carat, resid))
+
+'Once we've removed the strong relationship between carat + price, see the expected relationship between cut + price = relative to
+size, better quality diamonds = more expensive.'
+ggplot(diamonds2) + 
+  geom_boxplot(aes(x = cut, y = resid))
+
+'*********************************
+7.7 ggplot2 calls
+*********************************
+Sometimes we'll turn the end of a pipeline of data transformation into a plot.'
+diamonds %>% 
+  count(cut, clarity) %>% 
+  ggplot(aes(clarity, cut, fill = n)) + 
+  geom_tile()
