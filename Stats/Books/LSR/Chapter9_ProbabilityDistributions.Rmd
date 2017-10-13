@@ -1,0 +1,128 @@
+---
+title: "Ch9_Probability"
+author: "Steve Newns"
+date: "October 6, 2017"
+output: html_document
+---
+
+### 9.4 - The Binomial Distribution'
+
+- **d form** = **density** = probability of obtaining a given input value
+- **p form** = **cumulative probability** = probability of obtaining an outcome equal to or smaller than a given q
+- **q form** = **quantiles** = calculates quantile/percentile based on given probability value p of obtaining a given input value (i.e value for which there is a p% of obtaining an outcome lower than the resulting value)
+- **r form** = **random # generator** = generate random outcomes from a distribution
+
+
+The probability of getting *exactly 4* fives when rolling a fair 6-sided dice 20 times w/ **dbinom*
+```{r}
+dbinom(x = 4, size = 20, prob = 1/6)
+```
+
+Get the probability of rolling *4 or less* fives on 20 twenty rolls of 6-sided dice w/ **pbinom**
+```{r}
+pbinom(4, 20, 1/6)
+```
+This is actually the 76.9th percentile of this binomial distribution.
+
+Find value of x that gives 75th percentile of the binomial distribution for rolling a 6-sided die 20 times w/ **qbinom**
+```{r}
+qbinom(.75, 20, 1/6)
+```
+This appears to be telling us the 75th percentile of the binomial distribution is = 4, even though we saw from **pbinom()** that 4 is *actually* the 76.9th percentile.
+
+
+Check the probability of rolling a 3 or less in 20 rolls.
+```{r}
+pbinom(3, size = 20, prob = 1/6) #56.65%
+```
+
+So there's a 56.7% chance of rolling 3 or fewer fives + a 76.9% chance of rolling 4 or fewer fives. 
+
+So there's a sense in which *the 75th percentile should lie "in between" 3 + 4 fives*, which is	impossible. We can't roll 20 dice + get 3.9 of them come up as fives.
+
+To handle this issue, we can:
+
+* report an **interpolated** (in-between) value, suchas 3.9
+* round down to 3 or up to 4
+  * qbinom rounds up if we ask for a percentile that *doesn't actually exist* (i.e. our 75th percentile is not a whole #)
+
+But, this issue only occurs w/ **discrete distributions**, such as the binomial, while the normal, t, chi.sq, and F distributions are all **continuous**.
+
+"Simulate" dice experiment 100 times to generate random outcomes from the binomial distribution w/ the **Mersenne twister method**.
+```{r}
+rbinom(n = 100, size = 20, prob = 1/6)
+```
+
+## Normal Distribution
+
+Calculate density of x = 1 (probability of obtaining this value) for a normally-distributed variable w/ mean = 1 + SD = 0.1
+```{r}
+dnorm(1, mean = 1, sd = 0.1)
+```
+
+The normal distribution is continuous, whereas the binomial is discrete (possible to get 3 fives or 4 fives, but impossible to get 3.9 fives).
+
+In practice, the normal distribution is so handy people tend to use it even when a variable isn't actually continuous. As long as there are enough categories, it's pretty standard practice to use the normal distribution as an approximation. 
+
+Now, generate 1000 normally-distributed observations (values normal distribution of 1K values) + view the histogram.
+
+```{r, warning=F, message=F}
+normal.a <- rnorm(1000, mean = 0, sd = 1)
+
+library(ggplot2)
+ggplot() + 
+  geom_histogram(aes(normal.a))
+```
+
+
+The **t distribution** = a continuous distribution that looks very similar to a normal distribution, but w/ heavier tails (extend further outward). It tends to arise in situations where you think the data actually follow a normal distribution, but you **don't know the mean or standard deviation.**
+
+**Chi.sq distributions** turn up all over the place when doing categorical data analysis
+
+If we have a bunch of variables that're normally distributed + we square their values + then add them up (**sum of squares**), this sum has a Chi.sq distribution w/ "k" dF, which has k normally-distributed populations/variables, squared + added up. 
+
+If we want a Chi.sq distribution w/ dF = 3, we'll need 3 sets of normally-distributed observations 
+
+```{r, warning=F, message=F}
+chisq.a <- rchisq(1000, df = 3)
+ggplot() + 
+  geom_histogram(aes(chisq.a))
+```
+
+Another way to get a chi-squared distributino is via the **sum of squares**
+
+```{r, warning=F, message=F}
+# square values of 3 distributions and sum
+normal.a <- rnorm(1000)
+normal.b <- rnorm(1000)
+normal.c <- rnorm(1000)
+chi.sq.3 <- (normal.a)^2 + (normal.b)^2 + (normal.c)^2
+ggplot() + 
+  geom_histogram(aes(chi.sq.3))
+```
+
+We can create **t-distributions** from a *scaled chi-squared* distribution
+
+* t distribution = related to the normal distribution but *the SD is unknown*
+
+```{r, message=F}
+scaled.chisq.3 <- chi.sq.3/3
+
+normal.d <- rnorm(1000)
+
+t.3 <- normal.d / sqrt(scaled.chisq.3)
+
+ggplot() + 
+  geom_histogram(aes(t.3), binwidth = .5) + 
+  coord_cartesian(xlim =  c(-10,10))
+```
+Now to create an F-distribution by generating 2 chi-square variables w/ dF = 3 + dF = 20 via ratio of 2 scaled chi-sq distributions
+
+* F-distribution = typically when comparing 2 different sums of squares 
+
+```{r, warning=F, message=F}
+chi.sq.20 <- rchisq( 1000, 20) 
+scaled.chi.sq.20 <- chi.sq.20 / 20
+F.3.20 <- scaled.chisq.3 / scaled.chi.sq.20
+ggplot() + geom_histogram(aes(F.3.20))
+```
