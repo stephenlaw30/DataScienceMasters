@@ -1,67 +1,8 @@
-install.packages("shiny")
-install.packages("RPresto")
-devtools::install_github("ricardo-bion/ggtech", dependencies=TRUE)
-install.packages("extrafont")
-library(extrafont)
-library(utils)
-## Facebook 
-download.file("http://social-fonts.com/assets/fonts/facebook-letter-faces/facebook-letter-faces.ttf", "C:/Users/NEWNSS/Dropbox/facebook-letter-faces.ttf", method="curl")
-
-font_import(pattern = "C:/Users/NEWNSS/Dropbox/facebook-letter-faces.ttf", prompt=FALSE)
-
-
-## Google 
-download.file("http://social-fonts.com/assets/fonts/product-sans/product-sans.ttf", "C:/Users/NEWNSS/Dropbox/product-sans.ttf", method="curl")
-
-font_import(pattern = 'product-sans.ttf', prompt=FALSE)
-
-
-## Airbnb 
-download.file("https://github.com/ricardo-bion/ggtech/blob/master/Circular%20Air-Medium%203.46.45%20PM.ttf", "C:/Users/NEWNSS/Dropbox/Circular Air-Medium 3.46.45 PM.ttf", method="curl")
-
-download.file("https://github.com/ricardo-bion/ggtech/blob/master/Circular%20Air-Bold%203.46.45%20PM.ttf", "C:/Users/NEWNSS/Dropbox/Circular Air-Bold 3.46.45 PM.ttf", method="curl")
-
-font_import(pattern = 'Circular', prompt=FALSE)
-
-
-## Etsy 
-download.file("https://www.etsy.com/assets/type/Guardian-EgypTT-Text-Regular.ttf", "C:/Users/NEWNSS/Dropbox/Guardian-EgypTT-Text-Regular.ttf", method="curl")
-
-font_import(pattern = 'Guardian-EgypTT-Text-Regular.ttf', prompt=FALSE)
-
-
-## Twitter 
-download.file("http://social-fonts.com/assets/fonts/pico-black/pico-black.ttf", "C:/Users/NEWNSS/Dropbox/pico-black.ttf", method="curl")
-
-download.file("http://social-fonts.com/assets/fonts/arista-light/arista-light.ttf", "C:/Users/NEWNSS/Dropbox/arista-light.ttf", method="curl")
-
-font_import(pattern = 'pico-black.ttf', prompt=FALSE)
-font_import(pattern = 'arista-light.ttf', prompt=FALSE)
-
-library(devtools)
-install.packages("RTools")
-install_github("susanathey/causalTree")
-
-install.packages("NLopt")
-
-install.packages("dygraphs")
-
-install.packages("leaflet")
-
-install.packages("DiagrammeR")
-
-install.packages("plotly")
-
-install.packages("broom")
-
-install.packages("pwr")
-
-
-
 library(tidyverse)
 library(caTools)
 library(ggplot2)
 library(ElemStatLearn)
+library(broom)
 
 ## import data
 social <- read_csv("Social_Network_Ads.csv")
@@ -100,7 +41,7 @@ head(test)
 ## fit to training data
 log.reg <- glm(Purchased ~ ., training, family = "binomial") # binomial regression (1 or 0, yes or no, etc.)
 summary(log.reg)
-library(broom)
+
 tidy(log.reg)
 
 
@@ -122,28 +63,33 @@ table(test$Purchased,y.pred)
 fpr <- 7/(25+7) # FP / (FP + TP)
 fnr <- 11/(11+57) # FN / (FN + TN)
 
+## Create function to visualize different set results
+plot.logistic.model <- function(set) {
+  x1 <- seq(min(set[,1]) - 1, max(set[,1]) + 1, by = 0.05) # get sminimum scaled age + go up to the max by increments of .1
+  x2 <- seq(min(set[,2]) - 1, max(set[,2]) + 1, by = 0.05) # get minimum scaled salary + go up to the max by increments of .1
+  
+  set.grid <- expand.grid(x1,x2) # Create DF from all possible combos of the age + salary vectors to make a grid
+  colnames(set.grid) <- c("Age","EstimatedSalary")
+  
+  set.probability <- predict(log.reg, newdata = set.grid, type = "response") # use grid to predict values w/ our model
+  y.pred.grid <- if_else(set.probability > .5, 1, 0)
+  
+  plot(set[,-3],
+       main = "Logistic Regression (set Set)",
+       xlab = "Age",
+       ylab = "Estimated Salary",
+       xlim = range(x1),
+       ylim = range(x2))
+  
+  contour(x1,x2, matrix(as.numeric(y.pred.grid), length(x1), length(x2)), add = T) # add logistic regression "split" line
+  
+  points(set.grid, pch = 19, col = if_else(y.pred.grid == 1, "springgreen3", "tomato"))
+  points(set, pch = 19, col = if_else(set[,3] == 1, "green4", "red3"))
+  
+}
+
 ## Visualize Training Set Results
-#set <- training
-x1 <- seq(min(training[,1]) - 1, max(training[,1]) + 1, by = 0.05) # get sminimum scaled age + go up to the max by increments of .1
-x2 <- seq(min(training[,2]) - 1, max(training[,2]) + 1, by = 0.05) # get minimum scaled salary + go up to the max by increments of .1
-
-training.grid <- expand.grid(x1,x2) # Create DF from all possible combos of the age + salary vectors to make a grid
-colnames(training.grid) <- c("Age","EstimatedSalary")
-
-training.probability <- predict(log.reg, newdata = training.grid, type = "response") # use grid to predict values w/ our model
-y.pred.grid <- if_else(training.probability > .5, 1, 0)
-
-plot(training[,-3],
-     main = "Logistic Regression (Training Set)",
-     xlab = "Age",
-     ylab = "Estimated Salary",
-     xlim = range(x1),
-     ylim = range(x2))
-
-contour(x1,x2, matrix(as.numeric(y.pred.grid), length(x1), length(x2)), add = T) # add logistic regression "split" line
-
-points(training.grid, pch = 19, col = if_else(y.pred.grid == 1, "springgreen3", "tomato"))
-points(training, pch = 19, col = if_else(training[,3] == 1, "green4", "red3"))
+plot.logistic.model(training)
 
 'We can see most training set observations who actually made a purchase (green circles) are in the green area (classifier predictions
 of purchased = 1) and most training set observations who did NOT make a purchase (red circles) are in the red region (classifier 
@@ -163,26 +109,6 @@ predictions are due to the fact that our classifier is linear but our data is *n
 Now see if the classifier generalizes well to new data.'
 
 ## Visualize Test Set Results
-#set <- test
-x1 <- seq(min(test[,1]) - 1, max(test[,1]) + 1, by = 0.05) # get sminimum scaled age + go up to the max by increments of .1
-x2 <- seq(min(test[,2]) - 1, max(test[,2]) + 1, by = 0.05) # get minimum scaled salary + go up to the max by increments of .1
-
-test.grid <- expand.grid(x1,x2) # Create DF from all possible combos of the age + salary vectors
-colnames(test.grid) <- c("Age","EstimatedSalary")
-
-test.probability <- predict(log.reg, newdata = test.grid, type = "response") # use grid to predict values w/ our model
-y.pred.grid <- if_else(test.probability > .5, 1, 0)
-
-plot(test[,-3],
-     main = "Logistic Regression (Test Set)",
-     xlab = "Age",
-     ylab = "Estimated Salary",
-     xlim = range(x1),
-     ylim = range(x2))
-
-contour(x1,x2, matrix(as.numeric(y.pred.grid), length(x1), length(x2)), add = T) # add logistic regression "split" line
-
-points(test.grid, pch = 19, col = if_else(y.pred.grid == 1, "springgreen3", "tomato"))
-points(test, pch = 19, col = if_else(test[,3] == 1, "green4", "red3"))
+plot.logistic.model(test)
 
 'Again, the majority of red points are in the red region, and the majority of the green points are in the green region.'
