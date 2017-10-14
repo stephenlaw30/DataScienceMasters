@@ -79,3 +79,40 @@ n.diff <- 200
 
 ## probability of obtaining this OBSERVED DIFFERENCE (x.bar.diff) w/ 199 dF if null = 0 is true
 pt(abs(t.199), dF, lower.tail = F)*2
+
+
+'Suppose researchers would like to run a clinical trial on patients w/ systolic BPs between 140-180 ml of mercury + suppose previously
+published studies suggest the SD of both patient groups BPs will be ~12 ml of mercury + the distribution of patient BPs will be
+approximately symmetric. There are 100 patients in each group.'
+n.tx <- 100
+n.control <- 100
+dF <- min(n.tx - 1, n.control - 1)
+(crit <- abs(qt(p = .025, df = dF)))
+
+# get margin of error
+var.tx <- 12
+var.control <- 12
+(se.diff.meds <- sqrt(((var.tx^2)/n.tx) + ((var.control^2)/n.control)))
+(m0e <- crit*se.diff.meds) # value to be away from mean to reject null
+
+'Suppose the company researchers care about finding ANY effect on BP that is a drop of 3+ mm of mercury vs. the standard medication. 
+What is the power of the test that can detect this effect (the 3+ mm)?'
+
+min.effect.needed <- -3
+(z <- (-m0e - min.effect.needed)/se.diff.meds) # negative m0E b/c concerned w/ drop in mercury
+
+# find AUC = probability of being able to reject the null if the true effect size is -3 
+pnorm(round(z,1))
+
+## WORK BACKWARDS TO GET HIGHER POWER UP TO MIN OF 80%
+# calculate z-score for desired AUC/power of .8
+desired.pwr <- .8
+(desired.z <- qnorm(desired.pwr))
+
+# effect size of 3 mm
+(effect.size <- desired.z + crit)
+
+(new.se <- abs(min.effect.needed) / round(effect.size,1))
+
+# solve for new sample size via SE formula
+(new.n <- (var.tx^2 + var.control^2)/(new.se^2))

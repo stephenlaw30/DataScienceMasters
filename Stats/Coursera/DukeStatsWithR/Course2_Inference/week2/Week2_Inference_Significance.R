@@ -5,7 +5,7 @@ x.bar = 3.2
 s <- 1.74
 se <- s/sqrt(n)
 z <- (x.bar - trueNull.mu)/se # test statistic of .81
-1 - ?pnorm(x.bar,trueNull.mu,se)
+1 - pnorm(x.bar,trueNull.mu,se)
 
 'Researchers investigating characteristics of gifted children collected data from schools in a large city on a random sample of 
 36 children IDed as gifted children soon after they reached the age of 4. 
