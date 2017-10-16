@@ -81,38 +81,34 @@ n.diff <- 200
 pt(abs(t.199), dF, lower.tail = F)*2
 
 
-'Suppose researchers would like to run a clinical trial on patients w/ systolic BPs between 140-180 ml of mercury + suppose previously
-published studies suggest the SD of both patient groups BPs will be ~12 ml of mercury + the distribution of patient BPs will be
-approximately symmetric. There are 100 patients in each group.'
-n.tx <- 100
-n.control <- 100
-dF <- min(n.tx - 1, n.control - 1)
-(crit <- abs(qt(p = .025, df = dF)))
 
-# get margin of error
-var.tx <- 12
-var.control <- 12
-(se.diff.meds <- sqrt(((var.tx^2)/n.tx) + ((var.control^2)/n.control)))
-(m0e <- crit*se.diff.meds) # value to be away from mean to reject null
+## MULTIPLE COMPARISONS ANOVA
+'Is there a significant difference between average vocab scores between middle + lower class Americans?'
+n.low <- 41
+n.mid <- 331
 
-'Suppose the company researchers care about finding ANY effect on BP that is a drop of 3+ mm of mercury vs. the standard medication. 
-What is the power of the test that can detect this effect (the 3+ mm)?'
+x.low <- 5.07
+x.mid <- 6.76
 
-min.effect.needed <- -3
-(z <- (-m0e - min.effect.needed)/se.diff.meds) # negative m0E b/c concerned w/ drop in mercury
+dF.btwn <- 3
+dF.w <- 791
 
-# find AUC = probability of being able to reject the null if the true effect size is -3 
-pnorm(round(z,1))
+ss.b <- 236.56
+ss.w <- 2869.8
 
-## WORK BACKWARDS TO GET HIGHER POWER UP TO MIN OF 80%
-# calculate z-score for desired AUC/power of .8
-desired.pwr <- .8
-(desired.z <- qnorm(desired.pwr))
+ms.b <- ss.b / dF.btwn
+ms.w <- ss.w / dF.w # ms.w = MS errors
+ms.e <- ms.w
 
-# effect size of 3 mm
-(effect.size <- desired.z + crit)
+(f <- ms.b / ms.w)
 
-(new.se <- abs(min.effect.needed) / round(effect.size,1))
+pf(f, dF.btwn, dF.w, lower.tail = F)
 
-# solve for new sample size via SE formula
-(new.n <- (var.tx^2 + var.control^2)/(new.se^2))
+x.diff <- x.mid - x.low
+mu <- 0
+
+(se <- sqrt((ms.e/n.low) + (ms.e/n.mid)))
+
+(t.791 = (x.diff - mu)/se)
+
+pt(abs(t.791), dF.w, lower.tail = F)*2
