@@ -54,7 +54,7 @@ plot.knn.model <- function(set) {
   y.pred.grid <- knn(training[,-3], set.grid, cl = training$Purchased, k = 5) # use grid to predict values w/ our model
   
   plot(set[,-3],
-       main = "KNN",
+       main = c("KNN (", deparse(substitute(set))," set)"), # get set name from argument given
        xlab = "Age",
        ylab = "Estimated Salary",
        xlim = range(x1),
@@ -68,4 +68,9 @@ plot.knn.model <- function(set) {
 }
 
 plot.knn.model(training)
+
 plot.knn.model(test)
+
+'We can see the classifier did quite well, as most actual observations where Purchased = 1 (green dots) are within the green
+"prediction" region, and most actual observations where Purchased = 0 (red dots) are within the red prediction region, and the model
+generalized pretty well to the test set.'
