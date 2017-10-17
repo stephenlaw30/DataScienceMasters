@@ -1,5 +1,5 @@
 ---
-title: "Ch9_IntroToWrangling"
+title: "Ch9_IntroToWrangling_10_Tibbles"
 author: "Steve Newns"
 date: "October 13, 2017"
 output: html_document
@@ -253,3 +253,4 @@ enframe(nums)
 nycflights13::flights %>%
   print(n_extra = 1)
 ```
+
