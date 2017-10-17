@@ -112,3 +112,13 @@ mu <- 0
 (t.791 = (x.diff - mu)/se)
 
 pt(abs(t.791), dF.w, lower.tail = F)*2
+
+## Bootstrapping
+
+'See distribution of medians of 100 bootstrap samples from the original sample + estimate the 90% bootstrap CI for median rent, 
+based on this bootstrap distribution, 1st using the SE method'
+n <- 100
+dF < n - 1
+x.bar <- 887
+# 90% sig level
+(t.crit.90 <- abs(qt(p = .05, df = dF)))
