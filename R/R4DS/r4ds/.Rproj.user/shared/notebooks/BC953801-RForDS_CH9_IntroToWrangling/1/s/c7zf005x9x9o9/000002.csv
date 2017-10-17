@@ -1,6 +1,0 @@
-"0","df <- tibble(abc = 1, xyz = ""a"") # make a 1*2 data frame"
-"0","df$x "
-"2","Unknown or uninitialised column: 'x'."
-"1","NULL
-"
-"0","df[, ""xyz""] # get all rows for xyz col"

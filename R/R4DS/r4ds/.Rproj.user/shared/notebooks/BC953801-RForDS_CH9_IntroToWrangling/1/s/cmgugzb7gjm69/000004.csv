@@ -1,5 +1,0 @@
-"0","tibble(a = lubridate::now() + runif(1e3) * 86400,"
-"0","       b = today() + runif(1e3) * 30,"
-"0","       c = 1:1e3, # integers 1 - 100"
-"0","       d = runif(1e3), # generate 100 random deviations from the uniform distribution"
-"0","       e = sample(letters, 1e3, replace = T)) # use built-in roman alphabet constants + sample 100 of time"
