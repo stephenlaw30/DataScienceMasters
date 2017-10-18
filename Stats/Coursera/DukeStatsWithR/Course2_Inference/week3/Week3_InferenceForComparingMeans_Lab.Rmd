@@ -1,0 +1,250 @@
+---
+title: "Inference for Numerical Data"
+author: "Steve Newns"
+date: "October 18, 2017"
+output: html_document
+---
+
+## Getting Started
+  
+### Load packages
+
+```{r load-packages, message=F, warning=F}
+library(statsr)
+library(tidyverse)
+library(ggplot2)
+```
+
+### The data
+
+In 2004, the state of NC released a large data set containing info on births recorded in the state. This data set is useful to researchers studying the relation between habits + practices of expectant mothers + the birth of their children. We will work w/ a random sample of observations from this data set.
+
+```{r load-data}
+data(nc)
+```
+
+We have observations on 13 different variables, some categorical + some numerical. The meaning of each variable is as follows:
+
+variable         | description
+---------------- | ---------------------------------------------
+`fage`           | father's age in years.
+`mage`           | mother's age in years.
+`mature`         | maturity status of mother.
+`weeks`          | length of pregnancy in weeks.
+`premie`         | whether the birth was classified as premature (**premie**) or full-term.
+`visits`         | number of hospital visits during pregnancy.
+`marital`        | whether mother is `married` or `not married` at birth.
+`gained`         | weight gained by mother during pregnancy in pounds.
+`weight`         | weight of the baby at birth in pounds.
+`lowbirthweight` | whether baby was classified as low birthweight (`low`) or not (`not low`).
+`gender`         | gender of the baby, `female` or `male`.
+`habit`          | status of the mother as a `nonsmoker` or a `smoker`.
+`whitemom`       | whether mom is `white` or `not white`.
+
+1. There are 1,000 cases in this data set, what do the cases represent? 
+<ol>
+<li> The hospitals where the births took place </li> 
+<li> The fathers of the children </li> 
+<li> The days of the births </li>
+<li> **The births** </li>
+</ol>
+
+As a 1st step in the analysis, take a look at the variables in the dataset. 
+
+```{r str}
+str(nc)
+```
+
+As you review the variable summaries, consider which variables are categorical + which are numerical. For numerical variables, are there outliers? If you aren't sure or want to take a closer look at the data, make a graph.
+
+## EDA
+
+We will first start w/ analyzing weight gained by mothers throughout the pregnancy: `gained`.
+
+Using viz + summary stats, describe the distribution of weight gained by mothers during pregnancy.
+
+```{r summary, warning=F,message=F}
+summary(nc$gained)
+
+nc %>%
+  ggplot(aes(gained)) + geom_histogram()
+```
+
+2. How many mothers are we missing weight gain data from?
+  <ol>
+  <li> 0 </li>
+  <li> 13 </li>
+  <li> **27** </li>
+  <li> 31 </li>
+  </ol>
+  
+Next, consider the possible relationship between a mother's smoking habit + weight of her baby. Plotting the data is a useful 1st step b/c it helps us quickly visualize trends, ID strong associations, + develop research questions.
+
+Make side-by-side boxplots of `habit` and `weight`. 
+
+```{r}
+nc %>%
+  filter(!is.na(habit)) %>%
+  ggplot(aes(habit,weight)) + geom_boxplot()
+```
+
+3. Which of the following is false about the relationship between habit and weight?
+<ol>
+<li> Median birth weight of babies born to non-smoker mothers is slightly higher than that of babies born to smoker mothers. </li>
+<li> Range of birth weights of babies born to non-smoker mothers is greater than that of babies born to smoker mothers. </li>
+<li> **Both distributions are extremely right skewed**. </li>
+  <ul> ***Only nonsmoker is </ul>
+<li> The IQRs of the distributions are roughly equal. </li>
+</ol>
+
+The box plots show how the medians of the 2 distributions compare, but we can also compare means of the distributions by grouping data by `habit` + then calculate the mean `weight` in each group.
+
+```{r by-means}
+nc %>%
+  filter(!is.na(habit)) %>%
+  group_by(habit) %>%
+  summarise(mean_weight = mean(weight))
+```
+
+There is an observed difference, but *is this difference statistically significant?* 
+
+## Inference - Hypothesis Test
+
+<div id="exercise">
+**Exercise**: Are all conditions necessary for inference satisfied? Comment on each. You can compute the group sizes using the same `by` command above but replacing `mean(weight)` with `n()`.
+</div>
+
+4.  What are the hypotheses for testing if the average weights of babies born to 
+smoking and non-smoking mothers are different?
+<ul> **$H_0: \mu_{smoking} = \mu_{non-smoking}$; $H_A: \mu_{smoking} \ne \mu_{non-smoking}$** </ul>
+
+We'll use `inference()`, for conducting hypothesis tests + constructing CI's 
+
+```{r inf-weight-habit-ht, tidy=FALSE}
+inference(y = weight, x = habit, data = nc, statistic = "mean", type = "ht", null = 0, 
+          alternative = "twosided", method = "theoretical")
+```
+
+<ul> `y` = response variable we're interested in </ul>
+<ul> `x` = explanatory variable (splits the data into 2 groups, smokers + non-smokers </ul> 
+<ul> `statistic` = the sample statistic we're using/population parameter we're estimating (can also work w/ "median" + "proportion" </ul>
+<ul> `type` of inference we want: a hypothesis test (`"ht"`) or a CI (`"ci"`) + when performing `ht`, we also need to supply the `null` value, which in this case is `0`, since the null sets the 2 population means equal to each other </ul> 
+<ul> `alternative` hypothesis can be `"less"`, `"greater"`, or `"twosided"` </ul> 
+<ul> `method` of inference can be `"theoretical"` or `"simulation"` based </ul>
+
+For more info on `inference` see the help file w/ `?inference`.
+
+<div id="exercise">
+  **Exercise**: What is the conclusion of the hypothesis test?
+  </div>
+
+```{r inf-weight-habit-ci, tidy=FALSE}
+inference(y = weight, x = habit, data = nc, statistic = "mean", type = "ci", null = 0, 
+          alternative = "twosided", method = "theoretical")
+```  
+  
+  5.  Change `type` argument to `"ci"` to construct + record a CI for the difference between weights of babies born to nonsmoking vs. smoking mothers, + interpret this interval in context of the data. Note that by 
+default you'll get a 95% CI. To change the
+confidence level, add a new argument (`conf_level`) which takes on a value
+between 0-1. Also note that when doing a CI, arguments like
+`null` and `alternative` are not useful, so make sure to remove them.
+<ol>
+<li> We are 95% confident that babies born to nonsmoker mothers are on average 0.05 to 0.58 pounds lighter at birth than babies born to smoker mothers. </li>
+<li> We are 95% confident that the difference in average weights of babies whose moms are smokers and nonsmokers is between 0.05 to 0.58 pounds. </li>
+<li> We are 95% confident that the difference in average weights of babies in this sample whose moms are smokers and nonsmokers is between 0.05 to 0.58 pounds. </li>
+<li> **We are 95% confident that babies born to nonsmoker mothers are on average 0.05 to 0.58 pounds heavier at birth than babies born to smoker mothers**. </li>
+</ol>
+
+By default the function reports an interval for ($\mu_{nonsmoker} - \mu_{smoker}$). We can easily change this order by using the `order` argument:
+
+```{r inf-weight-habit-ci2, tidy=FALSE}
+inference(y = weight, x = habit, data = nc, statistic = "mean", type = "ci", 
+method = "theoretical", order = c("smoker","nonsmoker"))
+```
+
+6. Calculate a 99% CI for average length of pregnancies 
+(`weeks`). Note since we're doing inference on a single population 
+parameter, there is no explanatory variable, so you can omit the `x` variable 
+from the function. Which of the following is the correct interpretation of this 
+interval?
+
+```{r inf-weight-habit-ci3, tidy=FALSE}
+inference(y = weeks, data = nc, statistic = "mean", type = "ci", null = 0, 
+          alternative = "twosided", method = "theoretical", conf_level = .99)
+``` 
+
+  <ol>
+  <li>(38.1526 , 38.5168)</li>
+  <li>(38.0892 , 38.5661)</li>
+  <li>(6.9779 , 7.2241)</li>
+  <li>**(38.0952 , 38.5742)**</li>
+  </ol>
+
+<div id="exercise">
+  **Exercise**: Calculate a new CI for the same parameter at the 90% confidence level. Comment on the width of this interval versus the one obtained in the the previous exercise.
+</div>
+```{r inf-weight-habit-ci4, tidy=FALSE}
+inference(y = weeks, data = nc, statistic = "mean", type = "ci", null = 0, 
+          alternative = "twosided", method = "theoretical", conf_level = .90)
+``` 
+
+<div id="exercise">
+  **Exercise**: Conduct a hypothesis test evaluating whether the average weight gained by younger mothers is different than the average weight gained by mature mothers.
+</div>
+```{r inf-weight-habit-ht2, tidy=FALSE}
+inference(y = gained, x = mature, data = nc, statistic = "mean", type = "ht", null = 0, 
+          alternative = "twosided", method = "theoretical")
+```
+
+**The difference is *not* significant (`p > 0.1`), so the average weight gained by younger mothers is not significantly different than the average weight gained by mature mothers**.
+
+7. Now, a non-inference task: Determine the age cutoff for younger and mature mothers. Use a method of your choice, and explain how your method works.
+```{r cutoff-mature}
+nc %>%
+  group_by(mature) %>%
+  summarise(min_age = min(mage),
+            max_age = max(mage))
+```
+
+Looking at the minimum age for a "mature" mother and the maximum age for a "younger" mother, we can see that the age cutoff between the 2 factor levels is the age of 34. Any mother older than 34 years of age would be considered mature, and any mother younger than (*and including*) the age of 34 would be considered younger.
+
+<div id="exercise">
+  **Exercise**: Pick a pair of variables: 1 numerical (response) and 1 categorical (explanatory). Come up w/ a research question evaluating the relationship between these variables. Formulate the question in a way that it can be answered using a hypothesis test and/or a CI. Answer your question using the `inference` function, report the statistical results, and also provide an explanation in 
+plain language. Be sure to check all assumptions,state your $\alpha$ level, and conclude 
+in context. (Note: Picking your own variables, coming up with a research question, and analyzing the data to answer this question is basically what you'll need to do for your project as well.)
+
+#### Is the a significant difference between weight gained by mothers who gave birth to "underweight" babies and mothers who gave birth to "normal"-weight babies?
+
+1st, we visualize the distributions of low birth weight babies and non-low birth weight babies with some side-by-side box plots.
+
+</div>
+```{r}
+nc %>%
+  filter(!is.na(lowbirthweight)) %>%
+  filter(!is.na(gained)) %>%
+  ggplot(aes(lowbirthweight,gained)) + geom_boxplot()
+```
+
+It looks like weight gained by mothers who gave birth to low-birth weight babies are bit more varied, but no too much. Also, the distribution for weight gained by mothers who gave birth to not-low-birth weight babies is not too skewed, but has some outliers, while the distribution of mothers who gave birth to low-birth weight babies looks a little right-skewed, but with no outliers.
+
+Next, we can note that the median weight gained by mothers who gave birth to not-low-birth weight babies is a bit higher, which is something we can say we'd expect, as not-low birth weight babies would, of course, weigh more than low birth weight babies.
+
+But is this difference significantly different?
+
+```{r}
+inference(y = gained, x = lowbirthweight, data = nc, statistic = "mean", type = "ht", null = 0, 
+          alternative = "twosided", method = "theoretical")
+```
+
+We can see that our result is indeed significant (`p < 0.01`), so we can construct a confidence interval.
+
+```{r}
+inference(y = gained, x = lowbirthweight, data = nc, statistic = "mean", type = "ci", null = 0, 
+          alternative = "twosided", method = "theoretical", conf_level = .95, order = c("nowlow","low"))
+```
+
+**We are 95% confident that weight gained by mothers who gave birth to not-low birth weight is on average 1.80 to 7.72 pounds heavier at birth than weight gained by mothers who gave birth to low birth weight babies**
+
+<div id="license">
+This is a product of OpenIntro that is released under a [Creative Commons Attribution-ShareAlike 3.0 Unported](http://creativecommons.org/licenses/by-sa/3.0). This lab was written for OpenIntro by Andrew Bray and Mine &Ccedil;etinkaya-Rundel.
+</div>
