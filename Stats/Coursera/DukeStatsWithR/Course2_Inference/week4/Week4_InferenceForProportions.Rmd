@@ -56,3 +56,107 @@ pnorm(p.hat,.875,se)
 ```
 
 No, as we are < 2 SDs away from the mean and have a high probability of ~88.1%
+
+## CI for proportions
+
+2 scientists want to know, if a certain drug is effective against high BP. The 1st scientist wants to give the drug to 1K people w/ high BP + see how many experience lower BP levels. The 2nd scientist wants to give the drug to 500 people w/ high BP + NOT give the drug to another 500 people w/ high BP + see how many in both groups experience lower BP levels. 
+
+We know controlling is important when running experiments, the 2nd study where the group that doesn't get the drug acts = the control group, should be the better design. 
+
+This question was posed to 670 Americans w/in the GSS in 2010, + 99 said all 1K should get the drug. So, we're going to be categorizing these as those w/ a "bad intuition" for experimental design. 571 said 500 should + shouldn't get drug ??? label "good intuition" about experimental design. 
+
+**Our goal** = to *estimate what % of Americans have good intuition about experimental design.*
+<ul> **Parameter of interest** = % of all Americans who have good intuition about experimental design, + denote this unknown population parameter, p, for population proportion. </ul>
+<ul> **point estimate** = % of *SAMPLED* Americans who have good intuition about experimental design, denoted p^, our KNOWN sample proportion </ul>
+
+```{r}
+n <- 670
+bad <- 99
+good  <- 571
+(p.hat <- good / n) # point estimate
+(se.prop <- sqrt((p.hat*(1-p.hat))/n))
+```
+
+Before we calculate the CI, make sure that conditions for inference have been met
+<ul> 1: Independence: Relies on a random sample/assignment + < 10% of the population being sampled. </ul>
+  <ul> 670 Americans is definitely < 10% of all Americans + we know the GSS samples randomly. </ul>
+  <ul> Therefore, we can assume that whether an American in the sample has good intuition about experimental design is independent of another. </ul>
+  
+<ul> 2: Sample Size/Skew: check this condition when dealing w/ categorical variables + proportions as the success/failure conditions. </ul>
+  <ul> Need to make sure that we have at least 10 successes + 10 failures in our sample. </ul>
+  
+```{r}
+successes <- good
+failures <- bad
+(successes >= 10 & failures >= 10)
+```
+
+Now calculate the CI via the point estimate +/- margin of error (which is z* multiplied by the SE)
+
+```{r}
+alpha = .95
+(z.star = qnorm(1-((1-alpha)/2)))
+(mOe <- z.star*se.prop)
+(lower <- p.hat - mOe)
+(upper <- p.hat + mOe)
+```
+
+The margin of error for this CI was 2.7%, + if we wanted to reduce margin of error to 1% while keeping confidence level the same, at least how many respondents should we sample? 
+
+```{r}
+desired.mOe <- .01
+(min.n <- ((z.star/desired.mOe)^2)*(p.hat*(1-p.hat)))
+```
+
+So, for a minor reduction in our margin of error, we have to increase our sample size a lot, b/c the sample size appears under the square root sign in calculation of the margin of error. 
+
+So, to have benefits from an increased sample size, increase your sample size by a lot before you can actually start reaping the benefits
+
+Esimate min. sample size when we don't know p^ = use 0.5
+```{r}
+desired.mOe <- .03
+(min.n <- ((z.star/desired.mOe)^2)*(0.5*(1-0.5)))
+```
+
+## Hypothesis Testing for Proportions
+
+2013 Pew Research poll found 60% of 1,983 randomly sampled American adults believe in evolution. Does this provide convincing evidence that the majority of Americans believe in evolution, where majority is > 50%. 
+
+So if the question is "Is the true proportion of Americans who believe in evolution > 50%", then our alternative H1 is "p > 0.5", and the null H0 is "p = .5"
+
+In this sample, > 50% of respondents believe in evolution, but we're checking to see if this observed difference between the sample proportion + what we're hypothesizing is statistically significant
+
+```{r}
+h0 <- .5
+p.hat <- .6
+n <- 1983
+exp.n.succ <- .5*n
+exp.n.fail <- .5*n
+```
+
+#### Check conditions
+
+n = 1,983 is definitely < 10% of all Americans + we have a random sample, therefore we can assume an American is independent of another. 
+
+Check sample size/skew condition w/ success/failure condition of the EXPECTED (b/c we assume the null is true in hypothesis testing)
+
+```{r}
+(exp.n.succ >= 10 & exp.n.fail >= 10)
+```
+
+Since both conditions are met, we can assume a nearly normal sampling distribution for our sample proportion.
+
+Our p.hat is distributed nearly normally according to our conditions + to this CLT for proportions, the center of that distribution should be @ the true population parameter, which we don't know, but, since we're doing a hypothesis test, we are assuming the null is true, so we plug in the value of the population parameter set forth in the null </ul>
+<ul> Assume this is indeed the true population parameter for the purpose of this hypothesis test. 
+
+```{r}
+(se.prop <- sqrt((h0*(1-h0))/n))
+
+(z <- (p.hat - h0)/se.prop) # observed - null / n = test statistic
+```
+
+That's a pretty high test statistic, if you think about it, b/c it's much farther than 3 SDs from the mean. So the p value (AUC area under the z curve beyond 8.92) is going to be almost zero
+
+```{r}
+pnorm(h0,p.hat,se.prop)
+```
