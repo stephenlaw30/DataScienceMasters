@@ -1,0 +1,58 @@
+---
+title: "Wk4 - Inference"
+author: "Steve Newns"
+date: "October 19, 2017"
+output: html_document
+---
+90% of all plant species are classified as angiosperms (flowering plants). If you were to randomly sample 200 plants from the list of all known plant species, what is the probability at least 95% of the plants in sample will be flowering plants?
+
+200 is certainly < 10% of all plants, so we can assume plants in our sample are independent of another. 
+And n = 200 sample size + p = 0.9, so
+```{r}
+p <- .9
+n <- 200
+(success.cond <- n*p)
+(fail.cond <- n*(1-p))
+```
+
+Both of these are > 10, so success/failure condition holds 
+
+These 2 facts tell us the distribution of the sample proportion is going to be nearly normal.
+
+```{r}
+p.hat = .9 # mean of our sampling distribution = population parameter (when normal)
+n = 200
+(se <- sqrt((p.hat*(1-p.hat))/n))
+(z <- (.95 - p.hat)/se)
+```
+
+We are more than 2 SDs away from the mean at this point, so it's going to be a pretty small probability that at least 95% of plants our sample of 200 will be flowering plants. 
+```{r}
+# get proportion of values lower than this z-score on the curve
+pnorm(p.hat,.95,se)
+```
+0.009211063 = 0.9% chance --> p(Z > 2.36) = ~.0091
+
+### Using the binomial distribution as well. 
+
+```{r}
+n <- 200
+p <- .9
+desired.p <- .95
+(min.success <- n*desired.p)
+```
+We're being asked for p(obtaining 95% successes) = 95% of 200 = at least 190 successes in 200 trials where proportion of success is 0.9.
+
+```{r}
+sum(dbinom(min.success:n,n,p)) # want prob of anything >= min of 195, up to 200
+```
+
+Would it be considered unusual to have 87.5% of plants in a sample end up being angiosperms (if 90% of all plant species are considered so)?
+
+```{r}
+(z <- (.875 - p.hat)/se)
+pnorm(p.hat,.875,se)
+
+```
+
+No, as we are < 2 SDs away from the mean and have a high probability of ~88.1%
