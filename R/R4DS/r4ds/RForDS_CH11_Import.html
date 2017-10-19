@@ -429,22 +429,37 @@ parse_time(&quot;01:10 am&quot;)</code></pre>
 <ul>
 <li><code>%m</code> (2 digits).</li>
 <li><code>%b</code> (abbreviated name, like “Jan”).</li>
-<li><code>%B</code> (full name, “January”). ### Day</li>
+<li><code>%B</code> (full name, “January”)</li>
+</ul>
+</div>
+<div id="day" class="section level3">
+<h3>Day</h3>
+<ul>
 <li><code>%d</code> (2 digits).</li>
-<li><code>%e</code> (optional leading space). ### Time</li>
-<li><code>%H</code> 0-23 hour.</li>
-<li><code>%I</code> 0-12, must be used with %p.</li>
-<li><code>%p</code> AM/PM indicator.</li>
-<li><code>%M</code> minutes.</li>
-<li><code>%S</code> integer seconds.</li>
-<li><code>%OS</code> real seconds.</li>
-<li><code>%Z</code> Time zone (as name, e.g. America/Chicago).
+<li><code>%e</code> (optional leading space)</li>
+</ul>
+</div>
+<div id="time" class="section level3">
+<h3>Time</h3>
+<ul>
+<li><code>%H</code> 0-23 hour</li>
+<li><code>%I</code> 0-12, must be used with %p</li>
+<li><code>%p</code> AM/PM indicator</li>
+<li><code>%M</code> minutes</li>
+<li><code>%S</code> integer seconds</li>
+<li><code>%OS</code> real seconds</li>
+<li><code>%Z</code> Time zone (as name, e.g. America/Chicago)
 <ul>
 <li>Beware of abbreviations: if American, note “EST” = a <em>Canadian</em> time zone that does <em>NOT</em> have daylight savings time</li>
 </ul></li>
-<li><code>%z</code> (as offset from UTC, e.g. +0800). ### Non-digits</li>
-<li><code>%.</code> skips one non-digit character.</li>
-<li><code>%*</code> skips any number of non-digits.</li>
+<li><code>%z</code> (as offset from UTC, e.g. +0800)</li>
+</ul>
+</div>
+<div id="non-digits" class="section level3">
+<h3>Non-digits</h3>
+<ul>
+<li><code>%.</code> skips one non-digit character</li>
+<li><code>%*</code> skips any number of non-digits</li>
 </ul>
 <p><em>Best way to figure out correct format</em> = create a few examples in a character vector + test w/ 1 of the parsing functions</p>
 <pre class="r"><code>parse_date(&quot;01/02/15&quot;, &quot;%m/%d/%y&quot;)</code></pre>
@@ -462,67 +477,432 @@ parse_time(&quot;01:10 am&quot;)</code></pre>
 </div>
 <div id="exercises-1" class="section level2">
 <h2>11.3.5 Exercises</h2>
-<p>(<em>What are the most important arguments to locale()?</em></p>
+<p><strong>What are the most important arguments to ?locale()?</strong></p>
 <ul>
-<li>encoding + decimal mark</li>
+<li>encoding + decimal mark + grouping mark, date_names, tz</li>
 </ul>
-<p>**What happens if you try and set decimal_mark and grouping_mark to the same character? What happens to the default value of grouping_mark when you set decimal_mark to “,”? What happens to the default value of decimal_mark when you set the grouping_mark to “.”?</p>
-<p>I didn’t discuss the date_format and time_format options to locale(). What do they do? Construct an example that shows when they might be useful.</p>
-<p>If you live outside the US, create a new locale object that encapsulates the settings for the types of file you read most commonly.</p>
-<p>What’s the difference between read_csv() and read_csv2()?</p>
-<p>What are the most common encodings used in Europe? What are the most common encodings used in Asia? Do some googling to find out.</p>
-<p>Generate the correct format string to parse each of the following dates and times:</p>
-<p>d1 &lt;- “January 1, 2010” d2 &lt;- “2015-Mar-07” d3 &lt;- “06-Jun-2017” d4 &lt;- c(“August 19 (2015)”, “July 1 (2015)”) d5 &lt;- “12/30/14” # Dec 30, 2014 t1 &lt;- “1705” t2 &lt;- “11:15:10.12 PM” 11.4 Parsing a file</p>
-<p>Now that you’ve learned how to parse an individual vector, it’s time to return to the beginning and explore how readr parses a file. There are two new things that you’ll learn about in this section:</p>
-<p>How readr automatically guesses the type of each column. How to override the default specification. 11.4.1 Strategy</p>
-<p>readr uses a heuristic to figure out the type of each column: it reads the first 1000 rows and uses some (moderately conservative) heuristics to figure out the type of each column. You can emulate this process with a character vector using guess_parser(), which returns readr’s best guess, and parse_guess() which uses that guess to parse the column:</p>
-<p>guess_parser(“2010-10-01”) #&gt; [1] “date” guess_parser(“15:01”) #&gt; [1] “time” guess_parser(c(“TRUE”, “FALSE”)) #&gt; [1] “logical” guess_parser(c(“1”, “5”, “9”)) #&gt; [1] “integer” guess_parser(c(“12,352,561”)) #&gt; [1] “number”</p>
-<p>str(parse_guess(“2010-10-10”)) #&gt; Date[1:1], format: “2010-10-10” The heuristic tries each of the following types, stopping when it finds a match:</p>
-<p>logical: contains only “F”, “T”, “FALSE”, or “TRUE”. integer: contains only numeric characters (and -). double: contains only valid doubles (including numbers like 4.5e-5). number: contains valid doubles with the grouping mark inside. time: matches the default time_format. date: matches the default date_format. date-time: any ISO8601 date. If none of these rules apply, then the column will stay as a vector of strings.</p>
-<p>11.4.2 Problems</p>
-<p>These defaults don’t always work for larger files. There are two basic problems:</p>
-<p>The first thousand rows might be a special case, and readr guesses a type that is not sufficiently general. For example, you might have a column of doubles that only contains integers in the first 1000 rows.</p>
-<p>The column might contain a lot of missing values. If the first 1000 rows contain only NAs, readr will guess that it’s a character vector, whereas you probably want to parse it as something more specific.</p>
-<p>readr contains a challenging CSV that illustrates both of these problems:</p>
-<p>challenge &lt;- read_csv(readr_example(“challenge.csv”)) #&gt; Parsed with column specification: #&gt; cols( #&gt; x = col_integer(), #&gt; y = col_character() #&gt; ) #&gt; Warning: 1000 parsing failures. #&gt; row col expected actual file #&gt; 1001 x no trailing characters .23837975086644292 ‘/home/travis/R/Library/readr/extdata/challenge.csv’ #&gt; 1002 x no trailing characters .41167997173033655 ‘/home/travis/R/Library/readr/extdata/challenge.csv’ #&gt; 1003 x no trailing characters .7460716762579978 ‘/home/travis/R/Library/readr/extdata/challenge.csv’ #&gt; 1004 x no trailing characters .723450553836301 ‘/home/travis/R/Library/readr/extdata/challenge.csv’ #&gt; 1005 x no trailing characters .614524137461558 ‘/home/travis/R/Library/readr/extdata/challenge.csv’ #&gt; …. … …………………. ……………… ……………………………………………. #&gt; See problems(…) for more details. (Note the use of readr_example() which finds the path to one of the files included with the package)</p>
-<p>There are two printed outputs: the column specification generated by looking at the first 1000 rows, and the first five parsing failures. It’s always a good idea to explicitly pull out the problems(), so you can explore them in more depth:</p>
-<p>problems(challenge) #&gt; # A tibble: 1,000 × 5 #&gt; row col expected actual #&gt; <int> <chr> <chr> <chr> #&gt; 1 1001 x no trailing characters .23837975086644292 #&gt; 2 1002 x no trailing characters .41167997173033655 #&gt; 3 1003 x no trailing characters .7460716762579978 #&gt; 4 1004 x no trailing characters .723450553836301 #&gt; 5 1005 x no trailing characters .614524137461558 #&gt; 6 1006 x no trailing characters .473980569280684 #&gt; # … with 994 more rows, and 1 more variables: file <chr> A good strategy is to work column by column until there are no problems remaining. Here we can see that there are a lot of parsing problems with the x column - there are trailing characters after the integer value. That suggests we need to use a double parser instead.</p>
-<p>To fix the call, start by copying and pasting the column specification into your original call:</p>
-<p>challenge &lt;- read_csv( readr_example(“challenge.csv”), col_types = cols( x = col_integer(), y = col_character() ) ) Then you can tweak the type of the x column:</p>
-<p>challenge &lt;- read_csv( readr_example(“challenge.csv”), col_types = cols( x = col_double(), y = col_character() ) ) That fixes the first problem, but if we look at the last few rows, you’ll see that they’re dates stored in a character vector:</p>
-<p>tail(challenge) #&gt; # A tibble: 6 × 2 #&gt; x y #&gt; <dbl> <chr> #&gt; 1 0.805 2019-11-21 #&gt; 2 0.164 2018-03-29 #&gt; 3 0.472 2014-08-04 #&gt; 4 0.718 2015-08-16 #&gt; 5 0.270 2020-02-04 #&gt; 6 0.608 2019-01-06 You can fix that by specifying that y is a date column:</p>
-<p>challenge &lt;- read_csv( readr_example(“challenge.csv”), col_types = cols( x = col_double(), y = col_date() ) ) tail(challenge) #&gt; # A tibble: 6 × 2 #&gt; x y #&gt; <dbl> <date> #&gt; 1 0.805 2019-11-21 #&gt; 2 0.164 2018-03-29 #&gt; 3 0.472 2014-08-04 #&gt; 4 0.718 2015-08-16 #&gt; 5 0.270 2020-02-04 #&gt; 6 0.608 2019-01-06 Every parse_xyz() function has a corresponding col_xyz() function. You use parse_xyz() when the data is in a character vector in R already; you use col_xyz() when you want to tell readr how to load the data.</p>
-<p>I highly recommend always supplying col_types, building up from the print-out provided by readr. This ensures that you have a consistent and reproducible data import script. If you rely on the default guesses and your data changes, readr will continue to read it in. If you want to be really strict, use stop_for_problems(): that will throw an error and stop your script if there are any parsing problems.</p>
-<p>11.4.3 Other strategies</p>
-<p>There are a few other general strategies to help you parse files:</p>
-<p>In the previous example, we just got unlucky: if we look at just one more row than the default, we can correctly parse in one shot:</p>
-<p>challenge2 &lt;- read_csv(readr_example(“challenge.csv”), guess_max = 1001) #&gt; Parsed with column specification: #&gt; cols( #&gt; x = col_double(), #&gt; y = col_date(format = “”) #&gt; ) challenge2 #&gt; # A tibble: 2,000 × 2 #&gt; x y #&gt; <dbl> <date> #&gt; 1 404 <NA> #&gt; 2 4172 <NA> #&gt; 3 3004 <NA> #&gt; 4 787 <NA> #&gt; 5 37 <NA> #&gt; 6 2332 <NA> #&gt; # … with 1,994 more rows Sometimes it’s easier to diagnose problems if you just read in all the columns as character vectors:</p>
-<p>challenge2 &lt;- read_csv(readr_example(“challenge.csv”), col_types = cols(.default = col_character()) ) This is particularly useful in conjunction with type_convert(), which applies the parsing heuristics to the character columns in a data frame.</p>
-<p>df &lt;- tribble( ~x, ~y, “1”, “1.21”, “2”, “2.32”, “3”, “4.56” ) df #&gt; # A tibble: 3 × 2 #&gt; x y #&gt; <chr> <chr> #&gt; 1 1 1.21 #&gt; 2 2 2.32 #&gt; 3 3 4.56</p>
+<p><strong>What happens if you try + set decimal_mark + grouping_mark to the same character?</strong></p>
+<ul>
+<li>It gives an error that they must be different</li>
+</ul>
+<p><strong>What happens to the default value of grouping_mark when you set decimal_mark to “,”?</strong></p>
+<pre class="r"><code>parse_number(&quot;123.456,789&quot;, locale = locale(decimal_mark = &quot;,&quot;))</code></pre>
+<pre><code>## [1] 123456.8</code></pre>
+<ul>
+<li>It switches the default grouping marker from <code>,</code> to <code>.</code></li>
+</ul>
+<p><strong>What happens to the default value of decimal_mark when you set the grouping_mark to “.”?</strong></p>
+<pre class="r"><code>parse_number(&quot;123.456,789&quot;, locale = locale(grouping_mark = &quot;.&quot;))</code></pre>
+<pre><code>## [1] 123456.8</code></pre>
+<ul>
+<li>It switches the default decimal marker from <code>.</code> to <code>,</code></li>
+</ul>
+<p><strong>Didn’t discuss <code>date_format</code> and <code>time_format</code> options to locale(). What do they do? Construct an example that shows when they might be useful.</strong></p>
+<ul>
+<li>They default values for date (%Y-%m-%d) and time which are used when guessing col types and parsing datetimes, respectively. They’d be helpful to parse data that is ingested in a “non-standard” format.</li>
+</ul>
+<p><strong>If you live outside the US, create a new locale object that encapsulates the settings for the types of file you read most commonly</strong></p>
+<pre class="r"><code>parse_character(&quot;Bonjour&quot;, locale = locale(&quot;fr&quot;))</code></pre>
+<pre><code>## [1] &quot;Bonjour&quot;</code></pre>
+<p><strong>What’s the difference between read_csv() and read_csv2()?</strong></p>
+<ul>
+<li>read_csv() is comma delimited, read_csv2() is semicolon delimited</li>
+</ul>
+<p><strong>What are the most common encodings used in Europe? What are the most common encodings used in Asia? Do some googling to find out.</strong></p>
+<ul>
+<li>Europe = Latin I, Greek (all), ISO 8859-1, ISO 8859-15 and cp1252 (western), cp1250, ISO-8859-2 (eastern)</li>
+<li>Asia = GB2312 (China), EUC-KR (Korea), cp1251, KOI8-R (Cyrillic),.</li>
+</ul>
+<p><strong>Generate the correct format string to parse each of the following dates and times:</strong></p>
+<pre class="r"><code>d1 &lt;- &quot;January 1, 2010&quot;
+d2 &lt;- &quot;2015-Mar-07&quot;
+d3 &lt;- &quot;06-Jun-2017&quot;
+d4 &lt;- c(&quot;August 19 (2015)&quot;, &quot;July 1 (2015)&quot;)
+d5 &lt;- &quot;12/30/14&quot; # Dec 30, 2014
+t1 &lt;- &quot;1705&quot;
+t2 &lt;- &quot;11:15:10.12 PM&quot;
+
+parse_date(d1, format = &quot;%B %d, %Y&quot;)</code></pre>
+<pre><code>## [1] &quot;2010-01-01&quot;</code></pre>
+<pre class="r"><code>parse_date(d2, format = &quot;%Y-%b-%d&quot;)</code></pre>
+<pre><code>## [1] &quot;2015-03-07&quot;</code></pre>
+<pre class="r"><code>parse_date(d3, format = &quot;%d-%b-%Y&quot;)</code></pre>
+<pre><code>## [1] &quot;2017-06-06&quot;</code></pre>
+<pre class="r"><code>parse_date(d4, format = &quot;%B %d (%Y)&quot;)</code></pre>
+<pre><code>## [1] &quot;2015-08-19&quot; &quot;2015-07-01&quot;</code></pre>
+<pre class="r"><code>parse_date(d5, format = &quot;%m/%d/%y&quot;)</code></pre>
+<pre><code>## [1] &quot;2014-12-30&quot;</code></pre>
+<pre class="r"><code>parse_time(t1, format = &quot;%H%M&quot;)</code></pre>
+<pre><code>## 17:05:00</code></pre>
+<pre class="r"><code>parse_time(t2, format = &quot;%I:%M:%OS %p&quot;)</code></pre>
+<pre><code>## 23:15:10.12</code></pre>
 </div>
 </div>
-<div id="note-the-column-types" class="section level1">
-<h1>Note the column types</h1>
-<p>type_convert(df) #&gt; Parsed with column specification: #&gt; cols( #&gt; x = col_integer(), #&gt; y = col_double() #&gt; ) #&gt; # A tibble: 3 × 2 #&gt; x y #&gt; <int> <dbl> #&gt; 1 1 1.21 #&gt; 2 2 2.32 #&gt; 3 3 4.56 If you’re reading a very large file, you might want to set n_max to a smallish number like 10,000 or 100,000. That will accelerate your iterations while you eliminate common problems.</p>
-<p>If you’re having major parsing problems, sometimes it’s easier to just read into a character vector of lines with read_lines(), or even a character vector of length 1 with read_file(). Then you can use the string parsing skills you’ll learn later to parse more exotic formats.</p>
-<p>11.5 Writing to a file</p>
-<p>readr also comes with two useful functions for writing data back to disk: write_csv() and write_tsv(). Both functions increase the chances of the output file being read back in correctly by:</p>
-<p>Always encoding strings in UTF-8.</p>
-<p>Saving dates and date-times in ISO8601 format so they are easily parsed elsewhere.</p>
-<p>If you want to export a csv file to Excel, use write_excel_csv() — this writes a special character (a “byte order mark”) at the start of the file which tells Excel that you’re using the UTF-8 encoding.</p>
-<p>The most important arguments are x (the data frame to save), and path (the location to save it). You can also specify how missing values are written with na, and if you want to append to an existing file.</p>
-<p>write_csv(challenge, “challenge.csv”) Note that the type information is lost when you save to csv:</p>
-<p>challenge #&gt; # A tibble: 2,000 × 2 #&gt; x y #&gt; <dbl> <date> #&gt; 1 404 <NA> #&gt; 2 4172 <NA> #&gt; 3 3004 <NA> #&gt; 4 787 <NA> #&gt; 5 37 <NA> #&gt; 6 2332 <NA> #&gt; # … with 1,994 more rows write_csv(challenge, “challenge-2.csv”) read_csv(“challenge-2.csv”) #&gt; Parsed with column specification: #&gt; cols( #&gt; x = col_integer(), #&gt; y = col_character() #&gt; ) #&gt; # A tibble: 2,000 × 2 #&gt; x y #&gt; <int> <chr> #&gt; 1 404 <NA> #&gt; 2 4172 <NA> #&gt; 3 3004 <NA> #&gt; 4 787 <NA> #&gt; 5 37 <NA> #&gt; 6 2332 <NA> #&gt; # … with 1,994 more rows This makes CSVs a little unreliable for caching interim results—you need to recreate the column specification every time you load in. There are two alternatives:</p>
-<p>write_rds() and read_rds() are uniform wrappers around the base functions readRDS() and saveRDS(). These store data in R’s custom binary format called RDS:</p>
-<p>write_rds(challenge, “challenge.rds”) read_rds(“challenge.rds”) #&gt; # A tibble: 2,000 × 2 #&gt; x y #&gt; <dbl> <date> #&gt; 1 404 <NA> #&gt; 2 4172 <NA> #&gt; 3 3004 <NA> #&gt; 4 787 <NA> #&gt; 5 37 <NA> #&gt; 6 2332 <NA> #&gt; # … with 1,994 more rows The feather package implements a fast binary file format that can be shared across programming languages:</p>
-<p>library(feather) write_feather(challenge, “challenge.feather”) read_feather(“challenge.feather”) #&gt; # A tibble: 2,000 x 2 #&gt; x y #&gt; <dbl> <date> #&gt; 1 404 <NA> #&gt; 2 4172 <NA> #&gt; 3 3004 <NA> #&gt; 4 787 <NA> #&gt; 5 37 <NA> #&gt; 6 2332 <NA> #&gt; # … with 1,994 more rows Feather tends to be faster than RDS and is usable outside of R. RDS supports list-columns (which you’ll learn about in many models); feather currently does not.</p>
-<p>11.6 Other types of data</p>
-<p>To get other types of data into R, we recommend starting with the tidyverse packages listed below. They’re certainly not perfect, but they are a good place to start. For rectangular data:</p>
-<p>haven reads SPSS, Stata, and SAS files.</p>
-<p>readxl reads excel files (both .xls and .xlsx).</p>
-<p>DBI, along with a database specific backend (e.g. RMySQL, RSQLite, RPostgreSQL etc) allows you to run SQL queries against a database and return a data frame.</p>
-<p>For hierarchical data: use jsonlite (by Jeroen Ooms) for json, and xml2 for XML. Jenny Bryan has some excellent worked examples at <a href="https://jennybc.github.io/purrr-tutorial/" class="uri">https://jennybc.github.io/purrr-tutorial/</a>.</p>
-<p>For other file types, try the R data import/export manual and the rio package.</p>
+<div id="parsing-a-file" class="section level1">
+<h1>11.4 Parsing a file</h1>
+<p>Now that you’ve learned how to parse an individual vector, it’s time to return to the beginning and explore how readr parses a <em>file</em>.</p>
+<p>2 new things to learn about:</p>
+<ul>
+<li>How readr automatically guesses type of each column.</li>
+<li>How to override default specification.</li>
+</ul>
+<div id="strategy" class="section level2">
+<h2>11.4.1 Strategy</h2>
+<p>readr reads 1st 1K rows + uses some (moderately conservative) <strong>heuristics</strong> to figure out each column type * Can emulate this process w/ a character vector using <code>guess_parser()</code> = returns readr’s best guess, + <code>parse_guess()</code> which uses that guess to parse the column:</p>
+<pre class="r"><code>guess_parser(&quot;2010-10-01&quot;)</code></pre>
+<pre><code>## [1] &quot;date&quot;</code></pre>
+<pre class="r"><code>guess_parser(&quot;15:01&quot;)</code></pre>
+<pre><code>## [1] &quot;time&quot;</code></pre>
+<pre class="r"><code>guess_parser(c(&quot;TRUE&quot;, &quot;FALSE&quot;))</code></pre>
+<pre><code>## [1] &quot;logical&quot;</code></pre>
+<pre class="r"><code>guess_parser(c(&quot;1&quot;, &quot;5&quot;, &quot;9&quot;))</code></pre>
+<pre><code>## [1] &quot;integer&quot;</code></pre>
+<pre class="r"><code>guess_parser(c(&quot;12,352,561&quot;))</code></pre>
+<pre><code>## [1] &quot;number&quot;</code></pre>
+<pre class="r"><code>str(parse_guess(&quot;2010-10-10&quot;))</code></pre>
+<pre><code>##  Date[1:1], format: &quot;2010-10-10&quot;</code></pre>
+<p>The heuristic tries each of the following types, stopping when it finds a match:</p>
+<ul>
+<strong>logical</strong>: contains only “F”, “T”, “FALSE”, or “TRUE”.
+</ul>
+<ul>
+<strong>integer</strong>: contains only numeric characters (and -).
+</ul>
+<ul>
+<strong>double</strong>: contains only valid doubles (including #’s like 4.5e-5).
+</ul>
+<ul>
+<strong>number</strong>: contains valid doubles w/ grouping mark inside.
+</ul>
+<ul>
+<strong>time</strong>: matches <em>default</em> time_format.
+</ul>
+<ul>
+<strong>date</strong>: matches <em>default</em> date_format.
+</ul>
+<ul>
+<strong>date-time</strong>: <em>any</em> ISO8601 date.
+</ul>
+<p>If <em>none</em> of these rules apply, the col stays as a vector of strings.</p>
+</div>
+<div id="problems" class="section level2">
+<h2>11.4.2 Problems</h2>
+<p>Defaults don’t always work for larger files –&gt; 2 basic problems:</p>
+<li>
+1sts 1K rows might be a special case + <code>readr</code> guesses a type that is not sufficiently general.
+</li>
+<pre><code>&lt;li&gt; Ex: Might have a col of doubles that only contains INTs in the 1st 1k rows. &lt;/li&gt;</code></pre>
+<li>
+A col might contain a lot of missing values + if the 1st 1K rows contain <em>only</em> NAs, <code>readr</code> guesses it’s a character vector, whereas you probably want to parse it as something more specific.
+</li>
+<p><code>readr</code> contains a challenging CSV that illustrates both of these problems:</p>
+<pre class="r"><code>challenge &lt;- read_csv(readr_example(&quot;challenge.csv&quot;))</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   x = col_integer(),
+##   y = col_character()
+## )</code></pre>
+<pre><code>## Warning in rbind(names(probs), probs_f): number of columns of result is not
+## a multiple of vector length (arg 1)</code></pre>
+<pre><code>## Warning: 1000 parsing failures.
+## row # A tibble: 5 x 5 col     row   col               expected             actual expected   &lt;int&gt; &lt;chr&gt;                  &lt;chr&gt;              &lt;chr&gt; actual 1  1001     x no trailing characters .23837975086644292 file 2  1002     x no trailing characters .41167997173033655 row 3  1003     x no trailing characters  .7460716762579978 col 4  1004     x no trailing characters   .723450553836301 expected 5  1005     x no trailing characters   .614524137461558 actual # ... with 1 more variables: file &lt;chr&gt;
+## ... ................. ... ....................................................... ........ ....................................................... ...... ....................................................... .... ....................................................... ... ....................................................... ... ....................................................... ........ ....................................................... ...... .......................................
+## See problems(...) for more details.</code></pre>
+<pre class="r"><code>problems(read_csv(readr_example(&quot;challenge.csv&quot;)))</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   x = col_integer(),
+##   y = col_character()
+## )</code></pre>
+<pre><code>## # A tibble: 1,000 x 5
+##      row   col               expected             actual
+##    &lt;int&gt; &lt;chr&gt;                  &lt;chr&gt;              &lt;chr&gt;
+##  1  1001     x no trailing characters .23837975086644292
+##  2  1002     x no trailing characters .41167997173033655
+##  3  1003     x no trailing characters  .7460716762579978
+##  4  1004     x no trailing characters   .723450553836301
+##  5  1005     x no trailing characters   .614524137461558
+##  6  1006     x no trailing characters   .473980569280684
+##  7  1007     x no trailing characters  .5784610391128808
+##  8  1008     x no trailing characters  .2415937229525298
+##  9  1009     x no trailing characters .11437866208143532
+## 10  1010     x no trailing characters  .2983446326106787
+## # ... with 990 more rows, and 1 more variables: file &lt;chr&gt;</code></pre>
+<li>
+<code>readr_example()</code> finds the path to 1 of the files included w/ the package
+</li>
+<p>See 2 printed outputs: col specification generated by looking at the 1st 1K rows + the 1st 5 parsing failures.</p>
+<p>It’s always a good idea to explicitly pull out the <code>problems()</code> so you can explore them in more depth:</p>
+<p>A good strateg = work col by col until there are no problems remaining. Here there are a lot of parsing problems w/ the <code>x</code> column = there are trailing characters after the INT value, which suggests we need to use a <strong>double parser</strong> instead.</p>
+<p>To fix the call, use a column specification in the call:</p>
+<pre class="r"><code>challenge &lt;- read_csv(
+  readr_example(&quot;challenge.csv&quot;), 
+  col_types = cols(
+    x = col_integer(),
+    y = col_character()
+  )
+)</code></pre>
+<pre><code>## Warning in rbind(names(probs), probs_f): number of columns of result is not
+## a multiple of vector length (arg 1)</code></pre>
+<pre><code>## Warning: 1000 parsing failures.
+## row # A tibble: 5 x 5 col     row   col               expected             actual expected   &lt;int&gt; &lt;chr&gt;                  &lt;chr&gt;              &lt;chr&gt; actual 1  1001     x no trailing characters .23837975086644292 file 2  1002     x no trailing characters .41167997173033655 row 3  1003     x no trailing characters  .7460716762579978 col 4  1004     x no trailing characters   .723450553836301 expected 5  1005     x no trailing characters   .614524137461558 actual # ... with 1 more variables: file &lt;chr&gt;
+## ... ................. ... ....................................................... ........ ....................................................... ...... ....................................................... .... ....................................................... ... ....................................................... ... ....................................................... ........ ....................................................... ...... .......................................
+## See problems(...) for more details.</code></pre>
+<p>Then tweak the type of the x column:</p>
+<pre class="r"><code>challenge &lt;- read_csv(
+  readr_example(&quot;challenge.csv&quot;), 
+  col_types = cols(
+    x = col_double(),
+    y = col_character()
+  )
+)</code></pre>
+<p>That fixes the 1st problem, but if we look at the last few rows, see they’re <em>dates</em> stored in a <em>character</em> vector:</p>
+<pre class="r"><code>tail(challenge)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##           x          y
+##       &lt;dbl&gt;      &lt;chr&gt;
+## 1 0.8052743 2019-11-21
+## 2 0.1635163 2018-03-29
+## 3 0.4719390 2014-08-04
+## 4 0.7183186 2015-08-16
+## 5 0.2698786 2020-02-04
+## 6 0.6082372 2019-01-06</code></pre>
+<p>Fix by specifying <code>y</code> is a <code>date</code> column:</p>
+<pre class="r"><code>challenge &lt;- read_csv(
+  readr_example(&quot;challenge.csv&quot;), 
+  col_types = cols(
+    x = col_double(),
+    y = col_date()
+  )
+)
+tail(challenge)</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##           x          y
+##       &lt;dbl&gt;     &lt;date&gt;
+## 1 0.8052743 2019-11-21
+## 2 0.1635163 2018-03-29
+## 3 0.4719390 2014-08-04
+## 4 0.7183186 2015-08-16
+## 5 0.2698786 2020-02-04
+## 6 0.6082372 2019-01-06</code></pre>
+<p>Every <code>parse_xyz()</code> function has a corresponding <strong><code>col_xyz()</code></strong> function.</p>
+<li>
+Use <code>parse_xyz()</code> when data is in a <em>character</em> vector in R already
+</li>
+<li>
+Use <code>col_xyz()</code> when you want to tell readr how to load the data.
+</li>
+<p>Highly recommended to alway supply <code>col_types</code>, building up from the print-out provided by <code>readr.</code></p>
+<li>
+Ensures you have a consistent + reproducible data import script.
+</li>
+<li>
+If you rely on default guesses + then the data changes, <code>readr</code> will continue to read it in.
+<li>
+<p>If you want to be <em>really</em> strict, use <code>stop_for_problems()</code> to throw an error + stop a script if there are any parsing problems.</p>
+</div>
+<div id="other-strategies" class="section level2">
+<h2>11.4.3 Other strategies</h2>
+<p>There are a few other general strategies to help parse files:</p>
+<p>In the previous example, we were unlucky: if we looked at just <em>1 more row</em> than the default = 1K, we can correctly parse in 1 shot:</p>
+<pre class="r"><code>challenge2 &lt;- read_csv(readr_example(&quot;challenge.csv&quot;), guess_max = 1001)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   x = col_double(),
+##   y = col_date(format = &quot;&quot;)
+## )</code></pre>
+<pre class="r"><code>challenge2</code></pre>
+<pre><code>## # A tibble: 2,000 x 2
+##        x      y
+##    &lt;dbl&gt; &lt;date&gt;
+##  1   404     NA
+##  2  4172     NA
+##  3  3004     NA
+##  4   787     NA
+##  5    37     NA
+##  6  2332     NA
+##  7  2489     NA
+##  8  1449     NA
+##  9  3665     NA
+## 10  3863     NA
+## # ... with 1,990 more rows</code></pre>
+<p>Sometimes it’s easier to diagnose problems if you just read in all cols as character vectors:</p>
+<pre class="r"><code>challenge2 &lt;- read_csv(readr_example(&quot;challenge.csv&quot;), 
+  col_types = cols(.default = col_character())
+)
+challenge2</code></pre>
+<pre><code>## # A tibble: 2,000 x 2
+##        x     y
+##    &lt;chr&gt; &lt;chr&gt;
+##  1   404  &lt;NA&gt;
+##  2  4172  &lt;NA&gt;
+##  3  3004  &lt;NA&gt;
+##  4   787  &lt;NA&gt;
+##  5    37  &lt;NA&gt;
+##  6  2332  &lt;NA&gt;
+##  7  2489  &lt;NA&gt;
+##  8  1449  &lt;NA&gt;
+##  9  3665  &lt;NA&gt;
+## 10  3863  &lt;NA&gt;
+## # ... with 1,990 more rows</code></pre>
+<p>This is particularly useful in conjunction w/ <code>type_convert()</code>, which applies the parsing heuristics to the character cols in a data frame.</p>
+<pre class="r"><code>df &lt;- tribble(
+  ~x,  ~y,
+  &quot;1&quot;, &quot;1.21&quot;,
+  &quot;2&quot;, &quot;2.32&quot;,
+  &quot;3&quot;, &quot;4.56&quot;
+)
+df</code></pre>
+<pre><code>## # A tibble: 3 x 2
+##       x     y
+##   &lt;chr&gt; &lt;chr&gt;
+## 1     1  1.21
+## 2     2  2.32
+## 3     3  4.56</code></pre>
+<pre class="r"><code># Note the column types
+type_convert(df)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   x = col_integer(),
+##   y = col_double()
+## )</code></pre>
+<pre><code>## # A tibble: 3 x 2
+##       x     y
+##   &lt;int&gt; &lt;dbl&gt;
+## 1     1  1.21
+## 2     2  2.32
+## 3     3  4.56</code></pre>
+<p>If reading a very large file, might want to set <code>n_max</code> to a smallish # like 10k or 100k to accelerate iterations while you eliminate common problems.</p>
+<p>If having major parsing problems, sometimes it’s easier to just read into a character vector of lines w/ <code>read_lines()</code>, or even a character vector of length 1 w/ <code>read_file()</code>, + then you can use string parsing skills to parse more exotic formats.</p>
+</div>
+<div id="writing-to-a-file" class="section level2">
+<h2>11.5 Writing to a file</h2>
+<p><code>readr</code> also comes w/ 2 useful functions for <strong>writing</strong> data back to disk: <code>write_csv()</code> + <code>write_tsv()</code>.</p>
+<p>Both functions increase chances of the output file being read back in correctly by:</p>
+<li>
+Always encoding strings in UTF-8
+</li>
+<li>
+Saving dates + date-times in ISO8601 format so they’re easily parsed elsewhere.
+</li>
+<p>If you want to export a CSV to Excel, use <code>write_excel_csv()</code> = writes a special character (a <strong>byte order mark</strong>) at the start of the file which tells Excel you’re using the UTF-8 encoding.</p>
+The most important arguments = <code>x</code> (data frame to save) + <code>path</code> (location to save it)
+<li>
+can also specify how missing values are written w/ <code>na</code> + if you want to append to an existing file.
+</li>
+<pre class="r"><code>write_csv(challenge, &quot;challenge.csv&quot;)</code></pre>
+<p>Note that type info is lost when you save to csv:</p>
+<pre class="r"><code>challenge</code></pre>
+<pre><code>## # A tibble: 2,000 x 2
+##        x      y
+##    &lt;dbl&gt; &lt;date&gt;
+##  1   404     NA
+##  2  4172     NA
+##  3  3004     NA
+##  4   787     NA
+##  5    37     NA
+##  6  2332     NA
+##  7  2489     NA
+##  8  1449     NA
+##  9  3665     NA
+## 10  3863     NA
+## # ... with 1,990 more rows</code></pre>
+<pre class="r"><code>write_csv(challenge, &quot;challenge-2.csv&quot;)
+read_csv(&quot;challenge-2.csv&quot;)</code></pre>
+<pre><code>## Parsed with column specification:
+## cols(
+##   x = col_integer(),
+##   y = col_character()
+## )</code></pre>
+<pre><code>## Warning in rbind(names(probs), probs_f): number of columns of result is not
+## a multiple of vector length (arg 1)</code></pre>
+<pre><code>## Warning: 1000 parsing failures.
+## row # A tibble: 5 x 5 col     row   col               expected             actual              file expected   &lt;int&gt; &lt;chr&gt;                  &lt;chr&gt;              &lt;chr&gt;             &lt;chr&gt; actual 1  1001     x no trailing characters .23837975086644292 'challenge-2.csv' file 2  1002     x no trailing characters .41167997173033655 'challenge-2.csv' row 3  1003     x no trailing characters  .7460716762579978 'challenge-2.csv' col 4  1004     x no trailing characters   .723450553836301 'challenge-2.csv' expected 5  1005     x no trailing characters   .614524137461558 'challenge-2.csv'
+## ... ................. ... ......................................................................... ........ ......................................................................... ...... ......................................................................... .... ......................................................................... ... ......................................................................... ... ......................................................................... ........ .........................................................................
+## See problems(...) for more details.</code></pre>
+<pre><code>## # A tibble: 2,000 x 2
+##        x     y
+##    &lt;int&gt; &lt;chr&gt;
+##  1   404  &lt;NA&gt;
+##  2  4172  &lt;NA&gt;
+##  3  3004  &lt;NA&gt;
+##  4   787  &lt;NA&gt;
+##  5    37  &lt;NA&gt;
+##  6  2332  &lt;NA&gt;
+##  7  2489  &lt;NA&gt;
+##  8  1449  &lt;NA&gt;
+##  9  3665  &lt;NA&gt;
+## 10  3863  &lt;NA&gt;
+## # ... with 1,990 more rows</code></pre>
+<p>This makes CSVs a little unreliable for caching interim results –&gt; you need to recreate the col specification every time you load in.</p>
+<p>There are 2 alternatives:</p>
+<li>
+<code>write_rds()</code> + <code>read_rds()</code> = uniform wrappers around base functions <code>readRDS()</code> and <code>saveRDS()</code>.
+</li>
+<li>
+These store data in R’s custom binary format called RDS:
+</li>
+<pre class="r"><code>write_rds(challenge, &quot;challenge.rds&quot;)
+read_rds(&quot;challenge.rds&quot;)</code></pre>
+<pre><code>## # A tibble: 2,000 x 2
+##        x      y
+##    &lt;dbl&gt; &lt;date&gt;
+##  1   404     NA
+##  2  4172     NA
+##  3  3004     NA
+##  4   787     NA
+##  5    37     NA
+##  6  2332     NA
+##  7  2489     NA
+##  8  1449     NA
+##  9  3665     NA
+## 10  3863     NA
+## # ... with 1,990 more rows</code></pre>
+<p>The <code>feather</code> package implements a fast binary file format that can be shared across programming languages:</p>
+<pre class="r"><code>library(feather)</code></pre>
+<pre><code>## Warning: package 'feather' was built under R version 3.4.2</code></pre>
+<pre class="r"><code>write_feather(challenge, &quot;challenge.feather&quot;)
+read_feather(&quot;challenge.feather&quot;)</code></pre>
+<pre><code>## # A tibble: 2,000 x 2
+##        x      y
+##    &lt;dbl&gt; &lt;date&gt;
+##  1   404     NA
+##  2  4172     NA
+##  3  3004     NA
+##  4   787     NA
+##  5    37     NA
+##  6  2332     NA
+##  7  2489     NA
+##  8  1449     NA
+##  9  3665     NA
+## 10  3863     NA
+## # ... with 1,990 more rows</code></pre>
+<p><code>Feather</code> tends to be faster than RDS + is usable outside of R, but<code>RDS</code> supports list-columns, while <code>feather</code> currently does not.</p>
+</div>
+<div id="other-types-of-data" class="section level2">
+<h2>11.6 Other types of data</h2>
+<p>To get other types of data into R, recommended to start w/ <code>tidyverse</code> packages (certainly not perfect, but are a good place to start)</p>
+<li>
+For rectangular data:
+</li>
+<li>
+<code>haven</code> reads SPSS, Stata, + SAS files.
+</li>
+<li>
+<code>readxl</code> reads excel files (both .xls and .xlsx).
+</li>
+<li>
+<code>DBI</code>, along w/ a database specific backend (e.g. RMySQL, RSQLite, RPostgreSQL etc) allows you to run SQL queries against a DB + return a data frame.
+</li>
+<li>
+For hierarchical data:
+<li>
+use <code>jsonlite</code> (by Jeroen Ooms) for json
+<li>
+use <code>xml2</code> for XML (Jenny Bryan has excellent worked examples @ <a href="https://jennybc.github.io/purrr-tutorial/" class="uri">https://jennybc.github.io/purrr-tutorial/</a>)
+<li>
+<p>For other file types, try the R data import/export manual and the <code>rio</code> package.</p>
+</div>
 </div>
 
 
