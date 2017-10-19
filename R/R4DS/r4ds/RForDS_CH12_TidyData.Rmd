@@ -148,6 +148,7 @@ The 2nd step = resolve 1 of 2 common problems:
 <ul>
 <li> 1 variable might be spread across multiple columns.</li>
 <li> 1 observation might be scattered across multiple rows.</li>
+</ui>
 
 Typically a dataset will only suffer from 1 of these problems + will only suffer from both if you're really unlucky
 
@@ -155,114 +156,75 @@ To fix these problems, you'll need the 2 most important functions in tidyr: `gat
 
 # 12.3.1 Gathering
 
-A common problem is a dataset where some of the column names are not names of variables, but values of a variable. Take table4a: the column names 1999 and 2000 represent values of the year variable, and each row represents two observations, not one.
+Common problem = some col names are not names of variables, but *values* of a variable (`table4a` cols = values of `year` = 1999 and 2000 + each row represents 2 observations, not 1)
 
-table4a
-#> # A tibble: 3 × 3
-#>       country `1999` `2000`
-#> *       <chr>  <int>  <int>
-#> 1 Afghanistan    745   2666
-#> 2      Brazil  37737  80488
-#> 3       China 212258 213766
-To tidy a dataset like this, we need to gather those columns into a new pair of variables. To describe that operation we need three parameters:
+To tidy a dataset like this, **gather those columns into a new pair of variables**.
 
-The set of columns that represent values, not variables. In this example, those are the columns 1999 and 2000.
+3 parameters:
+<ul>
+<li> Set of columns that incorrectly represent *values*, and *not* variables (1999 and 2000.)
+<li> Name of the variable whose values form the column names = the **key** = `year`.
+<li> Name of the variable whose values are spread over the cells = the **value** = # number of cases.
+</ui>
 
-The name of the variable whose values form the column names. I call that the key, and here it is year.
+Together those parameters generate the call to `gather()`:
 
-The name of the variable whose values are spread over the cells. I call that value, and here it's the number of cases.
-
-Together those parameters generate the call to gather():
-
+```{r}
 table4a %>% 
   gather(`1999`, `2000`, key = "year", value = "cases")
-#> # A tibble: 6 × 3
-#>       country  year  cases
-#>         <chr> <chr>  <int>
-#> 1 Afghanistan  1999    745
-#> 2      Brazil  1999  37737
-#> 3       China  1999 212258
-#> 4 Afghanistan  2000   2666
-#> 5      Brazil  2000  80488
-#> 6       China  2000 213766
-The columns to gather are specified with dplyr::select() style notation. Here there are only two columns, so we list them individually. Note that "1999" and "2000" are non-syntactic names (because they don't start with a letter) so we have to surround them in backticks. To refresh your memory of the other ways to select columns, see select.
+```
 
- Gathering `table4` into a tidy form.
-Figure 12.2: Gathering table4 into a tidy form.
+Cols to gather are specified w/ `dplyr::select()`-style notation. Here there are only 2 Cols, so list them individually (Note "1999" and "2000" are **non-syntactic names** (don't start w/ a letter) so we have to surround them in backticks)
 
-In the final result, the gathered columns are dropped, and we get new key and value columns. Otherwise, the relationships between the original variables are preserved. Visually, this is shown in Figure 12.2. We can use gather() to tidy table4b in a similar fashion. The only difference is the variable stored in the cell values:
+In the final result, the gathered Cols are **dropped** + we get new key + value cols. Otherwise, the relationships between the original variables are preserved. 
 
+Can use gather() to tidy table4b in a similar fashion (population)
+
+```{r}
 table4b %>% 
   gather(`1999`, `2000`, key = "year", value = "population")
-#> # A tibble: 6 × 3
-#>       country  year population
-#>         <chr> <chr>      <int>
-#> 1 Afghanistan  1999   19987071
-#> 2      Brazil  1999  172006362
-#> 3       China  1999 1272915272
-#> 4 Afghanistan  2000   20595360
-#> 5      Brazil  2000  174504898
-#> 6       China  2000 1280428583
-To combine the tidied versions of table4a and table4b into a single tibble, we need to use dplyr::left_join(), which you'll learn about in relational data.
+```
 
+To **combine** tidied versions of table4a + table4b into a single tibble, use `dplyr::left_join()`
+
+```{r}
 tidy4a <- table4a %>% 
   gather(`1999`, `2000`, key = "year", value = "cases")
+
 tidy4b <- table4b %>% 
   gather(`1999`, `2000`, key = "year", value = "population")
+
 left_join(tidy4a, tidy4b)
-#> Joining, by = c("country", "year")
-#> # A tibble: 6 × 4
-#>       country  year  cases population
-#>         <chr> <chr>  <int>      <int>
-#> 1 Afghanistan  1999    745   19987071
-#> 2      Brazil  1999  37737  172006362
-#> 3       China  1999 212258 1272915272
-#> 4 Afghanistan  2000   2666   20595360
-#> 5      Brazil  2000  80488  174504898
-#> 6       China  2000 213766 1280428583
-12.3.2 Spreading
+```
 
-Spreading is the opposite of gathering. You use it when an observation is scattered across multiple rows. For example, take table2: an observation is a country in a year, but each observation is spread across two rows.
+# 12.3.2 Spreading
 
-table2
-#> # A tibble: 12 × 4
-#>       country  year       type     count
-#>         <chr> <int>      <chr>     <int>
-#> 1 Afghanistan  1999      cases       745
-#> 2 Afghanistan  1999 population  19987071
-#> 3 Afghanistan  2000      cases      2666
-#> 4 Afghanistan  2000 population  20595360
-#> 5      Brazil  1999      cases     37737
-#> 6      Brazil  1999 population 172006362
-#> # ... with 6 more rows
-To tidy this up, we first analyse the representation in similar way to gather(). This time, however, we only need two parameters:
+**Spreading** = opposite of gathering = use it when an observation is scattered across multiple rows. 
 
-The column that contains variable names, the key column. Here, it's type.
+Ex: table2: an observation = a country in a year, but each observation (case + population) is spread across 2 rows.
 
-The column that contains values forms multiple variables, the value column. Here it's count.
+To tidy this up, 1st analyse the representation in similar way to `gather()` but this time w/ only 2 parameters:
+<ul>
+<li> Col that contains variable names = key Col = `type`. </li> 
+<li> Col that contains values from multiple variables = value Col = `count` </li> 
+</ui> 
 
-Once we've figured that out, we can use spread(), as shown programmatically below, and visually in Figure 12.3.
+Once we've figured that out, we can use `spread()`
 
+```{r}
 spread(table2, key = type, value = count)
-#> # A tibble: 6 × 4
-#>       country  year  cases population
-#> *       <chr> <int>  <int>      <int>
-#> 1 Afghanistan  1999    745   19987071
-#> 2 Afghanistan  2000   2666   20595360
-#> 3      Brazil  1999  37737  172006362
-#> 4      Brazil  2000  80488  174504898
-#> 5       China  1999 212258 1272915272
-#> 6       China  2000 213766 1280428583
- Spreading `table2` makes it tidy
-Figure 12.3: Spreading table2 makes it tidy
+```
 
-As you might have guessed from the common key and value arguments, spread() and gather() are complements. gather() makes wide tables narrower and longer; spread() makes long tables shorter and wider.
+As you might have guessed from the common key + value arguments, `spread()` + `gather()` = complements. 
+<ul>
+<li>`gather()` makes *wide tables narrower + longer*</li>
+<li>`spread()' makes *long tables shorter and wider*.</li>
+</ui>
 
-12.3.3 Exercises
+# 12.3.3 Exercises
 
-Why are gather() and spread() not perfectly symmetrical?
-Carefully consider the following example:
-
+Why are gather() and spread() not perfectly symmetrical? Carefully consider the following example:
+```{r}
 stocks <- tibble(
   year   = c(2015, 2015, 2016, 2016),
   half  = c(   1,    2,     1,    2),
@@ -271,6 +233,7 @@ stocks <- tibble(
 stocks %>% 
   spread(year, return) %>% 
   gather("year", "return", `2015`:`2016`)
+```
 (Hint: look at the variable types and think about column names.)
 
 Both spread() and gather() have a convert argument. What does it do?
