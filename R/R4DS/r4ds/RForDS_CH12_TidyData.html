@@ -437,11 +437,32 @@ Col that contains values from multiple variables = value Col = <code>count</code
 As you might have guessed from the common key + value arguments, <code>spread()</code> + <code>gather()</code> = complements.
 <ul>
 <li>
-gather() makes wide tables narrower and longer; spread() makes long tables shorter and wider.
+<code>gather()</code> makes <em>wide tables narrower + longer</em>
 </li>
-<p>12.3.3 Exercises</p>
-<p>Why are gather() and spread() not perfectly symmetrical? Carefully consider the following example:</p>
-<p>stocks &lt;- tibble( year = c(2015, 2015, 2016, 2016), half = c( 1, 2, 1, 2), return = c(1.88, 0.59, 0.92, 0.17) ) stocks %&gt;% spread(year, return) %&gt;% gather(“year”, “return”, <code>2015</code>:<code>2016</code>) (Hint: look at the variable types and think about column names.)</p>
+<li>
+`spread()’ makes <em>long tables shorter and wider</em>.
+</li>
+<p></ui></p>
+</div>
+<div id="exercises-1" class="section level1">
+<h1>12.3.3 Exercises</h1>
+<p><em>Why are gather() and spread() not perfectly symmetrical? Carefully consider the following example:</em></p>
+<pre class="r"><code>stocks &lt;- tibble(
+  year   = c(2015, 2015, 2016, 2016),
+  half  = c(   1,    2,     1,    2),
+  return = c(1.88, 0.59, 0.92, 0.17)
+)
+stocks %&gt;% 
+  spread(year, return) %&gt;% 
+  gather(&quot;year&quot;, &quot;return&quot;, `2015`:`2016`)</code></pre>
+<pre><code>## # A tibble: 4 x 3
+##    half  year return
+##   &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt;
+## 1     1  2015   1.88
+## 2     2  2015   0.59
+## 3     1  2016   0.92
+## 4     2  2016   0.17</code></pre>
+<p>(Hint: look at the variable types and think about column names.)</p>
 <p>Both spread() and gather() have a convert argument. What does it do?</p>
 <p>Why does this code fail?</p>
 <p>table4a %&gt;% gather(1999, 2000, key = “year”, value = “cases”) #&gt; Error in combine_vars(vars, ind_list): Position must be between 0 and n Why does spreading this tibble fail? How could you add a new column to fix the problem?</p>

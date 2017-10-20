@@ -223,29 +223,36 @@ As you might have guessed from the common key + value arguments, `spread()` + `g
 
 # 12.3.3 Exercises
 
-Why are gather() and spread() not perfectly symmetrical? Carefully consider the following example:
+*Why are gather() and spread() not perfectly symmetrical? Carefully consider the following example: (Hint: look at the variable types and think about column names.)* 
+
 ```{r}
-stocks <- tibble(
+(stocks <- tibble(
   year   = c(2015, 2015, 2016, 2016),
   half  = c(   1,    2,     1,    2),
   return = c(1.88, 0.59, 0.92, 0.17)
-)
+))
 stocks %>% 
-  spread(year, return) %>% 
-  gather("year", "return", `2015`:`2016`)
+  spread(year, return) %>% # splits year values into cols, puts return values in respective cols =  3 resulting cols w/ half = 1st col
+  gather("year", "return", `2015`:`2016`) # takes 2nd + 3rd col from spread() and splits out, leaving `half` as 1st col
 ```
-(Hint: look at the variable types and think about column names.)
 
-Both spread() and gather() have a convert argument. What does it do?
+*Both spread() and gather() have a convert argument. What does it do?*
 
-Why does this code fail?
+It computes on each new col and converts the possibly mixed-type variable values and performs type.convert() to convert the character vectors to logical, integer, numeric, complex or factor as appropriate.
 
+*Why does this code fail?*
+```{r}
 table4a %>% 
   gather(1999, 2000, key = "year", value = "cases")
 #> Error in combine_vars(vars, ind_list): Position must be between 0 and n
-Why does spreading this tibble fail? How could you add a new column to fix the problem?
+```
 
-people <- tribble(
+`1999` and `2000` and not syntactically correct (they start w/ #'s so we need to surround them with backticks)
+
+*Why does spreading this tibble fail? How could you add a new column to fix the problem?*
+
+```{r}
+(people <- tribble(
   ~name,             ~key,    ~value,
   #-----------------|--------|------
   "Phillip Woods",   "age",       45,
@@ -253,129 +260,145 @@ people <- tribble(
   "Phillip Woods",   "age",       50,
   "Jessica Cordero", "age",       37,
   "Jessica Cordero", "height",   156
-)
-Tidy the simple tibble below. Do you need to spread or gather it? What are the variables?
+))
+people %>%
+  spread(key = key, value = value)
+```
 
-preg <- tribble(
+Some record identifiers (`name`) have 2 values for age or for height, so `spread()` doesn't know how to split these out into their own record (1 value for age or height per person/name)
+
+*Tidy the simple tibble below. Do you need to spread or gather it? What are the variables?*
+
+```{r}
+(preg <- tribble(
   ~pregnant, ~male, ~female,
   "yes",     NA,    10,
   "no",      20,    12
-)
-12.4 Separating and uniting
+))
+preg %>%
+  gather(male, female, key = 'gender', value = 'count')
+```
 
-So far you've learned how to tidy table2 and table4, but not table3. table3 has a different problem: we have one column (rate) that contains two variables (cases and population). To fix this problem, we'll need the separate() function. You'll also learn about the complement of separate(): unite(), which you use if a single variable is spread across multiple columns.
+# 12.4 Separating and uniting
 
-12.4.1 Separate
+So far you've learned how to tidy `table2` + `table4`, but not `table3` = a different problem = 1 col (rate) that contains 2 vars (`cases` + `population`)
 
-separate() pulls apart one column into multiple columns, by splitting wherever a separator character appears. Take table3:
+We need `separate()` (+ the complement of `separate()`: `unite()` = use if a single var is spread across multiple cols)
 
-table3
-#> # A tibble: 6 × 3
-#>       country  year              rate
-#> *       <chr> <int>             <chr>
-#> 1 Afghanistan  1999      745/19987071
-#> 2 Afghanistan  2000     2666/20595360
-#> 3      Brazil  1999   37737/172006362
-#> 4      Brazil  2000   80488/174504898
-#> 5       China  1999 212258/1272915272
-#> 6       China  2000 213766/1280428583
-The rate column contains both cases and population variables, and we need to split it into two variables. separate() takes the name of the column to separate, and the names of the columns to separate into, as shown in Figure 12.4 and the code below.
+# 12.4.1 Separate
 
-table3 %>% 
-  separate(rate, into = c("cases", "population"))
-#> # A tibble: 6 × 4
-#>       country  year  cases population
-#> *       <chr> <int>  <chr>      <chr>
-#> 1 Afghanistan  1999    745   19987071
-#> 2 Afghanistan  2000   2666   20595360
-#> 3      Brazil  1999  37737  172006362
-#> 4      Brazil  2000  80488  174504898
-#> 5       China  1999 212258 1272915272
-#> 6       China  2000 213766 1280428583
- Separating `table3` makes it tidy
-Figure 12.4: Separating table3 makes it tidy
+`separate()` pulls apart 1 col into multiple columns by splitting wherever a separator character appears. Take table3:
 
-By default, separate() will split values wherever it sees a non-alphanumeric character (i.e. a character that isn't a number or letter). For example, in the code above, separate() split the values of rate at the forward slash characters. If you wish to use a specific character to separate a column, you can pass the character to the sep argument of separate(). For example, we could rewrite the code above as:
+```{r}
+(table3 %>%
+  separate(rate, into = c("cases","population"))) # splits by any non-alphanumeric char by default
+```
 
+Use a specific char to separate a col:
+
+```{r}
 table3 %>% 
   separate(rate, into = c("cases", "population"), sep = "/")
-(Formally, sep is a regular expression, which you'll learn more about in strings.)
+```
 
-Look carefully at the column types: you'll notice that case and population are character columns. This is the default behaviour in separate(): it leaves the type of the column as is. Here, however, it's not very useful as those really are numbers. We can ask separate() to try and convert to better types using convert = TRUE:
+Formally, `sep` = a **regular expression**
 
+Look carefully at the col types + notice `case` + `population` = chars
+
+Default behaviour in `separate()` = leave type of the column as is (not useful here b/c they're #'s)
+
+Try + convert to better types using `convert = TRUE`:
+
+```{r}
 table3 %>% 
-  separate(rate, into = c("cases", "population"), convert = TRUE)
-#> # A tibble: 6 × 4
-#>       country  year  cases population
-#> *       <chr> <int>  <int>      <int>
-#> 1 Afghanistan  1999    745   19987071
-#> 2 Afghanistan  2000   2666   20595360
-#> 3      Brazil  1999  37737  172006362
-#> 4      Brazil  2000  80488  174504898
-#> 5       China  1999 212258 1272915272
-#> 6       China  2000 213766 1280428583
-You can also pass a vector of integers to sep. separate() will interpret the integers as positions to split at. Positive values start at 1 on the far-left of the strings; negative value start at -1 on the far-right of the strings. When using integers to separate strings, the length of sep should be one less than the number of names in into.
+  separate(rate, into = c("cases", "population"), convert = TRUE) #override default of keeping old col type
+```
 
-You can use this arrangement to separate the last two digits of each year. This make this data less tidy, but is useful in other cases, as you'll see in a little bit.
+Can also pass a vector of *integers* to `sep` + `separate()` will interpret integers as positions to split at. 
+<ul>
+<li> Positive values start at 1 on the far-left of the strings </li>
+<li> negative value start at -1 on the far-right of the strings </li>
+</ui>
 
+When using integers to separate strings, the length of `sep` should be 1 less than the # of names in `into`.
+
+Can use this arrangement to separate the last 2 digits of each year (makes data less tidy, but is useful in other cases)
+
+```{r}
 table3 %>% 
-  separate(year, into = c("century", "year"), sep = 2)
-#> # A tibble: 6 × 4
-#>       country century  year              rate
-#> *       <chr>   <chr> <chr>             <chr>
-#> 1 Afghanistan      19    99      745/19987071
-#> 2 Afghanistan      20    00     2666/20595360
-#> 3      Brazil      19    99   37737/172006362
-#> 4      Brazil      20    00   80488/174504898
-#> 5       China      19    99 212258/1272915272
-#> 6       China      20    00 213766/1280428583
-12.4.2 Unite
+  separate(year, into = c("century", "year"), sep = 2) # seperate between 2nd + 3rd position
+```
 
-unite() is the inverse of separate(): it combines multiple columns into a single column. You'll need it much less frequently than separate(), but it's still a useful tool to have in your back pocket.
+# 12.4.2 Unite
 
- Uniting `table5` makes it tidy
-Figure 12.5: Uniting table5 makes it tidy
+`unite()` = inverse of `separate()` = combines multiple columns into a single column (needed much less frequently than `separate()`, but still a useful tool)
 
-We can use unite() to rejoin the century and year columns that we created in the last example. That data is saved as tidyr::table5. unite() takes a data frame, the name of the new variable to create, and a set of columns to combine, again specified in dplyr::select() style:
+We can use `unite()` to **rejoin** century + year cols created in last example = `tidyr::table5` --> takes a data frame, name of new var to create, + a set of cols to combine
 
+```{r}
 table5 %>% 
-  unite(new, century, year)
-#> # A tibble: 6 × 3
-#>       country   new              rate
-#> *       <chr> <chr>             <chr>
-#> 1 Afghanistan 19_99      745/19987071
-#> 2 Afghanistan 20_00     2666/20595360
-#> 3      Brazil 19_99   37737/172006362
-#> 4      Brazil 20_00   80488/174504898
-#> 5       China 19_99 212258/1272915272
-#> 6       China 20_00 213766/1280428583
-In this case we also need to use the sep argument. The default will place an underscore (_) between the values from different columns. Here we don't want any separator so we use "":
+  unite(col = new, century, year)
+```
 
+Also need to use `sep` b/c default = underscore (_) between the values from different cols
+
+```{r}
 table5 %>% 
   unite(new, century, year, sep = "")
-#> # A tibble: 6 × 3
-#>       country   new              rate
-#> *       <chr> <chr>             <chr>
-#> 1 Afghanistan  1999      745/19987071
-#> 2 Afghanistan  2000     2666/20595360
-#> 3      Brazil  1999   37737/172006362
-#> 4      Brazil  2000   80488/174504898
-#> 5       China  1999 212258/1272915272
-#> 6       China  2000 213766/1280428583
-12.4.3 Exercises
+```
 
-What do the extra and fill arguments do in separate()? Experiment with the various options for the following two toy datasets.
+# 12.4.3 Exercises
 
-tibble(x = c("a,b,c", "d,e,f,g", "h,i,j")) %>% 
-  separate(x, c("one", "two", "three"))
+*What do the extra and fill arguments do in separate()? Experiment with the various options for the following two toy datasets.*
 
-tibble(x = c("a,b,c", "d,e", "f,g,i")) %>% 
-  separate(x, c("one", "two", "three"))
-Both unite() and separate() have a remove argument. What does it do? Why would you set it to FALSE?
+<ul>
+<li> `extra` = controls what happens when too many pieces are in `sep` </li>
+  <li> **warn** = emit warning, drop extra vals </li>
+  <li> **drop** = drop extra vals w/out warning </li>
+  <li> **merge** = split max of `length(into)` times </li>
+<li> `fill` = opposite of `extra` = not enough pieces </li>
+  <li> **warn** = emit warning, fill from right </li>
+  <li> **right** = fill w/ missing vals from right </li>
+  <li> **left** = fill w/ missing vals from left </li>
+</ul>
+```{r}
+tibble(x = c("a,b,c", "d,e,f,g", "h,i,j")) %>%  # too many chars in 2nd set
+  separate(x, c("one", "two", "three"))  # gives warning
 
-Compare and contrast separate() and extract(). Why are there three variations of separation (by position, by separator, and with groups), but only one unite?
+tibble(x = c("a,b,c", "d,e,f,g", "h,i,j")) %>%  # too many chars in 2nd set
+  separate(x, c("one", "two", "three"), extra = "drop")  # gives no warning
 
-12.5 Missing values
+tibble(x = c("a,b,c", "d,e,f,g", "h,i,j")) %>%  # too many chars in 2nd set
+  separate(x, c("one", "two", "three"), extra = "merge")  # split length(into) = 3 times at most
+```
+
+```{r}
+tibble(x = c("a,b,c", "d,e", "f,g,i")) %>% # not enough chars in 2nd set
+  separate(x, c("one", "two", "three"))  # gives warning, fill from right
+
+tibble(x = c("a,b,c", "d,e", "f,g,i")) %>% # not enough chars in 2nd set
+  separate(x, c("one", "two", "three"), fill = "right")  # fill from right
+
+tibble(x = c("a,b,c", "d,e", "f,g,i")) %>% # not enough chars in 2nd set
+  separate(x, c("one", "two", "three"), fill = "left") # fill from left
+```
+
+*Both unite() and separate() have a remove argument. What does it do? Why would you set it to FALSE?*
+
+It will remove out input col(s) from output data frame, is = `TRUE` by default (i.e. can keep `year` in `seperate()` and keep `century` and `year` in `unite()`)
+
+*Compare and contrast separate() and extract(). Why are there three variations of separation (by position, by separator, and with groups), but only one unite?*
+
+```{r}
+(df <- data.frame(x = c(NA, "a-b", "a-d", "b-c", "d-e")))
+df %>% extract(x, "A")
+df %>% separate(x ,"A", sep = "-")
+
+```
+
+`extract` will only return the col we specify to extract
+
+# 12.5 Missing values
 
 Changing the representation of a dataset brings up an important subtlety of missing values. Surprisingly, a value can be missing in one of two possible ways:
 
