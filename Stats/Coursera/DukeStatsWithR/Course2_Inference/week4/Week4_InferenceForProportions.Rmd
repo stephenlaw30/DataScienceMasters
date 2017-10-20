@@ -160,3 +160,70 @@ That's a pretty high test statistic, if you think about it, b/c it's much farthe
 ```{r}
 pnorm(h0,p.hat,se.prop)
 ```
+
+## CI for comparing 2 proportions
+
+Using a 95% CI, estimate how Coursera students + the American public at large compare w/ respect to their views on laws banning possession of handguns
+
+```{r}
+n.c <- 83
+n.a <- 1028
+succ.c <- 59
+succ.a <- 257
+(p.hat.c <- succ.c/n.c)
+(p.hat.a <- succ.a/n.a)
+```
+
+*Independence condition* =??? DO have a random sample for US population, but not for Coursera population = simply a voluntary poll posted on Coursera discussion forums, so can't say it was a random sample. 
+<ul>
+<li> 10% condition was met for both of the groups = both 1028 + 83 are < 10% of their respective populations </li>
+<li> This means sampled Americans can be assumed to be independent of each other but sampled Coursera students may not be.  </li>
+<li> So in this case, be wary of generalizing any of conclusion from these findings to the overall population at large b/c we don't really have a good sample from the Coursera population.  </li>
+<li> Still move on w/ our analysis only for illustrative purposes </li>
+</ul>
+
+*Sample size + skew condition* =??? can we assume the sampling distribution of the difference between the 2 proportions is nearly normal
+<ul>
+<li> When dealing w/ proportions, check for this using success failure rule + when doing a CI, check for this w/ observed successes + observed failures </li>
+<li> US = 257 observed successes + (1,028 - 257) = 771 observed failures </li>
+<li> Coursera = 59 successes + 24 failures </li>
+<li> Both of these met = success/failure condition is met for both of the groups + therefore we can assume the sampling distribution of the difference between the 2 proportions is nearly normal </li>
+</ul>
+
+```{r}
+(point.estimate <- p.hat.c - p.hat.a)
+alpha = .95
+(z.star = qnorm(1-((1-alpha)/2)))
+(se.diff <- sqrt((p.hat.c*(1-p.hat.c))/n.c + ((p.hat.a*(1-p.hat.a))/n.a)))
+(mOe <- z.star*se.diff)
+(lower <- point.estimate - mOe)
+(upper <- point.estimate + mOe)
+```
+
+We are 95% confident the proportion of Coursera students who believe there should be a ban on possession of handguns is 36-56% higher than the proportion of Americans who do.
+
+Now switch the order of the p.hat values
+
+```{r}
+(point.estimate <- p.hat.a - p.hat.c)
+alpha = .95
+(z.star = qnorm(1-((1-alpha)/2)))
+(se.diff <- sqrt((p.hat.a*(1-p.hat.a))/n.a + ((p.hat.c*(1-p.hat.c))/n.c)))
+(mOe <- z.star*se.diff)
+(lower <- point.estimate - mOe)
+(upper <- point.estimate + mOe)
+```
+
+We are 95% confident the proportion of Americans who believe there should be a ban on possession of handguns is 36%-56% lower than the proportions of Coursera students
+
+Based on the CI calculated, should we expect to find a significant difference between the population proportions of Coursera students + the American public at large who believe there should be a law banning the possession of handguns at the equivalent significance level?
+
+```{r}
+pnorm(point.estimate,.95,se.diff)
+```
+
+In this case, we're asked to do a kind of mock hypothesis test, + in that case, our null = the difference between the 2 population proportions = 0 = these 2 populations are exactly the same
+
+For our CI, anything between .36 + .56 is fair game for the difference between the 2 population proportions
+
+The value= 0 does not appear, + based on that, we'd reject this null + say that "based on this CI, it doesn't appear that these 2 populations are the same w/ respect to proportion of those who believe there should be a law banning the possession of handguns"
