@@ -227,3 +227,57 @@ In this case, we're asked to do a kind of mock hypothesis test, + in that case, 
 For our CI, anything between .36 + .56 is fair game for the difference between the 2 population proportions
 
 The value= 0 does not appear, + based on that, we'd reject this null + say that "based on this CI, it doesn't appear that these 2 populations are the same w/ respect to proportion of those who believe there should be a law banning the possession of handguns"
+
+### Hypothesis Test for Comparing Two Proportions
+```{r}
+n.male <- 90
+n.female <- 122
+
+suc.male <- 34
+suc.female <- 61
+
+fail.male <- n.male - suc.male
+fail.female <- n.female - suc.female 
+
+(p.hat.male <- suc.male / n.male)
+(p.hat.female <- suc.female / n.female)
+
+(pooled.prop <- (suc.female + suc.male) / (n.male + n.female))
+```
+
+### Check conditions
+#### Within Groups
+n = 90 + 122 is definitely < 10% of all Americans + we have a random sample, therefore we can assume sampled males + sampled females are independent of each other = within-group independence met
+
+Not paired samples (different sample sizes indicated this) + had an overall random sample = between-groups independence met
+
+
+Check sample size/skew condition w/ success/failure condition of the EXPECTED (b/c we assume null is true in hypothesis testing) + w/ pooled estimate of p^ b/c doing proportions + we don't know what to set p to so we estimate
+
+```{r}
+exp.succ.male <- pooled.prop*n.male
+exp.fail.male <- (1-pooled.prop)*n.male
+
+exp.succ.female <- pooled.prop*n.female
+exp.fail.female <- (1-pooled.prop)*n.female
+
+(exp.succ.male >= 10 & exp.fail.male >= 10)
+(exp.succ.female >= 10 & exp.fail.female >= 10)
+```
+
+Can now assume that this sampling	distribution of the difference between the two sample proportions is nearly normal
+
+
+Since both conditions are met, we can assume a nearly normal sampling distribution for our sampling distribution of the difference between the proportions.
+
+Conduct a HT a 5% significance level, evaluating if males + females are equally likely to answer “yes”. 
+
+```{r}
+(se.prop.ht <- sqrt(((pooled.prop*(1-pooled.prop))/n.male) + ((pooled.prop*(1-pooled.prop))/n.female)))
+(point.estimate <- p.hat.male - p.hat.female)
+
+h0 <- 0
+(z <- (point.estimate - h0)/se.prop.ht) # observed - null / n = test statistic
+
+2*pnorm(point.estimate,h0,se.prop.ht)
+```
