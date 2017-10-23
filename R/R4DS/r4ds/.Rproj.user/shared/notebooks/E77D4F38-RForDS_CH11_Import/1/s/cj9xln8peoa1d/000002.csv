@@ -1,3 +1,0 @@
-"0","read_csv(""# A comment I want to skip"
-"0","  x,y,z"
-"0","  1,2,3"", comment = ""#"")"

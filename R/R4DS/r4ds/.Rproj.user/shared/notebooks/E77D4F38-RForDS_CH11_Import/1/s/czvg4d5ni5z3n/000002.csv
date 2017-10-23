@@ -1,8 +1,0 @@
-"0","challenge2 <- read_csv(readr_example(""challenge.csv""), guess_max = 1001)"
-"2","Parsed with column specification:
-cols(
-  x = col_double(),
-  y = col_date(format = """")
-)
-"
-"0","challenge2"

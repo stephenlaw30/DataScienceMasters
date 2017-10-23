@@ -1,4 +1,0 @@
-"0","challenge2 <- read_csv(readr_example(""challenge.csv""), "
-"0","  col_types = cols(.default = col_character())"
-"0",")"
-"0","challenge2"

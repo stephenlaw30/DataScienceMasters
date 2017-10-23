@@ -1,4 +1,0 @@
-"0","library(feather)"
-"2","package ‘feather’ was built under R version 3.4.2"
-"0","write_feather(challenge, ""challenge.feather"")"
-"0","read_feather(""challenge.feather"")"

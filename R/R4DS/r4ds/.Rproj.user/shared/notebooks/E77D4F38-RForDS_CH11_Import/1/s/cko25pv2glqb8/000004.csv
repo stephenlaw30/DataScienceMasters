@@ -1,6 +1,0 @@
-"0","x1 <- ""El Ni\xf1o was particularly bad this year"""
-"0","x2 <- ""\x82\xb1\x82\xf1\x82\xc9\x82\xbf\x82\xcd"""
-"0","#x1"
-"0","#> [1] ""El Ni\xf1o was particularly bad this year"""
-"0","#x2"
-"0","#> [1] ""\x82\xb1\x82\xf1\x82ɂ\xbf\x82\xcd"""
