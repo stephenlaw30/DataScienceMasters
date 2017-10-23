@@ -1,0 +1,14 @@
+"0","write_csv(challenge, ""challenge-2.csv"")"
+"0","read_csv(""challenge-2.csv"")"
+"2","Parsed with column specification:
+cols(
+  x = col_integer(),
+  y = col_character()
+)
+"
+"2","number of columns of result is not a multiple of vector length (arg 1)"
+"2","1000 parsing failures.
+row # A tibble: 5 x 5 col     row   col               expected             actual              file expected   <int> <chr>                  <chr>              <chr>             <chr> actual 1  1001     x no trailing characters .23837975086644292 'challenge-2.csv' file 2  1002     x no trailing characters .41167997173033655 'challenge-2.csv' row 3  1003     x no trailing characters  .7460716762579978 'challenge-2.csv' col 4  1004     x no trailing characters   .723450553836301 'challenge-2.csv' expected 5  1005     x no trailing characters   .614524137461558 'challenge-2.csv'
+... ................. ... ......................................................................... ........ ......................................................................... ...... ......................................................................... .... ......................................................................... ... ......................................................................... ... ......................................................................... ........ .........................................................................
+See problems(...) for more details.
+"

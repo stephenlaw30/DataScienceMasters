@@ -1,0 +1,8 @@
+"0","# Note the column types"
+"0","type_convert(df)"
+"2","Parsed with column specification:
+cols(
+  x = col_integer(),
+  y = col_double()
+)
+"

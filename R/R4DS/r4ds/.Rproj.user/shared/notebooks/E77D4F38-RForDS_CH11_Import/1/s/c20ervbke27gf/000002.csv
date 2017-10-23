@@ -1,0 +1,5 @@
+"0","challenge <- read_csv("
+"0","  readr_example(""challenge.csv""), "
+"0","    y = col_character()"
+"0","  )"
+"0",")"

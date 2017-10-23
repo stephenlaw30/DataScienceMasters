@@ -312,3 +312,15 @@ hand <- factor(c(rep("y",11),rep("n",1)), levels = c("y","n"))
 inference(hand, est = "proportion", type = "ht", method = "simulation", success = "y", 
           null = .1, alternative = "greater", nsim = 100)
 ```
+
+### Chi-Square goodness of fit
+```{r}
+ethnicity.perc <- c(.8029,.1206,.0079,.0292,.0394)
+exp.ethnicity.counts <- round(2500*ethnicity.perc)
+obs.ethnicity.counts <- c(1920,347,19,84,130)
+
+(chi.sq <- sum((obs.ethnicity.counts - exp.ethnicity.counts)^2/exp.ethnicity.counts))
+
+dF <- length(ethnicity.perc)-1
+pchisq(chi.sq,dF,lower.tail = F)
+```

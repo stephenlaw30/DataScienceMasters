@@ -1,0 +1,7 @@
+"0","parse_character(x1, locale = locale(encoding = ""Latin1""))"
+"1","[1]"
+"1"," ""El Niño was particularly bad this year"""
+"1","
+"
+"0","parse_character(x2, locale = locale(encoding = ""Shift-JIS""))"
+"1","[1]"

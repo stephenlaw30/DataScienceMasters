@@ -1,0 +1,5 @@
+"0","sum(dbinom(min.success:n,n,p)) # want prob of anything >= min of 195, up to 200"
+"1","[1]"
+"1"," 0.00807125"
+"1","
+"
