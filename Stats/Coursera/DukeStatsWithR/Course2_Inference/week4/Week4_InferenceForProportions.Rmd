@@ -281,3 +281,34 @@ h0 <- 0
 
 2*pnorm(point.estimate,h0,se.prop.ht)
 ```
+
+### Small Samples Proportions
+
+#### Paul the Octopus 8-game predictions simulation
+
+```{r}
+library(tidyverse)
+source("http://bit.ly/dasi_inference")
+
+# create set of the actual observed values
+paul <- factor(c(rep("y",8),rep("n",0)), levels = c("y","n"))
+
+# perform 10k simulations (default) to estimate a proportion using a hyp. test via a simulation
+inference(paul, est = "proportion", type = "ht", method = "simulation", success = "y", 
+          null = .5, alternative = "greater")
+```
+
+If Paul was indeed randomly guessing, the probability he’d get all 8 games correct = .0039
+This data provides convincing evidence Paul did better than random guessing
+
+#### Back of Hand
+```{r}
+source("http://bit.ly/dasi_inference")
+
+# create set of the actual observed values
+hand <- factor(c(rep("y",11),rep("n",1)), levels = c("y","n"))
+
+# perform 100 simulations (default) to estimate a proportion using a hyp. test via a simulation
+inference(hand, est = "proportion", type = "ht", method = "simulation", success = "y", 
+          null = .1, alternative = "greater", nsim = 100)
+```
