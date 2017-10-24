@@ -324,3 +324,59 @@ obs.ethnicity.counts <- c(1920,347,19,84,130)
 dF <- length(ethnicity.perc)-1
 pchisq(chi.sq,dF,lower.tail = F)
 ```
+
+### Chi-square indepedence test
+```{r}
+obese.dating <- 81
+obese.cohabiting <- 103
+obese.married <- 147
+not.obese.dating <- 359
+not.obese.cohabiting<- 326
+not.obese.married <- 277
+
+obese.n <- sum(obese.married,obese.cohabiting,obese.dating)
+not.obese.n <- sum(not.obese.married,not.obese.cohabiting,not.obese.dating)
+
+dating.n <- sum(obese.dating,not.obese.dating)
+cohabint.n <- sum(obese.cohabiting,not.obese.cohabiting)
+married.n <- sum(obese.married,not.obese.married)
+
+total.n <- sum(obese.n,not.obese.n)
+
+(obesity.rate <- obese.n / total.n)
+
+(exp.obesity.cnt.dating <- round(obesity.rate*dating.n))
+(exp.obesity.cnt.cohabiting <- round(obesity.rate*cohabint.n))
+(exp.obesity.cnt.married <- floor(obesity.rate*married.n))
+
+sum(exp.obesity.cnt.cohabiting,exp.obesity.cnt.dating,exp.obesity.cnt.married)
+
+(not.obese.rate <- not.obese.n / total.n)
+
+
+(exp.not.obese.cnt.dating <- round(not.obese.rate*dating.n))
+(exp.not.obese.cnt.cohabiting <- round(not.obese.rate*cohabint.n))
+(exp.not.obese.cnt.married <- ceiling(not.obese.rate*married.n))
+
+sum(exp.not.obese.cnt.cohabiting,exp.not.obese.cnt.dating,exp.not.obese.cnt.married)
+
+obese.counts <- c(obese.dating,obese.cohabiting,obese.married)
+exp.obese.counts <- c(exp.obesity.cnt.dating,exp.obesity.cnt.cohabiting,exp.obesity.cnt.married)
+chi.sq.obese <- sum((obese.counts - exp.obese.counts)^2/exp.obese.counts)
+
+not.obese.counts <- c(not.obese.dating,not.obese.cohabiting,not.obese.married)
+exp.not.obese.counts <- c(exp.not.obese.cnt.dating,exp.not.obese.cnt.cohabiting,
+                      exp.not.obese.cnt.married)
+chi.sq.not.obese <- sum((not.obese.counts - exp.not.obese.counts)^2/exp.not.obese.counts)
+
+chi.sq <- sum(chi.sq.obese,chi.sq.not.obese)
+
+rows <- 2
+cols <- 3
+dF <- (rows - 1)*(cols - 1)
+
+pchisq(chi.sq,dF,lower.tail = F)
+
+```
+
+
