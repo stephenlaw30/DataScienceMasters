@@ -387,16 +387,20 @@ tibble(x = c("a,b,c", "d,e", "f,g,i")) %>% # not enough chars in 2nd set
 
 It will remove out input col(s) from output data frame, is = `TRUE` by default (i.e. can keep `year` in `seperate()` and keep `century` and `year` in `unite()`)
 
-*Compare and contrast separate() and extract(). Why are there three variations of separation (by position, by separator, and with groups), but only one unite?*
+*Compare and contrast separate() and extract().*
 
 ```{r}
 (df <- data.frame(x = c(NA, "a-b", "a-d", "b-c", "d-e")))
-df %>% extract(x, "A")
-df %>% separate(x ,"A", sep = "-")
+df %>% extract(x, into = "A")
+df %>% separate(x ,into = "A")
 
 ```
+ 
+ You don't have to name the seperator for `extract`, but you could use a RegEx, while in `separate` you use a **sep** argument. Also, `separate` has arguments to control what happens when there are too many/too few pieces in `sep`
 
-`extract` will only return the col we specify to extract(??????0)
+**Why are there three variations of separation (by position, by separator, and with groups), but only one unite?**
+
+You can only unit1 in *one* way (many to one), while we can separate one col into many cols in a variety of ways.
 
 # 12.5 Missing values
 
@@ -428,7 +432,7 @@ stocks %>%
   spread(year, return) # turn year col values into cols w/ values = return values
 ```
 
-B/c these explicit missing values may not be important in other representations of the data, you can set na.rm = TRUE in `gather()` to turn explicit missing values implicit:
+B/c these explicit missing values may not be important in other representations of the data, you can set na.rm = TRUE in `gather()` to turn explicit missing values into implicit ones:
 
 ```{r}
 stocks %>% 
@@ -436,50 +440,47 @@ stocks %>%
   gather(year, return, `2015`:`2016`, na.rm = TRUE) # get the 2015+2016 cols + put their values into return col
 ```
 
-```{r}
-Another important tool for making missing values explicit in tidy data is complete():
 
+Another important tool for making missing values explicit in tidy data = `complete()`:
+```{r}
 stocks %>% 
   complete(year, qtr)
-#> # A tibble: 8 ? 3
-#>    year   qtr return
-#>   <dbl> <dbl>  <dbl>
-#> 1  2015     1   1.88
-#> 2  2015     2   0.59
-#> 3  2015     3   0.35
-#> 4  2015     4     NA
-#> 5  2016     1     NA
-#> 6  2016     2   0.92
-#> # ... with 2 more rows
-complete() takes a set of columns, and finds all unique combinations. It then ensures the original dataset contains all those values, filling in explicit NAs where necessary.
+```
 
-There's one other important tool that you should know for working with missing values. Sometimes when a data source has primarily been used for data entry, missing values indicate that the previous value should be carried forward:
+`complete()` takes a *set* of cols, finds all unique combos, + ensures the original dataset contains *all those values, filling in explicit NAs where necessary.* (i.e '16, Q1)
 
-treatment <- tribble(
+1 other important tool for working w/ missing values: Sometimes when a data source has primarily been used for data entry, missing values indicate the *previous value should be carried forward*:
+
+```{r}
+(treatment <- tribble(
   ~ person,           ~ treatment, ~response,
   "Derrick Whitmore", 1,           7,
   NA,                 2,           10,
   NA,                 3,           9,
   "Katherine Burke",  1,           4
-)
-You can fill in these missing values with fill(). It takes a set of columns where you want missing values to be replaced by the most recent non-missing value (sometimes called last observation carried forward).
+))
+```
 
+Fill in these missing values w/ `fill()` = takes a *set* of cols where you want missing values to be replaced by most recent non-missing value/last observation
+
+```{r}
 treatment %>% 
   fill(person)
-#> # A tibble: 4 ? 3
-#>             person treatment response
-#>              <chr>     <dbl>    <dbl>
-#> 1 Derrick Whitmore         1        7
-#> 2 Derrick Whitmore         2       10
-#> 3 Derrick Whitmore         3        9
-#> 4  Katherine Burke         1        4
-12.5.1 Exercises
+```
 
-Compare and contrast the fill arguments to spread() and complete().
+### 12.5.1 Exercises
 
-What does the direction argument to fill() do?
+**Compare and contrast the fill arguments to spread() and complete().**
 
-12.6 Case Study
+In `complete`, it takes a *list* of values to use for any NA in combos of variables to turn implicit into explicit missing variables
+
+In `spread()`, it fills in missing values with a *specified* value for both implicit missing values
+
+**What does the direction argument to fill() do?**
+
+Specifies if we should fill the last non-missing value upwards or downwards.
+
+## 12.6 Case Study
 
 To finish off the chapter, let's pull together everything you've learned to tackle a realistic data tidying problem. The tidyr::who dataset contains tuberculosis (TB) cases broken down by year, country, age, gender, and diagnosis method. The data comes from the 2014 World Health Organization Global Tuberculosis Report, available at http://www.who.int/tb/country/data/download/en/.
 
