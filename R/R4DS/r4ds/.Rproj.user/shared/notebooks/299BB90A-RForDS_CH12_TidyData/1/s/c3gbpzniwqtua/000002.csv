@@ -1,0 +1,7 @@
+"0","(treatment <- tribble("
+"0","  ~ person,           ~ treatment, ~response,"
+"0","  ""Derrick Whitmore"", 1,           7,"
+"0","  NA,                 2,           10,"
+"0","  NA,                 3,           9,"
+"0","  ""Katherine Burke"",  1,           4"
+"0","))"
