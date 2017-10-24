@@ -1,3 +1,0 @@
-"0","stocks %>% "
-"0","  spread(year, return) %>% # turn year col values into cols w/ values = return values"
-"0","  gather(year, return, `2015`:`2016`, na.rm = TRUE) # get the 2015+2016 cols + put their values into return col"
