@@ -1,0 +1,6 @@
+"0","who %>%"
+"0","  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% # gather sequence of cols into ""code"" col and counts into ""cases"""
+"0","  mutate(code = stringr::str_replace(code, ""newrel"", ""new_rel"")) %>% # fix code name"
+"0","  separate(code, c(""new"", ""var"", ""sexage"")) %>% # seperate out code by underscore"
+"0","  select(-new, -iso2, -iso3) %>%# remove redundant cols"
+"0","  separate(sexage, c(""sex"", ""age""), sep = 1) # sepearte out sexage into sex and age"

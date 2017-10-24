@@ -1,0 +1,2 @@
+"0","(who3 <- who2 %>% "
+"0","  separate(key, into = c(""new"", ""type"", ""sexage""), sep = ""_""))"

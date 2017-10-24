@@ -1,0 +1,2 @@
+"0","(who4 <- who3 %>% "
+"0","  separate(sexage, into = c(""sex"", ""age""), sep = 1)) # 1 = 1st char"

@@ -1,0 +1,3 @@
+"0","(who2 <- who1 %>% "
+"0","  mutate(key = stringr::str_replace(key, ""newrel"", ""new_rel"")))"
+"2","package ‘bindrcpp’ was built under R version 3.4.1"

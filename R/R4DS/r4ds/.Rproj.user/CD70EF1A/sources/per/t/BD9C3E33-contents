@@ -242,8 +242,8 @@ It computes on each new col and converts the possibly mixed-type variable values
 
 *Why does this code fail?*
 ```{r}
-table4a %>% 
-  gather(1999, 2000, key = "year", value = "cases")
+#table4a %>% 
+#  gather(1999, 2000, key = "year", value = "cases")
 #> Error in combine_vars(vars, ind_list): Position must be between 0 and n
 ```
 
@@ -252,7 +252,7 @@ table4a %>%
 *Why does spreading this tibble fail? How could you add a new column to fix the problem?*
 
 ```{r}
-(people <- tribble(
+' (people <- tribble(
   ~name,             ~key,    ~value,
   #-----------------|--------|------
   "Phillip Woods",   "age",       45,
@@ -262,7 +262,7 @@ table4a %>%
   "Jessica Cordero", "height",   156
 ))
 people %>%
-  spread(key = key, value = value)
+  spread(key = key, value = value)'
 ```
 
 Some record identifiers (`name`) have 2 values for age or for height, so `spread()` doesn't know how to split these out into their own record (1 value for age or height per person/name)
@@ -482,183 +482,121 @@ Specifies if we should fill the last non-missing value upwards or downwards.
 
 ## 12.6 Case Study
 
-To finish off the chapter, let's pull together everything you've learned to tackle a realistic data tidying problem. The tidyr::who dataset contains tuberculosis (TB) cases broken down by year, country, age, gender, and diagnosis method. The data comes from the 2014 World Health Organization Global Tuberculosis Report, available at http://www.who.int/tb/country/data/download/en/.
+Realistic data tidying problem = `tidyr::who` dataset contains tuberculosis (TB) cases broken down by year, country, age, gender, + Dx method from the 2014 World Health Organization Global Tuberculosis Report (http://www.who.int/tb/country/data/download/en/)
 
-There's a wealth of epidemiological information in this dataset, but it's challenging to work with the data in the form that it's provided:
-
+There's a wealth of epidemiological info in this dataset, but it's challenging to work w/ in the form data is provided in:
+```{r}
 who
-#> # A tibble: 7,240 ? 60
-#>       country  iso2  iso3  year new_sp_m014 new_sp_m1524 new_sp_m2534
-#>         <chr> <chr> <chr> <int>       <int>        <int>        <int>
-#> 1 Afghanistan    AF   AFG  1980          NA           NA           NA
-#> 2 Afghanistan    AF   AFG  1981          NA           NA           NA
-#> 3 Afghanistan    AF   AFG  1982          NA           NA           NA
-#> 4 Afghanistan    AF   AFG  1983          NA           NA           NA
-#> 5 Afghanistan    AF   AFG  1984          NA           NA           NA
-#> 6 Afghanistan    AF   AFG  1985          NA           NA           NA
-#> # ... with 7,234 more rows, and 53 more variables: new_sp_m3544 <int>,
-#> #   new_sp_m4554 <int>, new_sp_m5564 <int>, new_sp_m65 <int>,
-#> #   new_sp_f014 <int>, new_sp_f1524 <int>, new_sp_f2534 <int>,
-#> #   new_sp_f3544 <int>, new_sp_f4554 <int>, new_sp_f5564 <int>,
-#> #   new_sp_f65 <int>, new_sn_m014 <int>, new_sn_m1524 <int>,
-#> #   new_sn_m2534 <int>, new_sn_m3544 <int>, new_sn_m4554 <int>,
-#> #   new_sn_m5564 <int>, new_sn_m65 <int>, new_sn_f014 <int>,
-#> #   new_sn_f1524 <int>, new_sn_f2534 <int>, new_sn_f3544 <int>,
-#> #   new_sn_f4554 <int>, new_sn_f5564 <int>, new_sn_f65 <int>,
-#> #   new_ep_m014 <int>, new_ep_m1524 <int>, new_ep_m2534 <int>,
-#> #   new_ep_m3544 <int>, new_ep_m4554 <int>, new_ep_m5564 <int>,
-#> #   new_ep_m65 <int>, new_ep_f014 <int>, new_ep_f1524 <int>,
-#> #   new_ep_f2534 <int>, new_ep_f3544 <int>, new_ep_f4554 <int>,
-#> #   new_ep_f5564 <int>, new_ep_f65 <int>, newrel_m014 <int>,
-#> #   newrel_m1524 <int>, newrel_m2534 <int>, newrel_m3544 <int>,
-#> #   newrel_m4554 <int>, newrel_m5564 <int>, newrel_m65 <int>,
-#> #   newrel_f014 <int>, newrel_f1524 <int>, newrel_f2534 <int>,
-#> #   newrel_f3544 <int>, newrel_f4554 <int>, newrel_f5564 <int>,
-#> #   newrel_f65 <int>
-This is a very typical real-life example dataset. It contains redundant columns, odd variable codes, and many missing values. In short, who is messy, and we'll need multiple steps to tidy it. Like dplyr, tidyr is designed so that each function does one thing well. That means in real-life situations you'll usually need to string together multiple verbs into a pipeline.
+```
 
-The best place to start is almost always to gather together the columns that are not variables. Let's have a look at what we've got:
+Very typical real-life example dataset = redundant columns, odd variable codes, many missing values that needs multiple steps to tidy
 
-It looks like country, iso2, and iso3 are three variables that redundantly specify the country.
+Like `dplyr`, `tidyr` = designed so each function does 1 thing well =  means IRL, you'll usually need to string together multiple verbs into a pipeline.
 
-year is clearly also a variable.
+Almost always best place to start = **gather** together cols that are NOT variables. Let's have a look at what we've got:
 
-We don't know what all the other columns are yet, but given the structure in the variable names (e.g. new_sp_m014, new_ep_m014, new_ep_f014) these are likely to be values, not variables.
+<ul>
+<li> `country`, `iso2`, `iso3` = 3 variables that redundantly specify country </li>
+<li> `year` is clearly also a variable. </li>
+<li> don't know what all the other columns are yet, but given the structure in the names (`new_sp_m014`, `new_ep_m014`, `new_ep_f014`) these are likely to be *values*, NOT variables. </li>
+</ul>
 
-So we need to gather together all the columns from new_sp_m014 to newrel_f65. We don't know what those values represent yet, so we'll give them the generic name "key". We know the cells represent the count of cases, so we'll use the variable cases. There are a lot of missing values in the current representation, so for now we'll use na.rm just so we can focus on the values that are present.
+Need to `gather` together all cols from `new_sp_m014` to `newrel_f65` = don't know what those values represent yet, so give them the generic name **"key"**. 
 
-who1 <- who %>% 
-  gather(new_sp_m014:newrel_f65, key = "key", value = "cases", na.rm = TRUE)
-who1
-#> # A tibble: 76,046 ? 6
-#>       country  iso2  iso3  year         key cases
-#> *       <chr> <chr> <chr> <int>       <chr> <int>
-#> 1 Afghanistan    AF   AFG  1997 new_sp_m014     0
-#> 2 Afghanistan    AF   AFG  1998 new_sp_m014    30
-#> 3 Afghanistan    AF   AFG  1999 new_sp_m014     8
-#> 4 Afghanistan    AF   AFG  2000 new_sp_m014    52
-#> 5 Afghanistan    AF   AFG  2001 new_sp_m014   129
-#> 6 Afghanistan    AF   AFG  2002 new_sp_m014    90
-#> # ... with 7.604e+04 more rows
-We can get some hint of the structure of the values in the new key column by counting them:
+We know the cells represent counts of cases, so we'll use the variable `cases`. 
 
+There are a lot of missing values right now so for now use `na.rm` just to focus on values that're present.
+
+```{r}
+(who1 <- who %>% 
+  gather(new_sp_m014:newrel_f65,  # gather
+         key = "key", value = "cases", na.rm = TRUE))
+```
+
+Can now get some hint of the structure of the values in the new `key` column by counting them to get total counts of cases in each key:
+
+```{r}
 who1 %>% 
   count(key)
-#> # A tibble: 56 ? 2
-#>            key     n
-#>          <chr> <int>
-#> 1  new_ep_f014  1032
-#> 2 new_ep_f1524  1021
-#> 3 new_ep_f2534  1021
-#> 4 new_ep_f3544  1021
-#> 5 new_ep_f4554  1017
-#> 6 new_ep_f5564  1017
-#> # ... with 50 more rows
-You might be able to parse this out by yourself with a little thought and some experimentation, but luckily we have the data dictionary handy. It tells us:
+```
 
-The first three letters of each column denote whether the column contains new or old cases of TB. In this dataset, each column contains new cases.
+Might be able to parse this out by yourself w/ a little thought + experimentation, but luckily we have the data dictionary handy which tells us:
 
-The next two letters describe the type of TB:
+<ul>
+<li> 1st 3 letters of each col = whether col contains new/old cases of TB (In this dataset = all new cases) </li>
+<li> The next 2 letters describe the type of TB: </li>
+  <ul>
+  <li> **rel**=  cases of relapse </li>
+  <li> **ep** = cases of extrapulmonary TB </li>
+  <li> **sn** = cases of pulmonary TB that could not be diagnosed by a pulmonary smear (smear negative) </li>
+  <li> **sp** = cases of pulmonary TB that could be diagnosed be a pulmonary smear (smear positive) </li>
+  </ul>
+<li> 6th letter gives the sex of TB patients </li>
+<li> The remaining numbers gives the age group in 7 seven age groups </li>
+</ul>
 
-rel stands for cases of relapse
-ep stands for cases of extrapulmonary TB
-sn stands for cases of pulmonary TB that could not be diagnosed by a pulmonary smear (smear negative)
-sp stands for cases of pulmonary TB that could be diagnosed be a pulmonary smear (smear positive)
-The sixth letter gives the sex of TB patients. The dataset groups cases by males (m) and females (f).
+Need to make a minor fix to the format of the col names b/c unfortunately the names are slightly inconsistent
 
-The remaining numbers gives the age group. The dataset groups cases into seven age groups:
+Instead of `new_rel` we have `newrel` --> use `str_replace()` to replac `newrel` with `new_rel` to make all variable names consistent.
 
-014 = 0 - 14 years old
-1524 = 15 - 24 years old
-2534 = 25 - 34 years old
-3544 = 35 - 44 years old
-4554 = 45 - 54 years old
-5564 = 55 - 64 years old
-65 = 65 or older
-We need to make a minor fix to the format of the column names: unfortunately the names are slightly inconsistent because instead of new_rel we have newrel (it's hard to spot this here but if you don't fix it we'll get errors in subsequent steps). You'll learn about str_replace() in strings, but the basic idea is pretty simple: replace the characters "newrel" with "new_rel". This makes all variable names consistent.
+```{r}
+(who2 <- who1 %>% 
+  mutate(key = stringr::str_replace(key, "newrel", "new_rel")))
+```
 
-who2 <- who1 %>% 
-  mutate(key = stringr::str_replace(key, "newrel", "new_rel"))
-who2
-#> # A tibble: 76,046 ? 6
-#>       country  iso2  iso3  year         key cases
-#>         <chr> <chr> <chr> <int>       <chr> <int>
-#> 1 Afghanistan    AF   AFG  1997 new_sp_m014     0
-#> 2 Afghanistan    AF   AFG  1998 new_sp_m014    30
-#> 3 Afghanistan    AF   AFG  1999 new_sp_m014     8
-#> 4 Afghanistan    AF   AFG  2000 new_sp_m014    52
-#> 5 Afghanistan    AF   AFG  2001 new_sp_m014   129
-#> 6 Afghanistan    AF   AFG  2002 new_sp_m014    90
-#> # ... with 7.604e+04 more rows
-We can separate the values in each code with two passes of separate(). The first pass will split the codes at each underscore.
+Separate values in each code w/ 2 passes of `separate()` w/ the 1st splitting at each underscore + the 2nd at each 1st char.
+```{r}
+(who3 <- who2 %>% 
+  separate(key, into = c("new", "type", "sexage"), sep = "_"))
+(who4 <- who3 %>% 
+  separate(sexage, into = c("sex", "age"), sep = 1)) # 1 = 1st char
+```
 
-who3 <- who2 %>% 
-  separate(key, c("new", "type", "sexage"), sep = "_")
-who3
-#> # A tibble: 76,046 ? 8
-#>       country  iso2  iso3  year   new  type sexage cases
-#> *       <chr> <chr> <chr> <int> <chr> <chr>  <chr> <int>
-#> 1 Afghanistan    AF   AFG  1997   new    sp   m014     0
-#> 2 Afghanistan    AF   AFG  1998   new    sp   m014    30
-#> 3 Afghanistan    AF   AFG  1999   new    sp   m014     8
-#> 4 Afghanistan    AF   AFG  2000   new    sp   m014    52
-#> 5 Afghanistan    AF   AFG  2001   new    sp   m014   129
-#> 6 Afghanistan    AF   AFG  2002   new    sp   m014    90
-#> # ... with 7.604e+04 more rows
-Then we might as well drop the new column because it's constant in this dataset. While we're dropping columns, let's also drop iso2 and iso3 since they're redundant.
-
-who3 %>% 
+Drop `new`  b/c it's constant in this dataset + drop `iso2` and `iso3` since they're redundant.
+```{r}
+who4 %>% 
   count(new)
-#> # A tibble: 1 ? 2
-#>     new     n
-#>   <chr> <int>
-#> 1   new 76046
-who4 <- who3 %>% 
-  select(-new, -iso2, -iso3)
-Next we'll separate sexage into sex and age by splitting after the first character:
 
-who5 <- who4 %>% 
-  separate(sexage, c("sex", "age"), sep = 1)
-who5
-#> # A tibble: 76,046 ? 6
-#>       country  year  type   sex   age cases
-#> *       <chr> <int> <chr> <chr> <chr> <int>
-#> 1 Afghanistan  1997    sp     m   014     0
-#> 2 Afghanistan  1998    sp     m   014    30
-#> 3 Afghanistan  1999    sp     m   014     8
-#> 4 Afghanistan  2000    sp     m   014    52
-#> 5 Afghanistan  2001    sp     m   014   129
-#> 6 Afghanistan  2002    sp     m   014    90
-#> # ... with 7.604e+04 more rows
-The who dataset is now tidy!
+(who5 <- who4 %>% 
+  select(-new, -iso2, -iso3))
+```
 
-I've shown you the code a piece at a time, assigning each interim result to a new variable. This typically isn't how you'd work interactively. Instead, you'd gradually build up a complex pipe:
+**The who dataset is now tidy!**
 
+I've shown you the code a piece at a time, assigning each interim result to a new variable = typically isn't how you'd work interactively. Instead, you'd gradually build up a complex pipe:
+
+```{r}
 who %>%
-  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% 
-  mutate(code = stringr::str_replace(code, "newrel", "new_rel")) %>%
-  separate(code, c("new", "var", "sexage")) %>% 
-  select(-new, -iso2, -iso3) %>% 
-  separate(sexage, c("sex", "age"), sep = 1)
-12.6.1 Exercises
+  gather(code, value, new_sp_m014:newrel_f65, na.rm = TRUE) %>% # gather sequence of cols into "code" col and counts into "cases"
+  mutate(code = stringr::str_replace(code, "newrel", "new_rel")) %>% # fix code name
+  separate(code, c("new", "var", "sexage")) %>% # seperate out code by underscore
+  select(-new, -iso2, -iso3) %>%# remove redundant cols
+  separate(sexage, c("sex", "age"), sep = 1) # sepearte out sexage into sex and age
+```
 
-In this case study I set na.rm = TRUE just to make it easier to check that we had the correct values. Is this reasonable? Think about how missing values are represented in this dataset. Are there implicit missing values? What's the difference between an NA and zero?
+## 12.6.1 Exercises
 
-What happens if you neglect the mutate() step? (mutate(key = stringr::str_replace(key, "newrel", "new_rel")))
+*In this case study I set na.rm = TRUE just to make it easier to check that we had the correct values. Is this reasonable? Think about how missing values are represented in this dataset. Are there implicit missing values? What's the difference between an NA and zero?*
 
-I claimed that iso2 and iso3 were redundant with country. Confirm this claim.
+*What happens if you neglect the mutate() step? (mutate(key = stringr::str_replace(key, "newrel", "new_rel")))*
 
-For each country, year, and sex compute the total number of cases of TB. Make an informative visualisation of the data.
+*I claimed that iso2 and iso3 were redundant with country. Confirm this claim.*
 
-12.7 Non-tidy data
+*For each country, year, and sex compute the total number of cases of TB. Make an informative visualisation of the data.*
 
-Before we continue on to other topics, it's worth talking briefly about non-tidy data. Earlier in the chapter, I used the pejorative term "messy" to refer to non-tidy data. That's an oversimplification: there are lots of useful and well-founded data structures that are not tidy data. There are two main reasons to use other data structures:
+## 12.7 Non-tidy data
 
-Alternative representations may have substantial performance or space advantages.
+Saying a non-tidy data is "messy" = an oversimplification b/c there are lots of useful + well-founded data structures that are not tidy 
 
-Specialised fields have evolved their own conventions for storing data that may be quite different to the conventions of tidy data.
+2 main reasons to use other data structures:
 
-Either of these reasons means you'll need something other than a tibble (or data frame). If your data does fit naturally into a rectangular structure composed of observations and variables, I think tidy data should be your default choice. But there are good reasons to use other structures; tidy data is not the only way.
+<ul>
+<li> Alternative representations may have substantial performance or space advantages. </li> 
+<li> Specialised fields have evolved their own conventions for storing data that may be quite different to conventions of tidy data </li>
+</ul> 
 
-If you'd like to learn more about non-tidy data, I'd highly recommend this thoughtful blog post by Jeff Leek: http://simplystatistics.org/2016/02/17/non-tidy-data/
+Either of these reasons means you'll need something other than a tibble/data frame. 
 
+If data does fit naturally into a rectangular structure composed of observations + variables, tidy data should be default choice, but there are good reasons to use other structures, so tidy data is not the only way.
+
+If you'd like to learn more about non-tidy data, look @ blog post by Jeff Leek: http://simplystatistics.org/2016/02/17/non-tidy-data/
