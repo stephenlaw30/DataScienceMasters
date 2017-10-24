@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1508887603465.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "743884099",
+    "id" : "B8C3643A",
+    "lastKnownWriteTime" : 1508889340,
+    "last_content_update" : 1508889340428,
+    "path" : "C:/Users/Nimz/Dropbox/DataScienceMasters/MachineLearning/Udemy/10_SVM/KernelSVM.Rmd",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "99,177",
+        "scrollLine" : "94",
+        "tempName" : "Untitled2"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

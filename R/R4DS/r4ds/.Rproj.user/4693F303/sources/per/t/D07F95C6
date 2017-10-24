@@ -5,16 +5,16 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "2842345099",
+    "hash" : "1873374808",
     "id" : "D07F95C6",
-    "lastKnownWriteTime" : 1508801702,
-    "last_content_update" : 1508801702327,
+    "lastKnownWriteTime" : 1508875975,
+    "last_content_update" : 1508875975,
     "path" : "C:/Users/Nimz/Dropbox/DataScienceMasters/R/R4DS/r4ds/RForDS_CH12_TidyData.Rmd",
     "project_path" : "RForDS_CH12_TidyData.Rmd",
     "properties" : {
         "cursorPosition" : "482,3",
         "last_setup_crc32" : "",
-        "scrollLine" : "471"
+        "scrollLine" : "509"
     },
     "relative_order" : 7,
     "source_on_save" : false,
