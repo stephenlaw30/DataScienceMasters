@@ -1,7 +1,0 @@
-"0","inference(y = response, data = us12, statistic = ""proportion"", type = ""ci"", method = ""theoretical"", success = ""atheist"")"
-"1","Single categorical variable, success: atheist
-"
-"1","n = 1002, p-hat = 0.0499
-"
-"1","95% CI: (0.0364 , 0.0634)
-"

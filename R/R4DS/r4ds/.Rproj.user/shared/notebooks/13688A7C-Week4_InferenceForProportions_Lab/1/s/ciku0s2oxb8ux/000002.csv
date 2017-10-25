@@ -1,7 +1,0 @@
-"0","d <- data.frame(p <- seq(0, 1, 0.01))"
-"0","n <- 1000"
-"0","d <- d %>%"
-"0","  mutate(me = 1.96*sqrt(p*(1 - p)/n))"
-"0","d %>% "
-"0","  ggplot(aes(p, me)) +"
-"0","    geom_line()"

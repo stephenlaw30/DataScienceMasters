@@ -1,6 +1,0 @@
-"0","library(tidyverse)"
-"0","library(ggplot2)"
-"0","library(caTools)"
-"0","library(e1071) # most popular SVM libary, other is `kernlab`"
-"0","library(ElemStatLearn)"
-"2","package ‘ElemStatLearn’ was built under R version 3.4.2"
