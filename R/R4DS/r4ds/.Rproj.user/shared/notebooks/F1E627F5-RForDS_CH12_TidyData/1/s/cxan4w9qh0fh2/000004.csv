@@ -1,2 +1,0 @@
-"0","(who5 <- who4 %>% "
-"0","  select(-new, -iso2, -iso3))"
