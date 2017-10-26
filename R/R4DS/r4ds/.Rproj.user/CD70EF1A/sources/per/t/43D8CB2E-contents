@@ -26,3 +26,12 @@ hs_bar <- 86.01
 ```{R}
 int + (slope*82)
 ```
+
+
+```{r}
+int <- 64.68
+HSgr <- 81.4
+slope <- -0.62
+(int + slope*HSgr)
+```
+````

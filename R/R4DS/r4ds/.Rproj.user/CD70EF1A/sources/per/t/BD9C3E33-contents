@@ -136,11 +136,11 @@ Add a surrogate key to flights.
 
 Identify the keys in the following datasets
 
-Lahman::Batting,
+Lahman::Batting = playerID, yearID, stint
 babynames::babynames
 nasaweather::atmos
 fueleconomy::vehicles
-ggplot2::diamonds
+ggplot2::diamonds = none
 (You might need to install some packages and read some documentation.)
 
 Draw a diagram illustrating the connections between the Batting, Master, and Salaries tables in the Lahman package. Draw another diagram that shows the relationship between Master, Managers, AwardsManagers.
@@ -149,65 +149,37 @@ How would you characterise the relationship between the Batting, Pitching, and F
 
 ## 13.4 Mutating joins
 
-The first tool we’ll look at for combining a pair of tables is the mutating join. A mutating join allows you to combine variables from two tables. It first matches observations by their keys, then copies across variables from one table to the other.
+Tool for combining a pair of tables = **mutating join** = 1st matches observations by keys then copies across variables from 1 table to the other.
 
-Like mutate(), the join functions add variables to the right, so if you have a lot of variables already, the new variables won’t get printed out. For these examples, we’ll make it easier to see what’s going on in the examples by creating a narrower dataset:
+Like `mutate()`, `join` functions add variables to the right.
 
+
+Imagine you want to add the full airline `name` to `flights2` data --> combine `airlines` + `flights2` data frames w/ `left_join()`:
+
+
+```{r}
 flights2 <- flights %>% 
   select(year:day, hour, origin, dest, tailnum, carrier)
-flights2
-#> # A tibble: 336,776 × 8
-#>    year month   day  hour origin  dest tailnum carrier
-#>   <int> <int> <int> <dbl>  <chr> <chr>   <chr>   <chr>
-#> 1  2013     1     1     5    EWR   IAH  N14228      UA
-#> 2  2013     1     1     5    LGA   IAH  N24211      UA
-#> 3  2013     1     1     5    JFK   MIA  N619AA      AA
-#> 4  2013     1     1     5    JFK   BQN  N804JB      B6
-#> 5  2013     1     1     6    LGA   ATL  N668DN      DL
-#> 6  2013     1     1     5    EWR   ORD  N39463      UA
-#> # ... with 3.368e+05 more rows
-(Remember, when you’re in RStudio, you can also use View() to avoid this problem.)
-
-Imagine you want to add the full airline name to the flights2 data. You can combine the airlines and flights2 data frames with left_join():
 
 flights2 %>%
   select(-origin, -dest) %>% 
   left_join(airlines, by = "carrier")
-#> # A tibble: 336,776 × 7
-#>    year month   day  hour tailnum carrier                   name
-#>   <int> <int> <int> <dbl>   <chr>   <chr>                  <chr>
-#> 1  2013     1     1     5  N14228      UA  United Air Lines Inc.
-#> 2  2013     1     1     5  N24211      UA  United Air Lines Inc.
-#> 3  2013     1     1     5  N619AA      AA American Airlines Inc.
-#> 4  2013     1     1     5  N804JB      B6        JetBlue Airways
-#> 5  2013     1     1     6  N668DN      DL   Delta Air Lines Inc.
-#> 6  2013     1     1     5  N39463      UA  United Air Lines Inc.
-#> # ... with 3.368e+05 more rows
-The result of joining airlines to flights2 is an additional variable: name. This is why I call this type of join a mutating join. In this case, you could have got to the same place using mutate() and R’s base subsetting:
+```
 
+Get an additional variable: `name` -- > could've got to the same place using `mutate()` + base R’s base subsetting (hence *mutating* join)
+
+```{r}
 flights2 %>%
   select(-origin, -dest) %>% 
   mutate(name = airlines$name[match(carrier, airlines$carrier)])
-#> # A tibble: 336,776 × 7
-#>    year month   day  hour tailnum carrier                   name
-#>   <int> <int> <int> <dbl>   <chr>   <chr>                  <chr>
-#> 1  2013     1     1     5  N14228      UA  United Air Lines Inc.
-#> 2  2013     1     1     5  N24211      UA  United Air Lines Inc.
-#> 3  2013     1     1     5  N619AA      AA American Airlines Inc.
-#> 4  2013     1     1     5  N804JB      B6        JetBlue Airways
-#> 5  2013     1     1     6  N668DN      DL   Delta Air Lines Inc.
-#> 6  2013     1     1     5  N39463      UA  United Air Lines Inc.
-#> # ... with 3.368e+05 more rows
-But this is hard to generalise when you need to match multiple variables, and takes close reading to figure out the overall intent.
+```
 
-The following sections explain, in detail, how mutating joins work. You’ll start by learning a useful visual representation of joins. We’ll then use that to explain the four mutating join functions: the inner join, and the three outer joins. When working with real data, keys don’t always uniquely identify observations, so next we’ll talk about what happens when there isn’t a unique match. Finally, you’ll learn how to tell dplyr which variables are the keys for a given join.
+This is hard to generalise when you need to match *multiple* variables + takes close reading to figure out the overall intent.
 
-13.4.1 Understanding joins
+#### 13.4.1 Understanding joins
 
 To help you learn how joins work, I’m going to use a visual representation:
-
-
-
+```{r}
 x <- tribble(
   ~key, ~val_x,
      1, "x1",
@@ -220,68 +192,40 @@ y <- tribble(
      2, "y2",
      4, "y3"
 )
-The coloured column represents the “key” variable: these are used to match the rows between the tables. The grey column represents the “value” column that is carried along for the ride. In these examples I’ll show a single key variable, but the idea generalises in a straightforward way to multiple keys and multiple values.
+```
 
-A join is a way of connecting each row in x to zero, one, or more rows in y. The following diagram shows each potential match as an intersection of a pair of lines.
+#### 13.4.2 Inner join
 
+Ssimplest type of join = **inner join** = matches pairs of observations whenever their keys are equal: (To be precise, this is an inner **equijoin** b/c keys are matched using the equality operator =, + since *most* joins = equijoins we usually drop that specification.)
 
-
-(If you look closely, you might notice that we’ve switched the order of the key and value columns in x. This is to emphasise that joins match based on the key; the value is just carried along for the ride.)
-
-In an actual join, matches will be indicated with dots. The number of dots = the number of matches = the number of rows in the output.
-
-
-
-13.4.2 Inner join
-
-The simplest type of join is the inner join. An inner join matches pairs of observations whenever their keys are equal:
-
-
-
-(To be precise, this is an inner equijoin because the keys are matched using the equality operator. Since most joins are equijoins we usually drop that specification.)
-
-The output of an inner join is a new data frame that contains the key, the x values, and the y values. We use by to tell dplyr which variable is the key:
-
+Output of an inner join = new data frame w/ the key, x values, + y values. We use `by` to tell dplyr which variable is the key:
+```{r}
 x %>% 
   inner_join(y, by = "key")
-#> # A tibble: 2 × 3
-#>     key val_x val_y
-#>   <dbl> <chr> <chr>
-#> 1     1    x1    y1
-#> 2     2    x2    y2
-The most important property of an inner join is that unmatched rows are not included in the result. This means that generally inner joins are usually not appropriate for use in analysis because it’s too easy to lose observations.
+```
 
-13.4.3 Outer joins
+Most important property of inner join = unmatched rows are NOT included in result (generally inner joins = usually NOT appropriate for use in analysis b/c it’s too easy to lose observations)
 
-An inner join keeps observations that appear in both tables. An outer join keeps observations that appear in at least one of the tables. There are three types of outer joins:
+#### 13.4.3 Outer joins
 
-A left join keeps all observations in x.
-A right join keeps all observations in y.
-A full join keeps all observations in x and y.
-These joins work by adding an additional “virtual” observation to each table. This observation has a key that always matches (if no other key matches), and a value filled with NA.
+Outer join keeps observations that appear in *at least 1* of the tables --> 3 types:
+<ul>
+<li> A left join keeps all observations in x. <li>
+<li> A right join keeps all observations in y. <li>
+<li> A full join keeps all observations in x + y. <li>
+</ul>
 
-Graphically, that looks like:
+Most commonly used join = left join --> used whenever you look up additional data from another table b/c it preserves original observations when there isn’t a match. 
 
+Left join should = default join, unless you have a strong reason to prefer 1 of the others.
 
+#### 13.4.4 Duplicate keys
 
-The most commonly used join is the left join: you use this whenever you look up additional data from another table, because it preserves the original observations even when there isn’t a match. The left join should be your default join: use it unless you have a strong reason to prefer one of the others.
+So far, we've assumed keys are unique. --> not always the case. When keys are not unique, there are 2 possibilities:
 
-Another way to depict the different types of joins is with a Venn diagram:
+1) 1 table has duplicate keys = useful when you want to add in additional info as there is typically a one-to-many relationship. <li>
 
-
-
-However, this is not a great representation. It might jog your memory about which join preserves the observations in which table, but it suffers from a major limitation: a Venn diagram can’t show what happens when keys don’t uniquely identify an observation.
-
-13.4.4 Duplicate keys
-
-So far all the diagrams have assumed that the keys are unique. But that’s not always the case. This section explains what happens when the keys are not unique. There are two possibilities:
-
-One table has duplicate keys. This is useful when you want to add in additional information as there is typically a one-to-many relationship.
-
-
-
-Note that I’ve put the key column in a slightly different position in the output. This reflects that the key is a primary key in y and a foreign key in x.
-
+```{r}
 x <- tribble(
   ~key, ~val_x,
      1, "x1",
@@ -295,17 +239,12 @@ y <- tribble(
      2, "y2"
 )
 left_join(x, y, by = "key")
-#> # A tibble: 4 × 3
-#>     key val_x val_y
-#>   <dbl> <chr> <chr>
-#> 1     1    x1    y1
-#> 2     2    x2    y2
-#> 3     2    x3    y2
-#> 4     1    x4    y1
-Both tables have duplicate keys. This is usually an error because in neither table do the keys uniquely identify an observation. When you join duplicated keys, you get all possible combinations, the Cartesian product:
+```
 
+2) Both tables have duplicate keys = usually an error b/c in neither table do the keys uniquely ID an observation. 
 
-
+When you join duplicated keys, you get the **Cartesian product** = all possible combos
+```{r}
 x <- tribble(
   ~key, ~val_x,
      1, "x1",
@@ -321,86 +260,44 @@ y <- tribble(
      3, "y4"
 )
 left_join(x, y, by = "key")
-#> # A tibble: 6 × 3
-#>     key val_x val_y
-#>   <dbl> <chr> <chr>
-#> 1     1    x1    y1
-#> 2     2    x2    y2
-#> 3     2    x2    y3
-#> 4     2    x3    y2
-#> 5     2    x3    y3
-#> 6     3    x4    y4
-13.4.5 Defining the key columns
+```
 
-So far, the pairs of tables have always been joined by a single variable, and that variable has the same name in both tables. That constraint was encoded by by = "key". You can use other values for by to connect the tables in other ways:
+#### 13.4.5 Defining the key columns
 
-The default, by = NULL, uses all variables that appear in both tables, the so called natural join. For example, the flights and weather tables match on their common variables: year, month, day, hour and origin.
+So far = joining by a single variable w/ same name in both tables, a constraint encoded by ``by = "key"`.
 
+Can use other values for `by` to connect the tables in other ways:
+
+1) Default, `by = NULL`, uses *all* variables that appear in *both* tables = **natural join**.
+
+`flights` + `weather` tables match on common variables: `year`, `month`, `day`, `hour` and `origin`.
+```{r}
 flights2 %>% 
   left_join(weather)
-#> Joining, by = c("year", "month", "day", "hour", "origin")
-#> # A tibble: 336,776 × 18
-#>    year month   day  hour origin  dest tailnum carrier  temp  dewp humid
-#>   <dbl> <dbl> <int> <dbl>  <chr> <chr>   <chr>   <chr> <dbl> <dbl> <dbl>
-#> 1  2013     1     1     5    EWR   IAH  N14228      UA    NA    NA    NA
-#> 2  2013     1     1     5    LGA   IAH  N24211      UA    NA    NA    NA
-#> 3  2013     1     1     5    JFK   MIA  N619AA      AA    NA    NA    NA
-#> 4  2013     1     1     5    JFK   BQN  N804JB      B6    NA    NA    NA
-#> 5  2013     1     1     6    LGA   ATL  N668DN      DL  39.9  26.1  57.3
-#> 6  2013     1     1     5    EWR   ORD  N39463      UA    NA    NA    NA
-#> # ... with 3.368e+05 more rows, and 7 more variables: wind_dir <dbl>,
-#> #   wind_speed <dbl>, wind_gust <dbl>, precip <dbl>, pressure <dbl>,
-#> #   visib <dbl>, time_hour <dttm>
-A character vector, by = "x". This is like a natural join, but uses only some of the common variables. For example, flights and planes have year variables, but they mean different things so we only want to join by tailnum.
+```
 
+2) A character vector, `by = "x"` = like a natural join, but uses only *some* of the common variables
+
+`flights` and `planes` have `year` variables, but they mean different things so we only join by `tailnum`.
+```{r}
 flights2 %>% 
   left_join(planes, by = "tailnum")
-#> # A tibble: 336,776 × 16
-#>   year.x month   day  hour origin  dest tailnum carrier year.y
-#>    <int> <int> <int> <dbl>  <chr> <chr>   <chr>   <chr>  <int>
-#> 1   2013     1     1     5    EWR   IAH  N14228      UA   1999
-#> 2   2013     1     1     5    LGA   IAH  N24211      UA   1998
-#> 3   2013     1     1     5    JFK   MIA  N619AA      AA   1990
-#> 4   2013     1     1     5    JFK   BQN  N804JB      B6   2012
-#> 5   2013     1     1     6    LGA   ATL  N668DN      DL   1991
-#> 6   2013     1     1     5    EWR   ORD  N39463      UA   2012
-#> # ... with 3.368e+05 more rows, and 7 more variables: type <chr>,
-#> #   manufacturer <chr>, model <chr>, engines <int>, seats <int>,
-#> #   speed <int>, engine <chr>
-Note that the year variables (which appear in both input data frames, but are not constrained to be equal) are disambiguated in the output with a suffix.
+```
 
-A named character vector: by = c("a" = "b"). This will match variable a in table x to variable b in table y. The variables from x will be used in the output.
+Note that `year` variables (appears in both data frames, but are not constrained to be equal) are **disambiguated** in output w/ a suffix.
 
-For example, if we want to draw a map we need to combine the flights data with the airports data which contains the location (lat and long) of each airport. Each flight has an origin and destination airport, so we need to specify which one we want to join to:
+3) A named character vector: `by = c("a" = "b")` = matches variable a in table x to variable b in table y --> variables from x will be used in the output.
 
+Ex: Want to draw a map we need to combine `flights` data w/ `airports` data containing location (`lat` + `long`) of each airport. Each flight has an `origin` + `destination` airport, so we need to specify *which one* we want to join to:
+```{r}
 flights2 %>% 
   left_join(airports, c("dest" = "faa"))
-#> # A tibble: 336,776 × 15
-#>    year month   day  hour origin  dest tailnum carrier
-#>   <int> <int> <int> <dbl>  <chr> <chr>   <chr>   <chr>
-#> 1  2013     1     1     5    EWR   IAH  N14228      UA
-#> 2  2013     1     1     5    LGA   IAH  N24211      UA
-#> 3  2013     1     1     5    JFK   MIA  N619AA      AA
-#> 4  2013     1     1     5    JFK   BQN  N804JB      B6
-#> 5  2013     1     1     6    LGA   ATL  N668DN      DL
-#> 6  2013     1     1     5    EWR   ORD  N39463      UA
-#> # ... with 3.368e+05 more rows, and 7 more variables: name <chr>,
-#> #   lat <dbl>, lon <dbl>, alt <int>, tz <dbl>, dst <chr>, tzone <chr>
 
 flights2 %>% 
   left_join(airports, c("origin" = "faa"))
-#> # A tibble: 336,776 × 15
-#>    year month   day  hour origin  dest tailnum carrier                name
-#>   <int> <int> <int> <dbl>  <chr> <chr>   <chr>   <chr>               <chr>
-#> 1  2013     1     1     5    EWR   IAH  N14228      UA Newark Liberty Intl
-#> 2  2013     1     1     5    LGA   IAH  N24211      UA          La Guardia
-#> 3  2013     1     1     5    JFK   MIA  N619AA      AA John F Kennedy Intl
-#> 4  2013     1     1     5    JFK   BQN  N804JB      B6 John F Kennedy Intl
-#> 5  2013     1     1     6    LGA   ATL  N668DN      DL          La Guardia
-#> 6  2013     1     1     5    EWR   ORD  N39463      UA Newark Liberty Intl
-#> # ... with 3.368e+05 more rows, and 6 more variables: lat <dbl>,
-#> #   lon <dbl>, alt <int>, tz <dbl>, dst <chr>, tzone <chr>
-13.4.6 Exercises
+```
+
+# 13.4.6 Exercises
 
 Compute the average delay by destination, then join on the airports data frame so you can show the spatial distribution of delays. Here’s an easy way to draw a map of the United States:
 
@@ -422,27 +319,33 @@ What weather conditions make it more likely to see a delay?
 
 What happened on June 13 2013? Display the spatial pattern of delays, and then use Google to cross-reference with the weather.
 
-13.4.7 Other implementations
+# 13.4.7 Other implementations
 
-base::merge() can perform all four types of mutating join:
+`base::merge()` can perform all 4 types of mutating join:
 
-dplyr	merge
-inner_join(x, y)	merge(x, y)
-left_join(x, y)	merge(x, y, all.x = TRUE)
-right_join(x, y)	merge(x, y, all.y = TRUE),
-full_join(x, y)	merge(x, y, all.x = TRUE, all.y = TRUE)
-The advantages of the specific dplyr verbs is that they more clearly convey the intent of your code: the difference between the joins is really important but concealed in the arguments of merge(). dplyr’s joins are considerably faster and don’t mess with the order of the rows.
+<ul>
+<li> `inner_join(x, y)`   =	`merge(x, y)` </li>
+<li> `left_join(x, y)`    =	`merge(x, y, all.x = TRUE)` </li>
+<li> `right_join(x, y)`   =	`merge(x, y, all.y = TRUE)` </li>
+<li> `full_join(x, y)`    =	`merge(x, y, all.x = TRUE, all.y = TRUE)` </li>
 
-SQL is the inspiration for dplyr’s conventions, so the translation is straightforward:
 
-dplyr	SQL
-inner_join(x, y, by = "z")	SELECT * FROM x INNER JOIN y USING (z)
-left_join(x, y, by = "z")	SELECT * FROM x LEFT OUTER JOIN y USING (z)
-right_join(x, y, by = "z")	SELECT * FROM x RIGHT OUTER JOIN y USING (z)
-full_join(x, y, by = "z")	SELECT * FROM x FULL OUTER JOIN y USING (z)
+Advantages of `dplyr` verbs = more clearly convey intent of code + the difference between joins is really important, but is concealed in the arguments of `merge()` while `dplyr`’s joins are considerably faster + don’t mess w/ the order of the rows.
+
+**SQL** = inspiration for `dplyr`’s conventions, so the translation is straightforward:
+
+<ul>
+<li> `inner_join(x, y, by = "z")`   =	`SELECT * FROM x INNER JOIN y USING (z)` </li>
+<li> `left_join(x, y, by = "z")`    =	`SELECT * FROM x LEFT OUTER JOIN y USING (z)` </li>
+<li> `right_join(x, y, by = "z")`   =	`SELECT * FROM x RIGHT OUTER JOIN y USING (z)` </li>
+<li> `full_join(x, y, by = "z")`    =	`SELECT * FROM x FULL OUTER JOIN y USING (z)` </li>
+</ul>
+
 Note that “INNER” and “OUTER” are optional, and often omitted.
 
-Joining different variables between the tables, e.g. inner_join(x, y, by = c("a" = "b")) uses a slightly different syntax in SQL: SELECT * FROM x INNER JOIN y ON x.a = y.b. As this syntax suggests, SQL supports a wider range of join types than dplyr because you can connect the tables using constraints other than equality (sometimes called non-equijoins).
+Joining different variables between tables (e.g. `inner_join(x, y, by = c("a" = "b"))`) uses a slightly different syntax in SQL: `SELECT * FROM x INNER JOIN y ON x.a = y.b`. 
+
+As this syntax suggests, SQL supports a wider range of join types than `dplyr` b/c you can connect tables using constraints other than equality (**non-equijoins**).
 
 13.5 Filtering joins
 
