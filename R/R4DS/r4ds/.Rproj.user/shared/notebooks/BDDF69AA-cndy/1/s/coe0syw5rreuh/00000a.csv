@@ -1,6 +1,0 @@
-"0","candy %>%"
-"0","  filter(is.na(`Q1: GOING OUT?`) == F,"
-"0","  `Q2: GENDER` == ""Female"") %>%"
-"0","  ggplot() + "
-"0","  geom_bar(aes(`Q1: GOING OUT?`))"
-"2","Mangling the following names: Q6 | Chick-o-Sticks (we don<d5>t know what that is) -> Q6 | Chick-o-Sticks (we don<d5>t know what that is), Q6 | Hershey<d5>s Milk Chocolate -> Q6 | Hershey<d5>s Milk Chocolate, Q6 | Peanut M&M<d5>s -> Q6 | Peanut M&M<d5>s, Q6 | Reese<d5>s Peanut Butter Cups -> Q6 | Reese<d5>s Peanut Butter Cups. Use enc2native() to avoid the warning."

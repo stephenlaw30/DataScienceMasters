@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "1124107451",
+    "hash" : "4162465888",
     "id" : "43D8CB2E",
-    "lastKnownWriteTime" : 1508953825,
-    "last_content_update" : 1508953827743,
+    "lastKnownWriteTime" : 1509033424,
+    "last_content_update" : 1509033425195,
     "path" : "C:/Users/NEWNSS/Dropbox/DataScienceMasters/Stats/Coursera/DukeStatsWithR/Course3_Regression/week1_LinearRegression/Week1_LinReg.Rmd",
     "project_path" : null,
     "properties" : {
-        "cursorPosition" : "20,31",
-        "scrollLine" : "0"
+        "cursorPosition" : "26,5",
+        "scrollLine" : "6"
     },
     "relative_order" : 2,
     "source_on_save" : false,

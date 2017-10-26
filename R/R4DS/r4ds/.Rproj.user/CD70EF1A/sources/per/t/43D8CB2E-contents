@@ -20,3 +20,9 @@ pov_bar <- 11.35
 hs_bar <- 86.01
 (int <- pov_bar - slope*hs_bar)
 ```
+
+•	What is the predicted % living in poverty in states where the HS graduation rate = 82%? 
+
+```{R}
+int + (slope*82)
+```

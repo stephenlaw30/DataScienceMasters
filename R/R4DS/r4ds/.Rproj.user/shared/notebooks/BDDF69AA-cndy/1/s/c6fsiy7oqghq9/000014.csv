@@ -1,4 +1,0 @@
-"0","candy$`Q3: AGE` <- as.integer(candy$`Q3: AGE`)"
-"0","candy %>%"
-"0","  filter(is.na(`Q3: AGE`) == F) "
-"2","Mangling the following names: Q6 | Chick-o-Sticks (we don<d5>t know what that is) -> Q6 | Chick-o-Sticks (we don<d5>t know what that is), Q6 | Hershey<d5>s Milk Chocolate -> Q6 | Hershey<d5>s Milk Chocolate, Q6 | Peanut M&M<d5>s -> Q6 | Peanut M&M<d5>s, Q6 | Reese<d5>s Peanut Butter Cups -> Q6 | Reese<d5>s Peanut Butter Cups. Use enc2native() to avoid the warning."
