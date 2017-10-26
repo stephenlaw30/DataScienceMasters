@@ -1,0 +1,6 @@
+"0","candy %>%"
+"0","  group_by(`Q2: GENDER?`) %>%"
+"0","  summarise(count = n())"
+"2","Error in grouped_df_impl(data, unname(vars), drop) : 
+  Column `Q2: GENDER?` is unknown
+"

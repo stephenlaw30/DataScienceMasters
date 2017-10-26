@@ -1,0 +1,30 @@
+"0","library(tidyverse)"
+"2","Loading tidyverse: ggplot2
+Loading tidyverse: tibble
+Loading tidyverse: tidyr
+Loading tidyverse: readr
+Loading tidyverse: purrr
+Loading tidyverse: dplyr
+"
+"2","package ‘tidyr’ was built under R version 3.4.2"
+"2","package ‘dplyr’ was built under R version 3.4.2"
+"2","Conflicts with tidy packages ---------------------------------------------------------------------------
+"
+"2","filter(): dplyr, stats
+lag():    dplyr, stats
+"
+"0","library(ggplot2)"
+"2","Missing column names filled in: 'X114' [114]"
+"2","Parsed with column specification:
+cols(
+  .default = col_character(),
+  `Internal ID` = col_integer(),
+  `Q12: MEDIA [Daily Dish]` = col_integer(),
+  `Q12: MEDIA [Science]` = col_integer(),
+  `Q12: MEDIA [ESPN]` = col_integer(),
+  `Q12: MEDIA [Yahoo]` = col_integer()
+)
+"
+"2","See spec(...) for full column specifications.
+"
+"0","head(candy)"
