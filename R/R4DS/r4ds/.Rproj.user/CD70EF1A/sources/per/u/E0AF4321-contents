@@ -1,5 +1,0 @@
-#library(tidyverse)
-
-#library(knitr)
-kable(pressure)
-kable(mtcars)
