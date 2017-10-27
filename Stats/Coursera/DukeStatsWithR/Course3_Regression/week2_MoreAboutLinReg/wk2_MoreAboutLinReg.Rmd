@@ -1,0 +1,31 @@
+---
+title: "Wk1 - Correlation"
+author: "Steve Newns"
+output: html_document
+---
+
+## Hypothesis test for Linear Regresssion
+
+Is the explanatory variable a significant predictor of the response variable
+
+```{r}
+b0 <- 9.2076
+b1 <- 0.9014
+se <- .0963
+null <- 0
+(t <- (b1 - null) / se)
+
+n <- 27
+dF <- n - 2
+pt(t, dF, lower.tail = F)*2
+```
+
+## CI for the slope
+
+```{r}
+pe <- b1
+(t.crit <- abs(qt(p = .025, df = dF)))
+mOe <- t.crit*se
+(lower <- pe - mOe)
+(upper <- pe + mOe)
+```
