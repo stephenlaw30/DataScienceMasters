@@ -1,2 +1,0 @@
-"0","flights2 %>% "
-"0","  left_join(planes, by = ""tailnum"")"

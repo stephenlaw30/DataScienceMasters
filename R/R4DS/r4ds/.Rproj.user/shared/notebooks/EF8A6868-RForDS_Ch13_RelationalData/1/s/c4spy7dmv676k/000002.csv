@@ -1,4 +1,0 @@
-"0","flights2 %>% "
-"0","  left_join(weather)"
-"2","Joining, by = c(""year"", ""month"", ""day"", ""hour"", ""origin"")
-"

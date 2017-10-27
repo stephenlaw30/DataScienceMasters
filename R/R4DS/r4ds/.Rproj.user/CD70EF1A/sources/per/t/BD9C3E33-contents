@@ -63,15 +63,23 @@ For nycflights13:
 <li> `flights` connects to `weather` via `origin` (the location), + `year`, `month`, `day` and `hour` (the time). </li> 
 </ul>
 
-13.2.1 Exercises
+## 13.2.1 Exercises
 
-Imagine you wanted to draw (approximately) the route each plane flies from its origin to its destination. What variables would you need? What tables would you need to combine?
+**Imagine you wanted to draw (approximately) the route each plane flies from its origin to its destination. What variables would you need? What tables would you need to combine?**
 
-I forgot to draw the relationship between weather and airports. What is the relationship and how should it appear in the diagram?
+`flights` = `tailnum`,`flight`,`origin`,`dest`, `airports` = `faa`, `planes` = `tailnum`
 
-weather only contains information for the origin (NYC) airports. If it contained weather records for all airports in the USA, what additional relation would it define with flights?
+**What is the relationship between `weather` and `airports`?**
 
-We know that some days of the year are “special”, and fewer people than usual fly on them. How might you represent that data as a data frame? What would be the primary keys of that table? How would it connect to the existing tables?
+`weather::origin` = `airports` = `faa`
+
+**`weather` only contains info for origin (NYC) airports. If it contained weather records for ALL airports in the USA, what additional relation would it define with flights?**
+
+`year`, `month`, `day`, `hour` would match in both tables, but we need a col for `airport` overall, like `faa` in `weather`, instead of just `origin`
+
+**We know some days of the year are “special”, + fewer people than usual fly on them. How might you represent that data as a data frame? What would be the PK of that table? How would it connect to the existing tables?**
+
+Create a table for a date dimension for these "special" dates, and make a PK based on `year`, `month`, `day`, `hour`
 
 # 13.3 Keys
 
@@ -132,27 +140,41 @@ For example, in this data there’s a **many-to-many** relationship between airl
 
 ## 13.3.1 Exercises
 
-Add a surrogate key to flights.
+**Add a surrogate key to flights.**
+```{r}
+flights %>% 
+  mutate(rownum = row_number()) %>%
+  count(rownum, year, month, day, flight) %>% 
+  filter(n > 1)
+```
 
-Identify the keys in the following datasets
+**ID the keys in the following datasets**
 
 Lahman::Batting = playerID, yearID, stint
-babynames::babynames
-nasaweather::atmos
-fueleconomy::vehicles
+babynames::babynames = year, sex, name
+nasaweather::atmos = lat, long, year, month
+```{r}
+nasaweather::atmos %>% 
+  count(lat, long, year, month) %>% 
+  filter(n > 1)
+```
+
+fueleconomy::vehicles = id
 ggplot2::diamonds = none
-(You might need to install some packages and read some documentation.)
 
-Draw a diagram illustrating the connections between the Batting, Master, and Salaries tables in the Lahman package. Draw another diagram that shows the relationship between Master, Managers, AwardsManagers.
+**Draw a diagram illustrating the connections between the Batting, Master, and Salaries tables in the Lahman package. Draw another diagram that shows the relationship between Master, Managers, AwardsManagers.**
 
-How would you characterise the relationship between the Batting, Pitching, and Fielding tables?
+`playerID` + `yearID` (possibly `teamID` if traded) between `Batting` + `Pitching` + `Salaries`
+
+**How would you characterise the relationship between the Batting, Pitching, and Fielding tables?**
+
+`Batting` - `Pitching` = 1:1, `Batting` - `Salaries` = 1:1, `Pitching` - `Salaries` = 1:1
 
 ## 13.4 Mutating joins
 
 Tool for combining a pair of tables = **mutating join** = 1st matches observations by keys then copies across variables from 1 table to the other.
 
 Like `mutate()`, `join` functions add variables to the right.
-
 
 Imagine you want to add the full airline `name` to `flights2` data --> combine `airlines` + `flights2` data frames w/ `left_join()`:
 
@@ -347,92 +369,52 @@ Joining different variables between tables (e.g. `inner_join(x, y, by = c("a" = 
 
 As this syntax suggests, SQL supports a wider range of join types than `dplyr` b/c you can connect tables using constraints other than equality (**non-equijoins**).
 
-13.5 Filtering joins
+# 13.5 Filtering joins
 
-Filtering joins match observations in the same way as mutating joins, but affect the observations, not the variables. There are two types:
+**Filtering joins** match observations in the same way as mutating joins, but affect the *observations*, NOT the variables
 
-semi_join(x, y) keeps all observations in x that have a match in y.
-anti_join(x, y) drops all observations in x that have a match in y.
-Semi-joins are useful for matching filtered summary tables back to the original rows. For example, imagine you’ve found the top ten most popular destinations:
+2 types:
 
-top_dest <- flights %>%
+<ul>
+<li> `semi_join(x, y)` *keeps* all *observations* in x that have a match in y.</li>
+<li> `anti_join(x, y)` *drops* all *observations* in x that have a match in y.</li>
+</ul>
+
+**Semi-joins** = useful for matching filtered summary tables back to the original rows.
+
+Imagine you’ve found the top 10 most popular destinations:
+```{r}
+(top_dest <- flights %>%
   count(dest, sort = TRUE) %>%
-  head(10)
-top_dest
-#> # A tibble: 10 × 2
-#>    dest     n
-#>   <chr> <int>
-#> 1   ORD 17283
-#> 2   ATL 17215
-#> 3   LAX 16174
-#> 4   BOS 15508
-#> 5   MCO 14082
-#> 6   CLT 14064
-#> # ... with 4 more rows
-Now you want to find each flight that went to one of those destinations. You could construct a filter yourself:
+  head(10))
+```
 
+Now you want to find each flight that went to 1 of those destinations either via a filter yourself:
+```{r}
 flights %>% 
   filter(dest %in% top_dest$dest)
-#> # A tibble: 141,145 × 19
-#>    year month   day dep_time sched_dep_time dep_delay arr_time
-#>   <int> <int> <int>    <int>          <int>     <dbl>    <int>
-#> 1  2013     1     1      542            540         2      923
-#> 2  2013     1     1      554            600        -6      812
-#> 3  2013     1     1      554            558        -4      740
-#> 4  2013     1     1      555            600        -5      913
-#> 5  2013     1     1      557            600        -3      838
-#> 6  2013     1     1      558            600        -2      753
-#> # ... with 1.411e+05 more rows, and 12 more variables:
-#> #   sched_arr_time <int>, arr_delay <dbl>, carrier <chr>, flight <int>,
-#> #   tailnum <chr>, origin <chr>, dest <chr>, air_time <dbl>,
-#> #   distance <dbl>, hour <dbl>, minute <dbl>, time_hour <dttm>
-But it’s difficult to extend that approach to multiple variables. For example, imagine that you’d found the 10 days with highest average delays. How would you construct the filter statement that used year, month, and day to match it back to flights?
+```
 
-Instead you can use a semi-join, which connects the two tables like a mutating join, but instead of adding new columns, only keeps the rows in x that have a match in y:
+But this difficult to extend to multiple variables. If you found the 10 days w/ highest average delays, can't construct a `filter` statement using `year`, `month`, + `day` to match it back to flights
 
+Instead use a semi-join to connect the 2 tables like a mutating join, but instead of *adding new columns*, it only **KEEPS** the rows in x that have a match in y:
+```{r}
 flights %>% 
   semi_join(top_dest)
-#> Joining, by = "dest"
-#> # A tibble: 141,145 × 19
-#>    year month   day dep_time sched_dep_time dep_delay arr_time
-#>   <int> <int> <int>    <int>          <int>     <dbl>    <int>
-#> 1  2013     1     1      554            558        -4      740
-#> 2  2013     1     1      558            600        -2      753
-#> 3  2013     1     1      608            600         8      807
-#> 4  2013     1     1      629            630        -1      824
-#> 5  2013     1     1      656            700        -4      854
-#> 6  2013     1     1      709            700         9      852
-#> # ... with 1.411e+05 more rows, and 12 more variables:
-#> #   sched_arr_time <int>, arr_delay <dbl>, carrier <chr>, flight <int>,
-#> #   tailnum <chr>, origin <chr>, dest <chr>, air_time <dbl>,
-#> #   distance <dbl>, hour <dbl>, minute <dbl>, time_hour <dttm>
-Graphically, a semi-join looks like this:
+```
 
+Only the existence of a match is important + it doesn’t matter which observation is matched --> filtering joins never duplicate rows like mutating joins do
 
+The inverse of a semi-join is an **anti-join** = keeps rows that *don’t* have a match = useful for diagnosing join mismatches. 
 
-Only the existence of a match is important; it doesn’t matter which observation is matched. This means that filtering joins never duplicate rows like mutating joins do:
+When connecting `flights` + `planes`, you might be interested to know there are many `flights` that *don’t* have a match in planes:
 
-
-
-The inverse of a semi-join is an anti-join. An anti-join keeps the rows that don’t have a match:
-
-
-
-Anti-joins are useful for diagnosing join mismatches. For example, when connecting flights and planes, you might be interested to know that there are many flights that don’t have a match in planes:
-
+```{r}
 flights %>%
   anti_join(planes, by = "tailnum") %>%
   count(tailnum, sort = TRUE)
-#> # A tibble: 722 × 2
-#>   tailnum     n
-#>     <chr> <int>
-#> 1    <NA>  2512
-#> 2  N725MQ   575
-#> 3  N722MQ   513
-#> 4  N723MQ   507
-#> 5  N713MQ   483
-#> 6  N735MQ   396
-#> # ... with 716 more rows
+```
+
 13.5.1 Exercises
 
 What does it mean for a flight to have a missing tailnum? What do the tail numbers that don’t have a matching record in planes have in common? (Hint: one variable explains ~90% of the problems.)
@@ -447,36 +429,45 @@ What does anti_join(flights, airports, by = c("dest" = "faa")) tell you? What do
 
 You might expect that there’s an implicit relationship between plane and airline, because each plane is flown by a single airline. Confirm or reject this hypothesis using the tools you’ve learned above.
 
-13.6 Join problems
+# 13.6 Join problems
 
-The data you’ve been working with in this chapter has been cleaned up so that you’ll have as few problems as possible. Your own data is unlikely to be so nice, so there are a few things that you should do with your own data to make your joins go smoothly.
+Few things to do w/ data to make joins go smoothly.
 
-Start by identifying the variables that form the primary key in each table. You should usually do this based on your understanding of the data, not empirically by looking for a combination of variables that give a unique identifier. If you just look for variables without thinking about what they mean, you might get (un)lucky and find a combination that’s unique in your current data but the relationship might not be true in general.
+**1)** IDing variables that form the PK in each tabl, usually do this based on understanding of the data, not *empirically* (by looking for a combo of variables that give a unique ID).
 
-For example, the altitude and longitude uniquely identify each airport, but they are not good identifiers!
+If you just look for variables w/out thinking about what they mean, you might get (un)lucky + find a combo unique in your current data, *but the relationship might not be true in general*.
 
+Ex: `altitude` + `longitude` uniquely ID each airport, but they are not good identifiers
+```{r}
 airports %>% count(alt, lon) %>% filter(n > 1)
-#> Source: local data frame [0 x 3]
-#> Groups: alt [0]
-#> 
-#> # ... with 3 variables: alt <int>, lon <dbl>, n <int>
-Check that none of the variables in the primary key are missing. If a value is missing then it can’t identify an observation!
+```
 
-Check that your foreign keys match primary keys in another table. The best way to do this is with an anti_join(). It’s common for keys not to match because of data entry errors. Fixing these is often a lot of work.
+**2)** Check that none of the variables in the PK are missing b/c if a value is missing it can’t ID an observation
 
-If you do have missing keys, you’ll need to be thoughtful about your use of inner vs. outer joins, carefully considering whether or not you want to drop rows that don’t have a match.
+**3)** Check that FKs match PKs in another table + best way to so is w/ `anti_join()`. 
 
-Be aware that simply checking the number of rows before and after the join is not sufficient to ensure that your join has gone smoothly. If you have an inner join with duplicate keys in both tables, you might get unlucky as the number of dropped rows might exactly equal the number of duplicated rows!
+It’s common for keys not to match b/c of data entry errors + fixing these is often a lot of work.
 
-13.7 Set operations
+If you *do* have missing keys, be thoughtful about use of inner vs. outer joins, carefully considering whether or not to drop rows that don’t have a match.
 
-The final type of two-table verb are the set operations. Generally, I use these the least frequently, but they are occasionally useful when you want to break a single complex filter into simpler pieces. All these operations work with a complete row, comparing the values of every variable. These expect the x and y inputs to have the same variables, and treat the observations like sets:
+Be aware that simply checking the # of rows before + after a join is NOT sufficient to ensure a join has gone smoothly. 
 
-intersect(x, y): return only observations in both x and y.
-union(x, y): return unique observations in x and y.
-setdiff(x, y): return observations in x, but not in y.
+If you have an inner join w/ duplicate keys in both tables, you might get unlucky as the # of dropped rows might exactly equal the # of duplicated rows!
+
+# 13.7 Set operations
+
+Final type of 2-table verb = **set operations** = used least frequently but are occasionally useful to break a single complex filter into simpler pieces. 
+
+All these operations work w/ a complete row, comparing the values of every variable + they expect the x + y inputs to have the same variables, + they treat the observations like sets:
+
+<ul>
+<li> `intersect(x, y)`: return only observations in *BOTH* x and y. </li>
+<li> `union(x, y)`: return *unique* observations in x and y. </li>
+<li> `setdiff(x, y)`: return observations in x, but *not* in y. </li>
+</ul>
+
 Given this simple data:
-
+```{r}
 df1 <- tribble(
   ~x, ~y,
    1,  1,
@@ -487,31 +478,15 @@ df2 <- tribble(
    1,  1,
    1,  2
 )
-The four possibilities are:
+```
 
-intersect(df1, df2)
-#> # A tibble: 1 × 2
-#>       x     y
-#>   <dbl> <dbl>
-#> 1     1     1
+The 4 possibilities are:
+```{r}
+intersect(df1, df2) 
 
-# Note that we get 3 rows, not 4
-union(df1, df2)
-#> # A tibble: 3 × 2
-#>       x     y
-#>   <dbl> <dbl>
-#> 1     1     2
-#> 2     2     1
-#> 3     1     1
+union(df1, df2) # get 3 rows, not 4
 
 setdiff(df1, df2)
-#> # A tibble: 1 × 2
-#>       x     y
-#>   <dbl> <dbl>
-#> 1     2     1
 
 setdiff(df2, df1)
-#> # A tibble: 1 × 2
-#>       x     y
-#>   <dbl> <dbl>
-#> 1     1     2
+```
