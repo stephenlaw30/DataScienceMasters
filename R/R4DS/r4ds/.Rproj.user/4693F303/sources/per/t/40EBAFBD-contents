@@ -1,0 +1,94 @@
+```{r}
+library(tidyverse)
+library(ggplot2)
+
+candy <- read_csv("candyhierarchy2017.csv")
+head(candy)
+```
+
+
+```{r}
+candy %>%
+  group_by(`Q1: GOING OUT?`) %>%
+  summarise(count = n())
+```
+
+```{r}
+candy %>%
+  group_by(`Q2: GENDER`) %>%
+  summarise(count = n())
+```
+
+```{r}
+candy$`Q3: AGE` <- as.integer(candy$`Q3: AGE`)
+```
+```{r}
+candy %>%
+  filter(is.na(`Q3: AGE`) == F,
+  `Q2: GENDER` == "Female") %>%
+  ggplot() + 
+  geom_histogram(aes(`Q3: AGE`), binwidth = 2)
+
+candy %>%
+  filter(is.na(`Q3: AGE`) == F,
+  `Q2: GENDER` == "Male") %>%
+  ggplot() + 
+  geom_histogram(aes(`Q3: AGE`), binwidth = 2)
+```
+
+```{r}
+candy %>%
+  filter(is.na(`Q1: GOING OUT?`) == F,
+  `Q2: GENDER` == "Female") %>%
+  ggplot() + 
+  geom_bar(aes(`Q1: GOING OUT?`))
+
+candy %>%
+  filter(is.na(`Q1: GOING OUT?`) == F,
+  `Q2: GENDER` == "Male") %>%
+  ggplot() + 
+  geom_bar(aes(`Q1: GOING OUT?`))
+```
+```{r}
+candy %>%
+  filter(is.na(`Q3: AGE`) == F,
+  is.na(`Q1: GOING OUT?`) == F,
+  `Q2: GENDER` == "Female",
+  `Q1: GOING OUT?` == "Yes") %>%
+  ggplot() + 
+  geom_histogram(aes(`Q3: AGE`), binwidth = 3)
+
+candy %>%
+  filter(is.na(`Q3: AGE`) == F,
+  is.na(`Q1: GOING OUT?`) == F,
+  `Q2: GENDER` == "Female",
+  `Q1: GOING OUT?` == "No") %>%
+  ggplot() + 
+  geom_histogram(aes(`Q3: AGE`), binwidth = 2)
+``` 
+
+```{r}
+candy %>%
+  filter(is.na(`Q3: AGE`) == F,
+  is.na(`Q1: GOING OUT?`) == F,
+  `Q2: GENDER` == "Male",
+  `Q1: GOING OUT?` == "Yes") %>%
+  ggplot() + 
+  geom_histogram(aes(`Q3: AGE`), binwidth = 4)
+
+candy %>%
+  filter(is.na(`Q3: AGE`) == F,
+  is.na(`Q1: GOING OUT?`) == F,
+  `Q2: GENDER` == "Male",
+  `Q1: GOING OUT?` == "No") %>%
+  ggplot() + 
+  geom_histogram(aes(`Q3: AGE`), binwidth = 2)
+``` 
+
+
+```{r}
+# %>%
+candy %>% 
+  group_by([6]) %>%
+  summarise(no_rows = length([6]))
+```

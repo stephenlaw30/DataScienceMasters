@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1509144924227.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1241268299",
+    "id" : "C1AE0957",
+    "lastKnownWriteTime" : 1509120811,
+    "last_content_update" : 1509120811,
+    "path" : "C:/Users/Nimz/Dropbox/DataScienceMasters/R/R4DS/r4ds/RForDS_Ch13_RelationalData.Rmd",
+    "project_path" : "RForDS_Ch13_RelationalData.Rmd",
+    "properties" : {
+        "cursorPosition" : "222,127",
+        "scrollLine" : "205"
+    },
+    "relative_order" : 6,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

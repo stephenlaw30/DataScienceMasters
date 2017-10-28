@@ -1,0 +1,3 @@
+"0","social.svm <- svm(Purchased ~ ., training, type = 'C-classification', kernel = 'linear')"
+"0","# Predict on test set results"
+"0","y_pred.svm <- predict(social.svm, test[-3])"
