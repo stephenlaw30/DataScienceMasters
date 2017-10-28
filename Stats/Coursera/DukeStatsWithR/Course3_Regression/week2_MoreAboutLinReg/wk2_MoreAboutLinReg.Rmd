@@ -29,3 +29,23 @@ mOe <- t.crit*se
 (lower <- pe - mOe)
 (upper <- pe + mOe)
 ```
+
+# QUIZ
+## CI for the slope
+
+```{r}
+b0.bf.perc <- -20.062
+b1.abdomen.circum <- .877
+se <- .067
+null <- 0
+(t <- (b1.abdomen.circum) / se)
+
+n <- 252
+dF <- n - 2
+
+pt.est <- b1.abdomen.circum
+(t.crit <- abs(qt(p = .025, df = 251)))
+mOe <- t.crit*se
+(lower <- pt.est - mOe)
+(upper <- pt.est + mOe)
+```
