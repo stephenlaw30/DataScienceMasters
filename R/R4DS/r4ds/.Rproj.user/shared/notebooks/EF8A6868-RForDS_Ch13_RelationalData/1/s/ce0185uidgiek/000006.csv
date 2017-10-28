@@ -1,3 +1,0 @@
-"0","nasaweather::atmos %>% "
-"0","  count(lat, long, year) %>% "
-"0","  filter(n > 1)"

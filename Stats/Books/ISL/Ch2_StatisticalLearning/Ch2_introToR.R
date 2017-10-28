@@ -79,3 +79,49 @@ persp(x,y,za, theta = 30)
 persp(x,y,za, theta = 30, phi = 20)
 persp(x,y,za, theta = 30, phi = 70)
 persp(x,y,za, theta = 30, phi = 40)
+
+# matrices
+
+# make 4x4 matrix from 1-16
+a <- matrix (1:16,4,4)
+
+# get val in row 2 col 3
+a[2,3]
+# get vals in rows 1 to 3 + cols 2 to 4
+a[1:3,2:4]
+# get all vals in rows 1 + 2 from all cols
+a[1:2,]
+# get all vals in all rows from cols 1 + 2
+a[,1:2]
+# get all vals except those in rows 1 + 3
+a[-c(1,3),]
+# get all vals except those in rows 1 + 3 and cols 1, 2, + 4
+a[-c(1,3),-c(1,2,4)]
+
+# na.strings = replace given char w/ an NA
+auto <- read.table("Auto.data", header=T, na.strings ="?")
+
+# remove rows w/ na()
+auto <- na.omit(auto)
+
+# use attach() to remove need to use $ to refer to variables
+attach(mtcars)
+plot(cyl,mpg)
+
+# get boxplot
+cyl <- as.factor(cyl)
+plot(cyl,mpg)
+plot(cyl , mpg , col ="red", varwidth =T, xlab="cylinders ", ylab="MPG")
+
+# histograms
+hist(mpg, col = 2, breaks = 15)
+
+# create pairwise scatterplot for variables in a dataset
+pairs(mtcars)
+
+# cut down on # of pairs
+pairs(~ mpg + disp + hp + wt + qsec, mtcars)
+
+# identify() = useful interactive method for IDing value for a particular variable for points on a plot
+plot(hp,mpg)
+identify(x = hp, y = mpg, labels = as.character(disp)) # 3rd arg = variable values to print for each DP
