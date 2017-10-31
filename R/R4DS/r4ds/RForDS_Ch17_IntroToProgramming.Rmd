@@ -1,0 +1,33 @@
+---
+title: "R4DS_CH17_IntroToProgramming"
+author: "Steve Newns"
+date: "October 31, 2017"
+output: html_document
+---
+17 Introduction
+
+
+**Programming** = cross-cutting skill needed for all data science work --> produces code = a tool of communication that tells a CPU what to do but also communicates meaning to other humans. 
+
+Every project you do is fundamentally collaborative (even if not working w/ other people, you'll definitely be working w/ future-you)
+
+Writing *clear* code = important so others can understand why you tackled an analysis in the way you did. Getting better at programming also involves getting better at communicating. Over time, you want code to become not just easier to write, but easier for others to read.
+
+Writing code = similar in many ways to writing prose --> in both cases rewriting = the key to clarity b/c 1st expression of ideas is unlikely to be particularly clear + you may need to rewrite multiple times. 
+
+After solving a data analysis challenge, it's often worth looking at the code + thinking about whether or not it's obvious what was done. If you spend a little time rewriting code while ideas are fresh, you can save a lot of time later trying to recreate what the code did. This doesn't mean you should rewrite every function (need to balance what you need to achieve *now* w/ saving time in the long run [But the more you rewrite functions the more likely your 1st attempt will be clear])
+
+**Copy-and-paste** = a powerful tool, but avoid doing it more than twice b/c repeating yourself in code is dangerous b/c it can easily lead to errors + inconsistencies. Instead, write functions to extract out repeated code so it can be easily reused.
+
+As you start to write more powerful functions, you'll need a solid grounding in R's **data structures**, provided by **vectors**, w/the 4 common **atomic vectors**, the 3 important **S3 classes** built on top of them, + understand the mysteries of the **list** + **data frame**
+
+Often need to repeat same actions on different input w/ tools for **iteration** = let you do similar things again + again (**loops** +  **functional programming**
+
+Goal of these chapters = learn minimum about programming needed to practice data science (turns out to be a reasonable amount)
+
+Learning more about programming = a long-term investment (won't pay off immediately, but in long term will allow you to solve new problems more quickly + let you reuse insights from previous problems in new scenarios)
+
+<ul>
+<li> **Hands on Programming with R**, by Garrett Grolemund = Intro to R as a programming language w/ similar material to these chapters, but w/ a different style + different motivation examples (based in the casino) </li>
+<li> **Advanced R** by Hadley Wickham = dives into details of R = great place to start w/ existing programming experience + is also a great next step once you've internalised the ideas in these chapters (http://adv-r.had.co.nz) </li>
+</ul>
