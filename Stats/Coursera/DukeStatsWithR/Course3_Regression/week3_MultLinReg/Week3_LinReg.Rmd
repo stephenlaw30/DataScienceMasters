@@ -1,0 +1,42 @@
+---
+title: "Wk3 - Mult. Linear Reg."
+author: "Steve Newns"
+output: html_document
+---
+
+Predict book weight by vol + cover type
+```{r}
+library(DAAG)
+data(allbacks)
+
+model1 <- lm(weight ~ volume + cover, data = allbacks)
+summary(model1)
+```
+
+Note only 1 level of `cover` is in the output = the **NON-reference level** --> hardcover books must be the **reference level**
+
+Multiple R2 = 92.75% --> 92.75% of variability of book weights is explained by volume + cover type
+
+\[
+  \hat{y} = 197.96284 + 0.71795 \times volume - 184.04727 \times cover
+\]
+
+Remember PB =  non-reference level, meaning HC books = reference level 
+<ul>
+<li> For reference levels, always plug in 0 in our linear model. </li>
+<li> To simplify this linear model to see what it'd look like only for HC books, plug in a 0 for cover. </li>
+<li> For a PB, plug in 1 for cover. </li>
+</ul>
+
+```{r}
+reference_model <- function(x1) {
+  197.96284 + .71795*x1
+} 
+
+non_reference_model <- function(x1) {
+  197.96284 + .71795*x1 - 184.04727
+} 
+
+# Predict weight of a PB book 600 cm^3 in volume. 
+non_reference_model(600)
+```
