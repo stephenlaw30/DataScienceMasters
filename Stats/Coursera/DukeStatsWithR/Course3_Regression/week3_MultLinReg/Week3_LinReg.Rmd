@@ -7,6 +7,8 @@ output: html_document
 Predict book weight by vol + cover type
 ```{r}
 library(DAAG)
+library(tidyverse)
+library(ggplot2)
 data(allbacks)
 
 model1 <- lm(weight ~ volume + cover, data = allbacks)
@@ -40,3 +42,80 @@ non_reference_model <- function(x1) {
 # Predict weight of a PB book 600 cm^3 in volume. 
 non_reference_model(600)
 ```
+
+# Mult. Lin. Reg
+
+```{r, message=F,warning=F}
+states <- read_csv("states.csv")
+
+model1 <- lm(poverty ~ female_house, data = states)
+summary(model1)
+
+ggplot(data = states, aes(x = female_house, y = poverty)) +
+  geom_point() +
+  stat_smooth(method = "lm", se = FALSE)
+
+anova(model1)
+```
+```{r}
+model2 <- lm(poverty ~ female_house + white, data = states)
+summary(model2)
+anova(model2)
+```
+
+## Calculate Adj R2
+
+```{r}
+sse <- 339.74
+sst <- sum(132.57,8.21,339.47)
+n <- 51
+k <- 2
+
+(adjR2 <- 1 - ((sse/sst)*((n-1)/(n-k-1))))
+```
+
+# Inference for MLR
+
+```{r}
+cognitive <- read_csv("http://bit.ly/dasi_cognitive")
+head(cognitive)
+
+# full model
+model1 <- lm(kid_score ~ ., data = cognitive)
+summary(model1)
+```
+
+## t-score for mom_hsyes
+
+```{r}
+pt.estimate <- 5.09482 # slope of var
+null <- 0
+se <- 2.31450 # SE of var
+n <- nrow(cognitive)
+k <- ncol(cognitive) - 1
+dF <- n - k - 1
+(t <- (pt.estimate - null)/se)
+```
+
+This the same as in the regression output.
+
+## check p-value for mom_hsyes
+```{r}
+pt(t, dF, lower.tail = F)*2
+```
+
+## calculate 95% CI for mom_work
+```{r}
+alpha = .95
+(t.crit <- abs(qt(p = (1 - alpha)/2, df = dF)))
+
+pt.estimate.work <- 2.53718
+se.work <- 2.35067
+
+(mOe <- t.crit*se.work)
+(lower <- pt.estimate.work - mOe)
+(upper <- pt.estimate.work + mOe)
+```
+
+
+
