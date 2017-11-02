@@ -117,5 +117,27 @@ se.work <- 2.35067
 (upper <- pt.estimate.work + mOe)
 ```
 
+# Diagnostics for MLR
 
+```{r}
+# linearity w/ residuals plot
+cog_final <- lm(kid_score ~ mom_hs + mom_iq + mom_work, data = cognitive)
+plot(cognitive$mom_iq, cog_final$residuals)
+abline(0,0)
+
+# normal residuals
+hist(cog_final$residuals)
+qqnorm(cog_final$residuals)
+qqline(cog_final$residuals)
+
+# constant variability of residuals
+plot.new()
+plot(cog_final$fitted.values, cog_final$residuals)
+abline(0,0)
+plot(cog_final$fitted.values, abs(cog_final$residuals))
+
+# independence of residuals (+ therfore observations)
+plot(cog_final$residuals)
+abline(0,0)
+```
 
