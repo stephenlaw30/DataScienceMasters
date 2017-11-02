@@ -12,18 +12,13 @@ output: html_document
 <li> Eliminate chance of making incidental mistakes when copy + pasting (i.e. updating a variable name in 1 place, but not in another). </li>
 </ul>
 
-Writing good functions is a lifetime journey. Even after using R for many years I still learn new techniques and better ways of approaching old problems. The goal of this chapter is not to teach you every esoteric detail of functions but to get you started with some pragmatic advice that you can apply immediately.
+Writing good functions = a lifetime journey + good code style = like correct punctuation, Youcanmanagewithoutit, but it sure makes things easier to read
 
-As well as practical advice for writing functions, this chapter also gives you some suggestions for how to style your code. Good code style is like correct punctuation. Youcanmanagewithoutit, but it sure makes things easier to read! As with styles of punctuation, there are many possible variations. Here we present the style we use in our code, but the most important thing is to be consistent.
+# 19.2 When should you write a function?
 
-19.1.1 Prerequisites
+Consider writing a function whenever you’ve copied + pasted a block of code more than twice (3 copies of the same code)
 
-The focus of this chapter is on writing functions in base R, so you won’t need any extra packages.
-
-19.2 When should you write a function?
-
-You should consider writing a function whenever you’ve copied and pasted a block of code more than twice (i.e. you now have three copies of the same code). For example, take a look at this code. What does it do?
-
+```{r}
 df <- tibble::tibble(
   a = rnorm(10),
   b = rnorm(10),
@@ -39,77 +34,93 @@ df$c <- (df$c - min(df$c, na.rm = TRUE)) /
   (max(df$c, na.rm = TRUE) - min(df$c, na.rm = TRUE))
 df$d <- (df$d - min(df$d, na.rm = TRUE)) / 
   (max(df$d, na.rm = TRUE) - min(df$d, na.rm = TRUE))
-You might be able to puzzle out that this rescales each column to have a range from 0 to 1. But did you spot the mistake? I made an error when copying-and-pasting the code for df$b: I forgot to change an a to a b. Extracting repeated code out into a function is a good idea because it prevents you from making this type of mistake.
+```
+This rescales each column to have a range from 0-1 but w/ the mistake when copying-and-pasting the code for df$b = forgot to change an `a` to a `b` ==> functions prevent this type of mistake.
 
-To write a function you need to first analyse the code. How many inputs does it have?
-
-(df$a - min(df$a, na.rm = TRUE)) /
-  (max(df$a, na.rm = TRUE) - min(df$a, na.rm = TRUE))
-This code only has one input: df$a. (If you’re surprised that TRUE is not an input, you can explore why in the exercise below.) To make the inputs more clear, it’s a good idea to rewrite the code using temporary variables with general names. Here this code only requires a single numeric vector, so I’ll call it x:
-
+This code only has 1 input: `df$letter`. To make the inputs more clear, rewrite code using temp variables w/ general names
+```{r}
 x <- df$a
 (x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
-#>  [1] 0.289 0.751 0.000 0.678 0.853 1.000 0.172 0.611 0.612 0.601
-There is some duplication in this code. We’re computing the range of the data three times, but it makes sense to do it in one step:
-
+```
+There is some duplication in this code ==> computing the range of the data 3 times, but it makes sense to do it in 1 step:
+```{r}
 rng <- range(x, na.rm = TRUE)
 (x - rng[1]) / (rng[2] - rng[1])
-#>  [1] 0.289 0.751 0.000 0.678 0.853 1.000 0.172 0.611 0.612 0.601
-Pulling out intermediate calculations into named variables is a good practice because it makes it more clear what the code is doing. Now that I’ve simplified the code, and checked that it still works, I can turn it into a function:
+```
+Pulling out intermediate calculations into named variables = good practice b/c it makes it more clear what code is doing. 
 
+Now that I’ve simplified the code + checked that it still works, turn it into a function:
+```{r}
 rescale01 <- function(x) {
-  rng <- range(x, na.rm = TRUE)
-  (x - rng[1]) / (rng[2] - rng[1])
+  rng <- range(x, na.rm = TRUE) # get range of input
+  (x - rng[1]) / (rng[2] - rng[1]) # scale input to scale 0-1
 }
 rescale01(c(0, 5, 10))
-#> [1] 0.0 0.5 1.0
-There are three key steps to creating a new function:
+```
 
-You need to pick a name for the function. Here I’ve used rescale01 because this function rescales a vector to lie between 0 and 1.
+3 key steps to creating a new function:
+<ul>
+<li> Pick a name  <li>
+<li> List inputs/arguments to the function inside `function` <li>
+<li> Place the developed code in body of the function <li>
+<ul>
 
-You list the inputs, or arguments, to the function inside function. Here we have just one argument. If we had more the call would look like function(x, y, z).
+Iverall process = only made the function after figuring out how to make it work w/ a simple input = easier to start w/ *working* code + turn it into a function = harder to create a function + then try to make it work.
 
-You place the code you have developed in body of the function, a { block that immediately follows function(...).
-
-Note the overall process: I only made the function after I’d figured out how to make it work with a simple input. It’s easier to start with working code and turn it into a function; it’s harder to create a function and then try to make it work.
-
-At this point it’s a good idea to check your function with a few different inputs:
-
+Check your function with a few different inputs:
+```{r}
 rescale01(c(-10, 0, 10))
-#> [1] 0.0 0.5 1.0
 rescale01(c(1, 2, 3, NA, 5))
-#> [1] 0.00 0.25 0.50   NA 1.00
-As you write more and more functions you’ll eventually want to convert these informal, interactive tests into formal, automated tests. That process is called unit testing. Unfortunately, it’s beyond the scope of this book, but you can learn about it in http://r-pkgs.had.co.nz/tests.html.
+```
+As you write more and more functions you’ll eventually want to convert these informal, interactive tests into formal, automated tests = **unit testing** (learn about in http://r-pkgs.had.co.nz/tests.html)
 
 We can simplify the original example now that we have a function:
-
+```{r}
 df$a <- rescale01(df$a)
 df$b <- rescale01(df$b)
 df$c <- rescale01(df$c)
 df$d <- rescale01(df$d)
-Compared to the original, this code is easier to understand and we’ve eliminated one class of copy-and-paste errors. There is still quite a bit of duplication since we’re doing the same thing to multiple columns. We’ll learn how to eliminate that duplication in iteration, once you’ve learned more about R’s data structures in vectors.
+```
 
-Another advantage of functions is that if our requirements change, we only need to make the change in one place. For example, we might discover that some of our variables include infinite values, and rescale01() fails:
+Compared to the original, this code = easier to understand + we’ve eliminated 1 class of copy-and-paste errors. There's still quite a bit of duplication (doing the same thing to multiple column --> eliminated w/ **iteration** (Ch. 21)
 
+Another advantage of functions = if our requirements change, only need to make the change in 1 place
+
+Might discover some of our variables include infinite values + `rescale01()` fails:
+```{r}
 x <- c(1:10, Inf)
 rescale01(x)
-#>  [1]   0   0   0   0   0   0   0   0   0   0 NaN
-Because we’ve extracted the code into a function, we only need to make the fix in one place:
-
+```
+B/c we’ve extracted the code into a function, we only need to make the fix in 1 place:
+```{r}
 rescale01 <- function(x) {
-  rng <- range(x, na.rm = TRUE, finite = TRUE)
+  rng <- range(x, na.rm = TRUE, finite = TRUE) # omit all non-finite values
   (x - rng[1]) / (rng[2] - rng[1])
 }
 rescale01(x)
-#>  [1] 0.000 0.111 0.222 0.333 0.444 0.556 0.667 0.778 0.889 1.000   Inf
-This is an important part of the “do not repeat yourself” (or DRY) principle. The more repetition you have in your code, the more places you need to remember to update when things change (and they always do!), and the more likely you are to create bugs over time.
+```
 
-19.2.1 Practice
+This is an important part of the **“do not repeat yourself”** (or **DRY**) **principle**. More repetition in code = more places you need to remember to update when things change (they always do) = more likely to create bugs over time.
 
-Why is TRUE not a parameter to rescale01()? What would happen if x contained a single missing value, and na.rm was FALSE?
+## 19.2.1 Practice
 
-In the second variant of rescale01(), infinite values are left unchanged. Rewrite rescale01() so that -Inf is mapped to 0, and Inf is mapped to 1.
+**Why is TRUE not a parameter to rescale01()? What would happen if x contained a single missing value, and na.rm was FALSE?**
 
+**In the second variant of rescale01(), infinite values are left unchanged. Rewrite rescale01() so that -Inf is mapped to 0, and Inf is mapped to 1.**
+```{r}
+x <- c(1:10, Inf)
+
+#rescale02 <- function(x) {
+  x <- for (i in x) {
+        if_else(i == 2, 1,
+              if_else(i == -3, 0, i))
+        } 
+  rng <- range(x, na.rm = TRUE, finite = TRUE) # omit all non-finite values
+  (x - rng[1]) / (rng[2] - rng[1])
+#}
+
+#rescale02(x)
+```
 Practice turning the following code snippets into functions. Think about what each function does. What would you call it? How many arguments does it need? Can you rewrite it to be more expressive or less duplicative?
 
 mean(is.na(x))
