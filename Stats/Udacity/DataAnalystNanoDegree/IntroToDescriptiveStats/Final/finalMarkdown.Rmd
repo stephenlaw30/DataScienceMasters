@@ -24,8 +24,7 @@ options(warn=-1)
 
 Then, we plot a histogram depicting the relative frequencies of the card values, with added lines for the median and mean.
 
-<center>
-```{r random draws histogram, echo = FALSE}
+```{r random draws histogram, echo = FALSE, fig.align='center'}
 #plot histogram w/ mean and median
 library(ggplot2)
 ggplot() + 
@@ -44,7 +43,6 @@ ggplot() +
   geom_text(aes(x=median(values)+0.5, label="Median", y=4000), 
             colour="black", angle=0, size=4)
 ```
-</center>
 
 So I can see I have an odd distribution, which I guess I would say it is left/negatively-skewed, as I have a long tail to the left, compared to that very high bin of values up to 10. Also, the mean is lower than the median, since there are a larger amount of values to the left of the plot, which pulls it away from the median. But, the majority of the cards I have drawn had a value of 10, so they were either a 10 from any of the 4 suites, or they were a face card.
 
@@ -56,8 +54,7 @@ So I can see I have a mean and median that are quite close, and a standard devia
 
 Now I must create a histogram of the sampled card sums.
 
-<center>
-```{r samples sums histogram, echo = FALSE}
+```{r samples sums histogram, echo = FALSE, fig.align='center'}
 #plot 2nd histogram w/ mean and median
 ggplot() + 
   aes(x=samples) + 
@@ -74,9 +71,7 @@ ggplot() +
             colour="black", angle=0, size=4) +
   geom_text(aes(x=median(samples)+1.25, label="Median", y=1100), 
             colour="black", angle=0, size=4)
-
 ```
-</center>
 
 I can see here that my distribution is now very normal-looking. But the mean is slightly pulled to the left of the median, showing that it is *slightly* left skewed, but looking at the histogram, it's safe to call this a normal distribution. 
 

@@ -1,0 +1,79 @@
+---
+title: "Wk1 - Bayes' Rule"
+author: "Steve Newns"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+
+tbl <- matrix(c(60,86,58,21,255,426,450,382), 2, 4, byrow=TRUE)
+colnames(tbl) <- c('18-29', '30-49', '50-64','65+')
+rownames(tbl) <- c('Used online dating', 'No online dating')
+tbl
+```
+
+Probability of using online dating sites given 30-49 years old.
+```{r}
+p_a <- sum(tbl[1]) / sum(tbl) # probability of using online dating
+p_b <- sum(tbl[,2]) / sum(tbl) # probability of being 30-49
+p_ab <- tbl[1,2] / sum(tbl) # probability of being 30-49 and using online dating
+
+(p_AGivenB <- p_ab / p_b)
+```
+
+# Military
+```{r}
+prob_posGivenHIV_elisa <- .93 # TP rate = sensitivity of 1st ELISA
+prob_negGivenNoHIV_elisa <- .99 # TN rate = specificity of 1st ELISA
+prob_posGivenHIV_wb <- .999
+prob_negGivenNoHIV_wb <- .991
+prob_HIV <- 1.48 / 1000 # prevalence
+prob_noHIV <- 1 - prob_HIV
+```
+
+Probability a recruit has HIV given positive on the 1st ELISA
+
+```{r}
+prob_negGivenHIV_elisa <- 1 - prob_posGivenHIV_elisa 
+prob_posGivenNoHIV_elisa <- 1 - prob_negGivenNoHIV_elisa
+ 
+prob_posAndHIV_elisa <- prob_HIV * prob_posGivenHIV_elisa
+prob_posAndNoHIV_elisa <- prob_noHIV * prob_posGivenNoHIV_elisa
+
+prob_pos_elisa1 <- prob_posAndHIV_elisa + prob_posAndNoHIV_elisa
+
+(prob_HIVGivenPos_elisa1 <- prob_posAndHIV_elisa / prob_pos_elisa1)
+```
+
+# Bayes Updating
+    
+What is probability of having HIV if the 2nd ELISA also yields a positive result? 
+
+Update our prior probability w/ a posterior
+```{r}
+post_probHIV <- prob_HIVGivenPos_elisa1
+post_probNoHIV <- 1 - post_probHIV
+
+prob_posAndHIV_elisa2 <- post_probHIV * prob_posGivenHIV_elisa
+prob_posAndNoHIV_elisa2 <- post_probNoHIV * prob_posGivenNoHIV_elisa
+
+prob_pos_elisa2 <- prob_posAndHIV_elisa2 + prob_posAndNoHIV_elisa2
+
+(prob_HIVGivenPos_elis2 <- prob_posAndHIV_elisa2 / prob_pos_elisa2)
+```
+
+Do a third time
+```{r}
+post_probHIV <- prob_HIVGivenPos_elis2
+post_probNoHIV <- 1 - post_probHIV
+
+prob_posAndHIV_elisa3 <- post_probHIV * prob_posGivenHIV_elisa
+prob_posAndNoHIV_elisa3 <- post_probNoHIV * prob_posGivenNoHIV_elisa
+
+prob_pos_elisa3 <- prob_posAndHIV_elisa3 + prob_posAndNoHIV_elisa3
+
+(prob_HIVGivenPos_elis3 <- prob_posAndHIV_elisa3 / prob_pos_elisa3)
+```
