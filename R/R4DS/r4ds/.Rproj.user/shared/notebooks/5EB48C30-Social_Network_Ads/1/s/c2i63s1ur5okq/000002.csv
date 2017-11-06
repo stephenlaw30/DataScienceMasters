@@ -1,4 +1,0 @@
-"0","## import data "
-"0","social <- read_csv(""Social_Network_Ads.csv"")"
-"2","Error: 'Social_Network_Ads.csv' does not exist in current working directory ('C:/Users/Nimz/Dropbox/DataScienceMasters/MachineLearning/Udemy/11_KernelSVM').
-"

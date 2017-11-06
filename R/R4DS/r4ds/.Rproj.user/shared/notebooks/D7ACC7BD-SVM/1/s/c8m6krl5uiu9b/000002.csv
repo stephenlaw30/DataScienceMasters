@@ -1,5 +1,0 @@
-"0","# split data into Training + Test sets"
-"0","set.seed(123)"
-"0","spl <- sample.split(social$Purchased, SplitRatio = 0.75) # tidy does not work here"
-"0","(training <- social %>%"
-"0","  subset(spl == TRUE))"
