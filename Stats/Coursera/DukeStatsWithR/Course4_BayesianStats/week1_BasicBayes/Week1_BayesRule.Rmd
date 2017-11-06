@@ -77,3 +77,21 @@ prob_pos_elisa3 <- prob_posAndHIV_elisa3 + prob_posAndNoHIV_elisa3
 
 (prob_HIVGivenPos_elis3 <- prob_posAndHIV_elisa3 / prob_pos_elisa3)
 ```
+
+# frequentist inference for a proportion
+```{r}
+k <- 4
+n <- 20
+sum(dbinom(0:k,n,.5))
+```
+
+# bayesian inference for proportion
+```{r}
+p_values <- seq(.1,.9,.1)
+priors <- c(rep(.06,4), .52, rep(.6,4))
+(likelihood <- dbinom(4, 20, prob = p_values))
+```
+```{r}
+(posteriors <- (priors * likelihood) / sum((priors * likelihood)))
+sum(posteriors)
+```
