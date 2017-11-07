@@ -95,3 +95,63 @@ priors <- c(rep(.06,4), .52, rep(.6,4))
 (posteriors <- (priors * likelihood) / sum((priors * likelihood)))
 sum(posteriors)
 ```
+
+
+# M&M's
+
+```{r}
+k <- 1
+n <- 5
+p_values <- seq(.1,.2,.1)
+priors <- c(rep(.5,2))
+(likelihood <- dbinom(k, n, prob = p_values))
+```
+```{r}
+(posteriors <- (priors * likelihood) / sum((priors * likelihood)))
+sum(posteriors) # check they sum to 1
+```
+
+# larger n
+```{r}
+k <- 2
+n <- 10
+p_values <- seq(.1,.2,.1)
+priors <- c(rep(.5,2))
+(likelihood <- dbinom(k, n, prob = p_values))
+(posteriors <- (priors * likelihood) / sum((priors * likelihood)))
+sum(posteriors) # check they sum to 1
+```
+
+```{r}
+k <- 3
+n <- 15
+p_values <- seq(.1,.2,.1)
+priors <- c(rep(.5,2))
+(likelihood <- dbinom(k, n, prob = p_values))
+(posteriors <- (priors * likelihood) / sum((priors * likelihood)))
+sum(posteriors) # check they sum to 1
+```
+
+
+```{r}
+k <- 4
+n <- 20
+p_values <- seq(.1,.2,.1)
+priors <- c(rep(.5,2))
+(likelihood <- dbinom(k, n, prob = p_values))
+(posteriors <- (priors * likelihood) / sum((priors * likelihood)))
+sum(posteriors) # check they sum to 1
+```
+
+# Quiz
+
+```{r}
+k <- 50
+n <- 365
+p_values <- seq(.5,.5)
+priors <- c(.8,.7)
+(likelihood <- dbinom(k, n, prob = p_values))
+(posteriors <- (priors * likelihood) / sum((priors * likelihood)))
+sum(posteriors) # check they sum to 1
+````
+
