@@ -146,12 +146,64 @@ sum(posteriors) # check they sum to 1
 # Quiz
 
 ```{r}
-k <- 50
-n <- 365
-p_values <- seq(.5,.5)
-priors <- c(.8,.7)
+p_rain <- 50/365
+p_no_rain <- 1 - p_rain
+
+p_correct_given_rain <- .8
+p_correct_given_no_rain <- .3
+
+p_rain_and_correct <- p_rain*p_correct_given_rain
+p_no_rain_and_correct <- p_no_rain*p_correct_given_no_rain
+p_correct <-p_rain_and_correct + p_no_rain_and_correct
+
+
+(p_rain_giv_pred <- p_rain_and_correct_rain / p_correct)
+```
+
+```{r}
+k <- 3
+n <- 3
+p_values <- c(.2,.4,.5,.6,.8)
+priors <- c(rep(.5/4,2),.5,rep(.5/4,2))
 (likelihood <- dbinom(k, n, prob = p_values))
 (posteriors <- (priors * likelihood) / sum((priors * likelihood)))
 sum(posteriors) # check they sum to 1
-````
+sum(posteriors[4:5])
+```
 
+
+```{r}
+binom.test(x=9942, n=10000, p=.993, alternative="greater")
+```
+
+```{r}
+k <- 10
+n <- 16
+priors_did_not_make_playoff <- c(20/32,6/32,4/32,2/32)
+(likelihood <- dbinom(k, n, prob = .5)) # prob of winning coint toss
+(posteriors <- (priors_did_not_make_playoff * likelihood) / sum((priors_did_not_make_playoff * likelihood)))
+sum(posteriors)
+```
+
+```{r}
+k <- 0
+n <- 10
+p_values <- c(1/1000,1/1000000)
+priors <- c(.5,.5)
+(likelihood <- dbinom(k, n, prob = p_values))
+(posteriors <- (priors * likelihood) / sum((priors * likelihood)))
+sum(posteriors)
+```
+
+```{r}
+k <- 999
+n <- 6000
+p_values <- c(1/6,.175)
+priors <- c(.8,.2)
+#(likelihood <- dbinom(k, n, prob = p_values))
+#(posteriors <- (priors * likelihood) / sum((priors * likelihood)))
+#sum(posteriors)
+1 - pbinom(q = 999-1, size = 999, .2)
+#1-pbinom(999-1,n,priors[1])
+
+```
