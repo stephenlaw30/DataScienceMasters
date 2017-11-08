@@ -1,0 +1,309 @@
+---
+title: "Ch2_DataExploration"
+author: "Steve Newns"
+date: "November 7, 2017"
+output: html_document
+---
+
+# Exploration versus Confirmation
+
+Break up analysis into 2 completely separate parts: **exploration** and **confirmation**. 
+
+John Tukey emphasized importance of simple tool design for practical data anlaysis
+
+Exploratory steps in data analysis = summary tables (mean, median, SD, mode, percentiles, variances) + basic viz (histograms, kernel density estimates (KDE), scatterplots) to search for hidden patterns in data
+
+Real danger present whenever you explore data = likely to find patterns that *aren’t really there* b/c the human mind is designed to find patterns in the world + will do so even when those patterns are just quirks of chance. 
+
+Humans will easily find shapes in clouds after looking at them for only a few seconds + plenty of people have convinced themselves they’ve discovered hidden messages in run-of-the-mill texts like Shakespeare’s plays.
+
+B/c humans are vulnerable to discovering patterns that won’t stand up to careful scrutiny, the *exploratory step in data analysis can’t exist in isolation* + needs to be accompanied by a **confirmatory step** = a sort of mental hygiene routine used to clean off beliefs about the world after slogging through the messy — + sometimes lawless — world of exploratory data viz
+
+Confirmatory data analysis usually employs 2 tools:
+<ul>
+<li> Testing a formal model of a pattern you think was found on a *new* data set not used to find the pattern. </li>
+<li> Using **probability theory** to test whether patterns found in an original data set could reasonably have been produced by chance. </li>
+</ul>
+
+Intuitions for analyzing data are best built up while working w/ the simplest of tools.
+
+Many important questions to ask about any so-called "data set" = how the data was generated, whether the data can reasonably be expected to be representative of a population you want to study, etc.
+
+Interpretation of data requires knowledge of something about the *source* of the data. Often the only
+way to separate causation from correlation is to know whether the data was generated **experimentally** or was only **observationally** recorded b/c experimental data wasn’t available.
+
+Think of matrices as nothing more than 2D arrays/a big table + as long as we assume we’re working w/ rectangular arrays, we can use lots of powerful mathematical techniques w/out having to think very carefully about the actual mathematical operations being performed, even though almost every technique we’re going to exploit can be described in terms of matrix multiplications (whether a standard linear regression model or the modern matrix factorization techniques popular lately thanks to the Netflix Prize)
+
+A **numerical data summary** = reducing all rows from a table into a few #s, often just a single # for each column.
+
+In contrast, a viz usually involves reducing all rows from a single column into one image, w/ lots of tools to understand the relationships between multiple columns (computing correlation between 2 columns turns all rows from the 2 columns into a single # that summarizes the strength of the relationship between them)
+
+Other tools go further = reduce # of columns if you think there’s a lot of **redundancy** by replacing many columns w/ a few columns or even just 1 (**dimensionality reduction**)
+
+**Summary statistics + dimensionality reduction move along opposite directions**: summary stats = something about how all the rows in a data set behave when you move along a single column, whereas dimensionality reduction = replace all columns in data w/ a small # of columns that have a unique value for every row. 
+
+When exploring data, both approaches can be helpful = both allow you to turn mountains of data into something immediately comprehensible
+
+**Factors** in R can be thought of as **labels**, but the labels are actually encoded *numerically* in the background + when we access the label, the *numeric values are translated into the character labels
+specified in an indexed array of character strings*. 
+
+B/c R uses numeric coding in the background, naive attempts to convert labels for an R factor into #'s will produce strange results b/c you’ll be given the *actual encoding scheme’s #'s* rather than the numbers associated w/ the labels for the factor.
+<ul>
+<li> ex: isSpam = 1, index value = 1 + isSpam = 0 or -1, index value = 2
+
+If unsure if a var is a string or factor = often better to begin by loading things as strings as we can always convert a string to a factor later
+
+# Numeric Summaries
+1 of the best ways to start making sense of a new data set = compute simple numeric summaries of all columns w/ `summary` will spit out the most obvious
+Numerica summary:
+<ol>
+<li> The minimum value in the vector
+<li> 1st quartile/Q1/25th percentile = the smallest # that’s bigger than 25% of your data
+<li> The median (50th percentile/Q2)
+<li> Mean
+<li> 3rd quartile/Q3/75th percentile = the smallest # that’s bigger than 75% of your data
+<li> The maximum value
+
+All that’s really missing = SD of the column entries
+
+Implement own version of mean + median
+```{r}
+compute_mean <- function(x) {
+  sum(x) / length(x)
+}
+
+compute_median <- function(x) {
+  sorted_x <- sort(x, decreasing = F)
+  
+  if (length(x) %% 2 == 0) { # if we have an even # of elements
+    indices <- c(length(x) / 2, length(x) / 2 + 1) # get the middle 2 DP's and average them
+    mean(sorted_x[indices])
+  } else { # if odd # of elements, get middle value
+    indices <- length(x) / 2
+    sorted_x[indices]
+  }
+}
+
+vec <- seq(1,101,1)
+compute_mean(vec)
+compute_median(vec)
+```
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+
+genders <- read_csv("01_heights_weights_genders.csv")
+mean(genders$Height)
+compute_mean(genders$Height)
+
+median(genders$Height)
+compute_median(genders$Height)
+
+quantile(genders$Height)
+# pass in the cut offs to get other percentile values
+quantile(genders$Height, probs = seq(0,1,.2))
+
+```
+
+Quantiles aren’t emphasized as much as means + medians, but they can be just as useful. If you run a customer service branch + keep records of how long it takes to respond to a customer’s concerns, you might benefit a lot more from worrying about what happens to the 1st 99% customers than worrying about what happens to the median customer, + the mean customer might be even less informative if data has a strange shape
+
+# Standard Deviations and Variances
+
+Central tendencies are only 1 thing you might want to know about your data + equally important = how far apart you expect typical values to be
+
+Reasonable definition of spread = should include only most of the data, not all, + shouldn’t be completely determined by the 2 most extreme values (range doesn't do either) = **outliers** = not representative of a data set as a whole.
+
+Min + max match outliers perfectly = fairly brittle definitions of spread + definition of range based on min + max effectively depends on only 2 DPs regardless of whether you have 2 2M DPs
+
+Don't trust any summary of data that’s insensitive to the vast majority of points in the data
+
+Could see what range contains 50% + is centered around the median or be more inclusive + find a range that contains 95% of the data:
+```{r}
+heights <- genders$Height
+c(quantile(heights, probs = 0.25), quantile(heights, probs = 0.75))
+c(quantile(heights, probs = 0.025), quantile(heights, probs = 0.975))
+```
+
+W/ more advanced statistical methods, these sorts of ranges will come up again + again. 
+
+**Variance** = how far, on average, a given # in from the mean
+```{r}
+my_var <- function(x) {
+ m <- mean(x)
+ return(sum((x - m) ^ 2) / length(x))
+}
+my_var(heights)
+```
+
+Formal definition of variance doesn’t divide out by the length of a vector, but rather by the length of the vector - 1 b/c the variance estimated from **empirical data** turns out, for fairly subtle reasons, to be biased *downward from its true value* 
+
+To fix this for a data set w/ n points, normally multiply an estimate of variance by a **scaling factor** of `n / (n - 1)` = leads to an improved version of my.var:
+```{r}
+my.var <- function(x) {
+ m <- mean(x)
+ return(sum((x - m) ^ 2) / (length(x) - 1))
+}
+my_var(heights) - var(heights)
+```
+
+Variance = very natural measure of the spread but unfortunately is much larger than almost any value in a data set. Look at the values that are 1 unit of variance away from the mean:
+```{r}
+c(mean(heights) - var(heights), mean(heights) + var(heights))
+```
+This range is actually larger than the range of the entire original data set:
+```{r}
+range(heights)
+```
+This is b/c we defined variance by measuring the *squared* distance of each # in our list from the mean value, but we never undid that squaring step (**variance is not in same units as data**) 
+
+Replace variance w/ SD
+```{r}
+my.sd <- function(x) {
+ return(sqrt(my.var(x)))
+}
+my.sd(heights) - sd(heights)
+```
+Because we’re now computing values on the right scale, it’ll be informative to recreate our estimate of the range by looking at values that are 1 SD away from the mean:
+```{r}
+c(mean(heights) - sd(heights), mean(heights) + sd(heights))
+range(heights)
+```
+We’re solidly inside the range of data. 
+
+To get a sense of how tightly inside the data we are, compare the SD-based range against a range defined using quantiles:
+```{r}
+c(mean(heights) - sd(heights), mean(heights) + sd(heights)) # 1 SD range
+c(quantile(heights, probs = 0.25), quantile(heights, probs = 0.75)) # IQR
+```
+By using `quantile`, we see roughly 50% of our data is less than 1 SD away from the mean, which is quite typical, especially for data w/ the shape `heights` data has.
+
+# EDViz
+
+Visualizing data is often a more effective way to discover patterns in it.
+```{r}
+ggplot(genders, aes(Height)) + geom_histogram(binwidth = 5)
+```
+
+Too broad a `binwidth` = lot of the structure goes away --> still a peak, but symmetry seems to mostly disappear compared to:
+
+```{r}
+ggplot(genders, aes(Height)) + geom_histogram(binwidth = 1)
+```
+
+**Undersmoothing** can be just as bad
+```{r}
+ggplot(genders, aes(Height)) + geom_histogram(binwidth = .001)
+```
+
+
+B/c setting bindwidths can be tedious, an alternative = **kernel density estimates (KDE)** plots/**density plots** 
+
+Although density plots suffer from most of the same problems of overs + undersmoothing that plague histograms, they can be aesthetically superior b/c for large data sets, they look a lot more like the theoretical shapes we expect to find in our data. 
+
+Additionally, density plots have some *theoretical* superiority over histograms = using a density plot should require fewer DP's to reveal underlying shape than histograms + are just as easy to generate in R 
+
+```{r}
+ggplot(genders, aes(Height)) + geom_density()
+```
+
+
+Smoothness of the density plot helps us discover patterns harder to see in histograms, + this density plot suggests the data is suspiciously flat at the peak value. 
+
+B/c the standard bell curve shape expected here isn’t flat, this leads us to wonder whether there might be more structure hidden in this data set. 
+
+1 thing to try when you think there’s some structure missing = split up a plot by any **qualitative variables** available
+
+```{r}
+ggplot(genders, aes(Height, fill = Gender)) + geom_density()
+```
+Now we see a hidden pattern totally missing before = 2 different bell curves that partially overlap. This
+isn’t surprising b/c men + women have different mean heights. 
+
+We might expect to see the same bell curve structure in the weights for both genders. 
+```{r}
+ggplot(genders, aes(Weight, fill = Gender)) + geom_density()
+```
+
+See the same mixture of bell curves in the structure.
+
+These are **mixture models** in which 2 SD have been mixed to produce a *nonstandard* distribution.
+
+**Normal/Gaussian distribution** = bell curve. 
+
+We see normal distributions by simply splitting up our plot into 2 pieces =  **facets**. 
+```{r}
+ggplot(genders, aes(Height, fill = Gender)) + 
+  geom_density() +
+  facet_grid(Gender ~ .) # split out by gender
+```
+Clearly see 1 bell curve centered at 64” for women + another centered at 69” for men. 
+
+Normal distribution comes up very often but not everything is well described using the normal distribution (still very important in mathematical theory of statistics = much better understood than most other distributions)
+
+On a more abstract level, a normal distribution = just a type of bell curve.
+
+Mean of distribution = determines center of bell curve + variance determines width 
+```{r}
+m <- 25
+s <- 7
+ggplot(data.frame(X = rnorm(100000, m, s)), aes(x = X)) + geom_density()
+```
+All curves generated w/ this code have the same basic shape; changing `m` + `s` only moves the center around + contracts/expands the width. 
+
+Exact shape of the curves will vary, but overall shape = consistent. 
+
+**Seeing this general bell shape isn’t sufficient to decide data is normal** = there are other bell-shaped distributions
+
+The normal distribution lets us define several qualitative ideas about the shape of data.
+
+**Mode** of a continuous list of #'s isn’t well defined b/c no numbers repeat but it has a clear *visual* interpretation in a density plot = the peak of the bell. Fo
+
+Estimating modes visually = much easier w/ a density plot vs. a histogram + they make sense almost immediately when looking at density plots, + often make very little sense if working w/ #'s directly.
+
+1 of the defining traits of the normal distribution = it has a *single* mode which is = the mean + = the median of the data it describes. 
+
+A graph can have 2 or 3 modes = **unimodal** up to **bimodal** to **multimodal**.
+
+**Symmetric distribution** = same shape whether you move to the left or right of the mode. 
+
+In the normal distribution we’re as likely to see data that’s below the mode as data that’s above the mode. 
+
+A **gamma distribution** is skewed to the right = more likely to see extreme values to the right of the mode 
+
+A **thintailed distribution ** usually produces values not far from the mean + does so 99% of the time. The normal distribution, for example, produces values no more than 3 SD away from the mean about 99% of the time.
+
+In contrast, another bell-shaped distribution = **Cauchy distribution** produces only 90% of values inside 3 SDs + as you get further away from the mean, the 2 types of distributions become even more different, as a normal distribution almost never produces values that are 6 SD away, whereas a Cauchy will do it almost 5% of the time.
+
+```{r}
+set.seed(1)
+normal.values <- rnorm(250, 0, 1)
+cauchy.values <- rcauchy(250, 0, 1)
+
+range(normal.values)
+range(cauchy.values)
+
+ggplot(data.frame(X = normal.values), aes(x = X)) + geom_density()
+ggplot(data.frame(X = cauchy.values), aes(x = X)) + geom_density()
+```
+Normal = unimodal, symmetric, bell shape w/ thin tails.
+Cauchy = unimodal, symmetric, bell shape w/ heavy tails.
+
+**Gamma distribution** = quite flexible
+```{r}
+gamma.values <- rgamma(100000, 1, 0.001)
+ggplot(data.frame(X = gamma.values), aes(X)) + geom_density()
+```
+Gamma = right-skewed to the right (mean is pulled to the right of the median)
+IRL ex: Scores from people playing the iPhone game Canabalt + in lot of other games as well, so it seems like a particularly useful theoretical tool to have in your belt if you want to analyze game data.
+
+Gamma distribution produces *only positive values.* For **stochastic optimization** tools, having an all-positive distribution will come in very handy.
+
+Exponential distribution = powerfully-skewed distribution + b/c the mode occurs at 0, it’s almost like you had cut off the positive half of a bell
+
+It comes up quite a lot when the most frequent value in a data set is 0 + only positive values can ever occur. 
+IRL ex: Corporate call centers often find the length of time between calls received look exponential.
+
+As you build up a greater familiarity w/ data + learn more about the theoretical distributions statisticians have studied, these distributions will become more familiar to you, especially b/c the same few distributions come up over + over again. 
+
+# Visualizing the Relationships Between Columns

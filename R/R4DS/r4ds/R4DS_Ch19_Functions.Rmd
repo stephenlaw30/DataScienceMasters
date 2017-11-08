@@ -210,8 +210,6 @@ repeat_y <- function(x,y) {
 }
 ```
 
-# Take a function you’ve written recently + spend 5 minutes brainstorming a better name for it + its arguments.
-
 # Compare and contrast rnorm() and MASS::mvrnorm(). How could you make them more consistent?
 ```{r}
 #?rnorm
@@ -225,17 +223,10 @@ For the 1st situation, it makes it easier to find w/ RStudio's autocomplete. For
 
 # 19.4 Conditional execution
 
-An if statement allows you to conditionally execute code. It looks like this:
+`if` = conditionally execute code.
 
-if (condition) {
-  # code executed when condition is TRUE
-} else {
-  # code executed when condition is FALSE
-}
-To get help on if you need to surround it in backticks: ?`if`. The help isn’t particularly helpful if you’re not already an experienced programmer, but at least you know how to get to it!
-
-Here’s a simple function that uses an if statement. The goal of this function is to return a logical vector describing whether or not each element of a vector is named.
-
+```{r}
+# return a logical vector describing whether or not each element of a vector is named.
 has_name <- function(x) {
   nms <- names(x)
   if (is.null(nms)) {
@@ -244,110 +235,129 @@ has_name <- function(x) {
     !is.na(nms) & nms != ""
   }
 }
-This function takes advantage of the standard return rule: a function returns the last value that it computed. Here that is either one of the two branches of the if statement.
+has_name(c("hi",1,3,4,"bye"))
+```
+This takes advantage of the standard **return rule**: a function returns the *last value it computed* = either 1 of the 2 branches of the `if` statement.
 
-19.4.1 Conditions
+## 19.4.1 Conditions
 
-The condition must evaluate to either TRUE or FALSE. If it’s a vector, you’ll get a warning message; if it’s an NA, you’ll get an error. Watch out for these messages in your own code:
+The **condition** must evaluate to either TRUE or FALSE. If it’s a vector, you’ll get a warning message; if it’s an NA, you’ll get an error
+```{r}
+#if (c(TRUE, FALSE)) {}
+##> Warning in if (c(TRUE, FALSE)) {: the condition has length > 1 and only the first element will be used
+##> NULL
 
-if (c(TRUE, FALSE)) {}
-#> Warning in if (c(TRUE, FALSE)) {: the condition has length > 1 and only the
-#> first element will be used
-#> NULL
+#if (NA) {}
+##> Error in if (NA) {: missing value where TRUE/FALSE needed
+```
+can use `||` (or) and `&&` (and) to combine multiple logical expressions. 
 
-if (NA) {}
-#> Error in if (NA) {: missing value where TRUE/FALSE needed
-You can use || (or) and && (and) to combine multiple logical expressions. These operators are “short-circuiting”: as soon as || sees the first TRUE it returns TRUE without computing anything else. As soon as && sees the first FALSE it returns FALSE. You should never use | or & in an if statement: these are vectorised operations that apply to multiple values (that’s why you use them in filter()). If you do have a logical vector, you can use any() or all() to collapse it to a single value.
+These operators are **short-circuiting** = as soon as `||` sees the 1st `TRUE` it returns `TRUE` *without computing anything else*. 
+As soon as `&&` sees the 1st `FALSE` it returns `FALSE`. 
 
-Be careful when testing for equality. == is vectorised, which means that it’s easy to get more than one output. Either check the length is already 1, collapse with all() or any(), or use the non-vectorised identical(). identical() is very strict: it always returns either a single TRUE or a single FALSE, and doesn’t coerce types. This means that you need to be careful when comparing integers and doubles:
+Never use `|` or `&` in an `if` statement b/c these are **vectorised operations** that apply to *multiple* values (that’s why you use them in `filter`). If you *do* have a logical vector, use `any()` or `all()` to **collapse** it to a single value.
 
+Be careful when testing for equality b/c `==` is **vectorised** + it’s easy to get more than 1 output. Either check that `length` is already 1, **collapse** w/ `all` or `any`, or use the non-vectorised `identical` (very strict + always returns either a single `TRUE` or a single `FALSE` +  doesn’t coerce types = be careful when comparing integers and doubles):
+```{r}
 identical(0L, 0)
-#> [1] FALSE
-You also need to be wary of floating point numbers:
-
+```
+Also be wary of floating point numbers:
+```{r}
 x <- sqrt(2) ^ 2
-x
-#> [1] 2
 x == 2
-#> [1] FALSE
-x - 2
-#> [1] 4.44e-16
-Instead use dplyr::near() for comparisons, as described in comparisons.
+x - 2 # expect to be 0
+```
+Instead use `dplyr::near` for comparisons, as described in comparisons.
 
-And remember, x == NA doesn’t do anything useful!
+And remember, **x == NA doesn’t do anything useful**
 
-19.4.2 Multiple conditions
+## 19.4.2 Multiple conditions
 
-You can chain multiple if statements together:
-
-if (this) {
-  # do that
-} else if (that) {
-  # do something else
-} else {
-  # 
+Can chain multiple if statements together. But for a very long series of chained `if`'s, consider rewriting. 1 useful technique = `switch` = evaluate selected code based on position or name.
+```{r}
+switch_math <- function(x, y, op) {
+  switch(op,
+         plus = x + y,
+         minus = x - y,
+         times = x * y,
+         divide = x / y,
+         stop("Unknown op!")
+  )
 }
-But if you end up with a very long series of chained if statements, you should consider rewriting. One useful technique is the switch() function. It allows you to evaluate selected code based on position or name.
+```
+Another useful function that can often eliminate long chains of `if` = `cut()` = used to **discretise** continuous variables.
 
-#> function(x, y, op) {
-#>   switch(op,
-#>     plus = x + y,
-#>     minus = x - y,
-#>     times = x * y,
-#>     divide = x / y,
-#>     stop("Unknown op!")
-#>   )
-#> }
-Another useful function that can often eliminate long chains of if statements is cut(). It’s used to discretise continuous variables.
+## 19.4.3 Code style
 
-19.4.3 Code style
+An opening curly brace should never go on its own line + should always be followed by a new line. A closing curly brace should always go on its own line, unless followed by `else`.
 
-Both if and function should (almost) always be followed by squiggly brackets ({}), and the contents should be indented by two spaces. This makes it easier to see the hierarchy in your code by skimming the left-hand margin.
-
-An opening curly brace should never go on its own line and should always be followed by a new line. A closing curly brace should always go on its own line, unless it’s followed by else. Always indent the code inside curly braces.
-
-# Good
-if (y < 0 && debug) {
-  message("Y is negative")
-}
-
-if (y == 0) {
-  log(x)
-} else {
-  y ^ x
-}
-
-# Bad
-if (y < 0 && debug)
-message("Y is negative")
-
-if (y == 0) {
-  log(x)
-} 
-else {
-  y ^ x
-}
 It’s ok to drop the curly braces if you have a very short if statement that can fit on one line:
-
+```{r}
 y <- 10
 x <- if (y < 20) "Too low" else "Too high"
-I recommend this only for very brief if statements. Otherwise, the full form is easier to read:
 
+# same thing, long-form
 if (y < 20) {
   x <- "Too low" 
 } else {
   x <- "Too high"
 }
-19.4.4 Exercises
+```
 
-What’s the difference between if and ifelse()? Carefully read the help and construct three examples that illustrate the key differences.
+# 19.4.4 Exercises
 
-Write a greeting function that says “good morning”, “good afternoon”, or “good evening”, depending on the time of day. (Hint: use a time argument that defaults to lubridate::now(). That will make it easier to test your function.)
+**What’s the difference between if and ifelse()? Carefully read the help and construct three examples that illustrate the key differences.**
 
-Implement a fizzbuzz function. It takes a single number as input. If the number is divisible by three, it returns “fizz”. If it’s divisible by five it returns “buzz”. If it’s divisible by three and five, it returns “fizzbuzz”. Otherwise, it returns the number. Make sure you first write working code before you create the function.
+The true/false return expressions for ifelse are w/in the parenthesis, not curly brackets.
+```{r}
+if (9 > 10) { 
+  print(10)
+} else {
+    print(20)
+}
+ifelse(9 > 10, 10, 20)
 
-How could you use cut() to simplify this set of nested if-else statements?
+if ("maybe" == "maybe") { 
+  print("match")
+} else {
+    print("no")
+}
+ifelse("maybe`" == "maybe","match", "no")
+```
 
+**Write a greeting function that says “good morning”, “good afternoon”, or “good evening”, depending on the time of day. (Hint: use a time argument that defaults to lubridate::now(). That will make it easier to test your function.)**
+```{r}
+greet <- function(time) {
+  if (hour(time) < 11) {
+    print("good morning")
+  } else if (hour(time) < 16) {
+    print("good afternoon")
+  } else {
+    print("good evening")
+  }
+}
+greet(lubridate::now()+10)
+greet(lubridate::now()+18000)
+```
+
+**Implement a fizzbuzz function. It takes a single number as input. If the number is divisible by three, it returns “fizz”. If it’s divisible by five it returns “buzz”. If it’s divisible by three and five, it returns “fizzbuzz”. Otherwise, it returns the number. Make sure you first write working code before you create the function.**
+```{r}
+fizzbuzz <- function(x) {
+  if (x %% 3 == 0 && x %% 5 == 0) {
+    print("fizzbuzz") 
+  } else if (x %% 3 == 0) {
+    print("fizz")
+  } else if (x %% 5 == 0) {
+    print("buzz")
+  }
+}
+fizzbuzz(6)
+fizzbuzz(10)
+fizzbuzz(15)
+```
+**How could you use cut() to simplify this set of nested if-else statements?**
+```{r}
+temp <- 0
 if (temp <= 0) {
   "freezing"
 } else if (temp <= 10) {
@@ -359,6 +369,9 @@ if (temp <= 0) {
 } else {
   "hot"
 }
+seq(10,100,1)
+cut(seq(10,100,1),10)
+```
 How would you change the call to cut() if I’d used < instead of <=? What is the other chief advantage of cut() for this problem? (Hint: what happens if you have many values in temp?)
 
 What happens if you use switch() with numeric values?
@@ -373,20 +386,18 @@ switch(x,
 )
 Experiment, then carefully read the documentation.
 
-19.5 Function arguments
+# 19.5 Function arguments
 
-The arguments to a function typically fall into two broad sets: one set supplies the data to compute on, and the other supplies arguments that control the details of the computation. For example:
+Arguments to a function typically fall into 2 broad sets: 1 set supplies data to compute on + the other supplies arguments that control the details of the computation. For example:
+<ul>
+<li> In `log()`, data = `x`, and the detail = the `base` of the logarithm. </li>
+<li> In `mean()`, data = `x`, and details = how much data to trim from the ends (`trim`) + how to handle missing values (`na.rm`). </li>
+<li> In `t.test()`, data are `x` + `y`, and details of the test = `alternative`, `mu`, `paired`, `var.equal`, and `conf.level`. </li>
+<li> In `str_c()`, you can supply any # of strings to `...`, + the details of the concatenation are controlled by `sep` + `collapse`. </li>
+</ul>
 
-In log(), the data is x, and the detail is the base of the logarithm.
-
-In mean(), the data is x, and the details are how much data to trim from the ends (trim) and how to handle missing values (na.rm).
-
-In t.test(), the data are x and y, and the details of the test are alternative, mu, paired, var.equal, and conf.level.
-
-In str_c() you can supply any number of strings to ..., and the details of the concatenation are controlled by sep and collapse.
-
-Generally, data arguments should come first. Detail arguments should go on the end, and usually should have default values. You specify a default value in the same way you call a function with a named argument:
-
+Generally, data arguments should come 1st + detail arguments should go on the end w/ default values (specify a default value in the same way you call a function with a named argument)
+```{r}
 # Compute confidence interval around mean using normal approximation
 mean_ci <- function(x, conf = 0.95) {
   se <- sd(x) / sqrt(length(x))
@@ -396,29 +407,33 @@ mean_ci <- function(x, conf = 0.95) {
 
 x <- runif(100)
 mean_ci(x)
-#> [1] 0.498 0.610
 mean_ci(x, conf = 0.99)
-#> [1] 0.480 0.628
-The default value should almost always be the most common value. The few exceptions to this rule are to do with safety. For example, it makes sense for na.rm to default to FALSE because missing values are important. Even though na.rm = TRUE is what you usually put in your code, it’s a bad idea to silently ignore missing values by default.
+```
+The default value should almost always be the most *common* value. 
 
-When you call a function, you typically omit the names of the data arguments, because they are used so commonly. If you override the default value of a detail argument, you should use the full name:
+The few exceptions to this rule are to do w/ safety (ex: makes sense for `na.rm` to default to `FALSE` b/c missing values are important. Even though `na.rm = TRUE` is what you usually put in code, it’s a bad idea to silently ignore missing values by default)
 
+When you call a function, you typically omit the names of the data arguments, b/c they are used so commonly. If you override the default value of a detail argument, use the full name:
+```{r}
 # Good
 mean(1:10, na.rm = TRUE)
 
 # Bad
 mean(x = 1:10, , FALSE)
 mean(, TRUE, x = c(1:10, NA))
-You can refer to an argument by its unique prefix (e.g. mean(x, n = TRUE)), but this is generally best avoided given the possibilities for confusion.
+```
+Can refer to an argument by its unique prefix (e.g. mean(x, n = TRUE)), but this is generally best avoided given the possibilities for confusion.
 
-Notice that when you call a function, you should place a space around = in function calls, and always put a space after a comma, not before (just like in regular English). Using whitespace makes it easier to skim the function for the important components.
-
+Using whitespace makes it easier to skim the function for the important components.
+```{r}
 # Good
 average <- mean(feet / 12 + inches, na.rm = TRUE)
 
 # Bad
 average<-mean(feet/12+inches,na.rm=TRUE)
-19.5.1 Choosing names
+```
+
+## 19.5.1 Choosing names
 
 The names of the arguments are also important. R doesn’t care, but the readers of your code (including future-you!) will. Generally you should prefer longer, more descriptive names, but there are a handful of very common, very short names. It’s worth memorising these:
 
@@ -430,7 +445,7 @@ n: length, or number of rows.
 p: number of columns.
 Otherwise, consider matching names of arguments in existing R functions. For example, use na.rm to determine if missing values should be removed.
 
-19.5.2 Checking values
+## 19.5.2 Checking values
 
 As you start to write more functions, you’ll eventually get to the point where you don’t remember exactly how your function works. At this point it’s easy to call your function with invalid inputs. To avoid this problem, it’s often useful to make constraints explicit. For example, imagine you’ve written some functions for computing weighted summary statistics:
 
@@ -495,7 +510,7 @@ wt_mean(1:6, 6:1, na.rm = "foo")
 #> Error: is.logical(na.rm) is not TRUE
 Note that when using stopifnot() you assert what should be true rather than checking for what might be wrong.
 
-19.5.3 Dot-dot-dot (…)
+## 19.5.3 Dot-dot-dot (…)
 
 Many functions in R take an arbitrary number of inputs:
 
