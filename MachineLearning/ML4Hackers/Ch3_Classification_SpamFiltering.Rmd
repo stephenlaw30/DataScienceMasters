@@ -1,0 +1,112 @@
+---
+title: "Ch3 - Classification: Spam Filtering"
+author: "Steve Newns"
+date: "November 8, 2017"
+output: html_document
+---
+
+# This or That: Binary Classification
+
+A separating hyperplane **decision boundary** b/c typically working w/ data that can’t be classified
+properly using only straight lines.
+
+Producing general-purpose tools that handle problems where a decision boundary isn’t a single straight line has been 1 of the great achievements of ML
+
+1 approach in particular = the **kernel trick** = has remarkable property of allowing us to work w/ much more sophisticated decision boundaries at almost no additional computational cost (coming later)
+
+Assume we have a set of labeled examples of categories we want to learn how to ID that consist of a label/class + a series of measured variables that *describe* each example = **features/predictors** 
+
+Examples of classifications can be found anywhere you look for them:
+<ul>
+<li> Given the results of a mammogram, does a patient have breast cancer? </li>
+<li> Do blood pressure measurements suggest that a patient has hypertension? </li>
+<li> Does a political candidate’s platform suggest she is a Republican or Democratic candidate? </li>
+<li> Does a picture uploaded to a social network contain a face in it? </li>
+<li> Was The Tempest written by William Shakespeare or Francis Bacon? </li>
+</ul>
+
+# Build a system for deciding whether an email is spam or ham.
+
+Raw data comes from `SpamAssassin` public **corpus**, available for free download @ http://spamassassin.apache.org/old/publiccorpus/. 
+
+At the unprocessed stage, features = simply the contents of the raw email as plain text which provides us w/ our 1st problem = need to transform our *raw text* data into a set of **features that describe qualitative concepts in a quantitative way**. 
+
+In our case, that will be a 0/1 coding strategy: `spam` or `ham` 
+
+May want to determine if containing HTML tags make an email more likely to be spam. To answer this, we need a strategy for turning the text in email into numbers. 
+
+Fortunately, general-purpose text-mining packages available in R will do much of this work for us so we can focus on building up intuition for types of features people have used in the past when working w/ text data. 
+
+**Feature generation/engineering** = a major topic in current ML research + is still very far from being automated in a general-purpose way. At present, it’s best to think of the features being used as part of a vocabulary of ML that you become more familiar w/ as you perform more ML tasks.
+
+**Just as learning words of a new language builds up an intuition for what could realistically be a word, learning about the features people have used in the past builds up an intuition for what features could reasonably be helpful in the future.**
+
+When working w/ text, historically the most important type of feature used = word count. If we think text of HTML tags are strong indicators of if email is spam, we might pick terms like “html” + “table” + count
+how often they occur in 1 type of document vs. the other. 
+
+A plot of points might not be very informative if too many DPs overlap (comes up quite often w/ data that contains only a few unique values for 1+ variables). As this is a recurring problem, there is a standard graphical solution: simply add random noise to plotted values which will “separate out” the points to reduce amount of over-plotting = **jittering**
+
+In practice, we can do a much better job by using many more than just these 2 very obvious terms like "html" and "table". The final analysis uses several thousand terms + even though we’ll only use word-count data, we’ll still get a relatively accurate classification.
+
+In the real world, you’d want to use other features beyond word counts, like falsified headers, IP or email black lists, etc., but here we only want to introduce the basics of text classification.
+
+# Moving Gently into Conditional Probability
+
+At its core, text classification = 20th-century application of the 18th-century concept of **conditional probability** = likelihood of observing 1 thing *given some other thing already known* like probability a college student is female given we already know the student’s major is CS. 
+
+According to a National Science Foundation survey in 2005, only 22% of undergrad CS majors were female but 51% of undergrad science majors overall were female, so conditioning on being a CS major lowers
+chances of being a woman from 51% to 22%.
+
+**Naive Bayes classifier** = looks for differences of this sort by searching through text for words that are either:
+<ul>
+<li> noticeably more likely to occur in spam messages </li>
+<li> noticeably more likely to occur in ham messages.  </li>
+</ul>
+
+When a word is noticeably more likely to occur in 1 context rather than the other, its occurrence can be diagnostic of whether a new message is spam or ham. The logic is simple: if you see a single word more likely to occur in spam than ham = evidence the email as a whole is spam. If you see *many* words more likely to occur in spam than ham + very few words more likely to occur in ham than spam = strong evidence the email as a whole is spam.
+
+Ultimately, our text classifier formalizes this intuition by computing
+<ul>
+<li> probability of seeing exact contents of an email conditioned on the email being assumed to be
+spam
+<li> probability of seeing the same email’s contents conditioned on the email being assumed to be ham. 
+</ul>
+
+If it’s much more likely that we'd see the email in question if it were spam, declare it to be spam.
+
+How much more likely a message needs to be to merit being labeled spam depends upon an additional piece of info: the **base rate** of seeing spam messages = the **prior** 
+
+W/ email, prior comes into play b/c the majority of email sent is spam, which means even weak evidence an email is spam can be sufficient to justify labeling it as spam.
+
+To compute probability of an email, assume the occurrence counts for every word can be estimated in isolation from all of the other words = **statistical independence**.
+
+When we make this assumption w/out being certain it’s correct, we say our model is **naive.** B/c we also make use of base rate info about spam, the model is also a **Bayes model**. Ttogether, these 2 traits make a **Naive Bayes classifier**.
+
+# Writing Our First Bayesian Spam Classifier
+
+`SpamAssassin` public corpus consists of labeled emails from 3 categories: “spam,” “easy ham,” + “hard ham.” (more difficult to distinguish from spam than easy stuff + often includes HTML tags, which is 1 way to easily ID spam)
+
+To more accurately classify hard ham, we must to include more info from many more text features + extracting these features requires some **text mining** of the email files + constitutes our initial step in creating a classifier.
+
+All raw email files include headers + message text. Header contains a lot of info about where an email comes from. Despite the fact there is a lot of useful info contained in the headers, we will not be using any of this info in our classifier. 
+
+Rather than focus on features contained in the *transmission* of the message, we're interested in how the *contents* of messages themselves can help predict an email’s type (not to say one should always ignore the header or any other info as all sophisticated modern spam filters utilize info contained in email message headers, such as whether portions of it appear to have been forged, whether the message
+is from a known spammer, or whether there are bits missing)
+
+B/c we're focusing on only the email message/body, we need to extract this text from the message files, which always begin after the 1st full line break in the email file. 
+
+To begin building our classifier, 1st create R functions that can access the files + extract the message text by taking advantage of this text convention.
+
+```{r}
+library(tidyverse)
+library(tm) # text mining
+library(ggplot2)
+
+spam.path <- "/spam/"
+spam2.path <- "/spam_2/"
+easyham.path <- "/easy_ham/"
+easyham2.path <- "/easy_ham_2/"
+hardham.path <- "/hard_ham/"
+hardham2.path <- "/hard_ham_2/"
+```
+
