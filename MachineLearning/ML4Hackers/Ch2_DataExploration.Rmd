@@ -307,3 +307,67 @@ IRL ex: Corporate call centers often find the length of time between calls recei
 As you build up a greater familiarity w/ data + learn more about the theoretical distributions statisticians have studied, these distributions will become more familiar to you, especially b/c the same few distributions come up over + over again. 
 
 # Visualizing the Relationships Between Columns
+
+Looking at individual columns = worth doing b/c often just seeing a familiar shape in data says a lot about the data (Seeing normal distribution tells us we can use mean + median interchangeably + that we can trust that most of the time you won’t see data more than 3 SD's away from the mean)
+
+To do real ML to find relationships between multiple columns + use those relationships to make sense of data + to predict things about the future. 
+
+Stereotypical regression picture = **scatterplot** to look for hidden shapes relate 2 columns
+```{r}
+ggplot(genders, aes(Height, Weight)) + geom_point()
+```
+See a pattern relating heights w/ weights: taller = more, which is intuitively obvious
+
+To start examining the pattern more carefully, use a **smoothing** tool in ggplot2 to get a visual depiction of the linear pattern
+```{r}
+ggplot(genders, aes(Height, Weight)) +
+  geom_point() +
+  geom_smooth()
+```
+
+`geom_smooth` generates predictions for weight given height as a simple line w/ a shaded region = other plausible predictions that could've been made for weight based on the data seen. 
+
+w/ more data = guesses become more accurate + shaded region shrinks. 
+
+Best way to see this effect = remove some data + see how the pattern gets weaker and weaker.
+```{r}
+ggplot(genders[1:20,], aes(Height, Weight)) +
+  geom_point() +
+  geom_smooth()
+ggplot(genders[1:200,], aes(Height, Weight)) +
+  geom_point() +
+  geom_smooth()
+ggplot(genders[1:2000,], aes(Height, Weight)) +
+  geom_point() +
+  geom_smooth()
+```
+
+For classification, look at heights + weights of every person but by gender (color of each point)
+```{r}
+ggplot(genders, aes(Height, Weight, color = Gender)) +
+  geom_point()
+```
+See 2 distinct groups of people 
+
+In a classification picture, a scatterplot but use a 3rd variable to color in points w/ different labels. 
+After running a standard classification algorithm, we'd get a line = **separating hyperplane** that splits the data into 2 groups: on 1 side, predict female given height + weight +on the other predict male given height + weight.
+
+For this data set, a general logistic regression model wouldbe right about 92% of the time, not a bad performance when using only the simplest classification model out there w/ only heights + weights as inputs to the prediction algorithm. 
+
+Teaser for the next chapter
+```{r}
+library(tidyverse)
+library(magrittr)
+#genders %<>%
+#  mutate(Gender = ifelse(Gender == "Male", 1, 0))
+# logi
+genders <- transform(genders, Male = ifelse(Gender == 'Male', 1, 0))
+logit.model <- glm(Male ~ Height + Weight, data = genders, family = binomial(link = 'logit'))
+
+ggplot(genders, aes(Height, Weight, color = Gender)) +
+ geom_point() +
+ geom_abline(intercept = - coef(logit.model)[1] / coef(logit.model)[2],
+             slope = - coef(logit.model)[3] / coef(logit.model)[2],
+             geom = 'abline',
+             color = 'black')
+```
