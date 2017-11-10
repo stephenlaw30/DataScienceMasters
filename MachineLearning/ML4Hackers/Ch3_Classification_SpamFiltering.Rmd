@@ -114,54 +114,20 @@ hardham2_path <- "./data/hard_ham_2/"
 Now to create text corpuses from both sets of files via function that opens each file, finds the 1st line break, + returns the text below that break as a character vector w/ a single text element.
 
 ```{r}
-get.msg <- function(path) {
- con <- file(path, open="rt", encoding="latin1")
- text <- readLines(con)
- # The message always begins after the first full line break
- msg <- text[seq(which(text=="")[1]+1,length(text), by = 1)]
- close(con)
- return(paste(msg, collapse="\n"))
-}
-
-spam.docs <- dir(spam.path)
-spam.docs <- spam.docs[which(spam.docs!="cmds")]
-#all.spam <- sapply(spam.docs, function(p) get.msg(paste(spam.path,p ,sep="")))
-```
-get.tdm <- function(doc.vec) {
- doc.corpus <- Corpus(VectorSource(doc.vec))
- control <- list(stopwords=TRUE, removePunctuation=TRUE, removeNumbers=TRUE,
- minDocFreq=2)
- doc.dtm <- TermDocumentMatrix(doc.corpus, control)
- return(doc.dtm)
-}
-spam.tdm <- get.tdm(all.spam)
-
-spam.matrix <- as.matrix(spam.tdm)
-spam.counts <- rowSums(spam.matrix)
-spam.df <- data.frame(cbind(names(spam.counts),
- as.numeric(spam.counts)), stringsAsFactors=FALSE)
-names(spam.df) <- c("term","frequency")
-spam.df$frequency <- as.numeric(spam.df$frequency)
-spam.occurrence <- sapply(1:nrow(spam.matrix),
- function(i) {length(which(spam.matrix[i,] > 0))/ncol(spam.matrix)})
-spam.density <- spam.df$frequency/sum(spam.df$frequency)
-spam.df <- transform(spam.df, density=spam.density,
- occurrence=spam.occurrence)
-
-
-```{r}
 get_msg <- function(path) {
   # Function to grab all text after 
   # 1st line break in a text file 
   # and returns it in a character vector
   
   #open connection and read in the lines, each as seperate element of character vector
-  connection <- file(path, open = "rt", encoding = "latin1")
+  connection <- file(path, open = "rt")#, encoding = "latin1")
   text <- readLines(path)
   
   # find 1st line break (1st empty element) and get all text after this position
   # get index of 1st empty element, add 1, + generate all indexes from this to the end
-  msg <- text[seq(which(text == "")[1] + 1, length(text), 1)]
+  from <- which(text == "")[1] + 1
+  to <- length(text)
+  msg <- text[seq(from, to, 1)]
   close(connection)
   
   # get vector into a single character vector
@@ -213,7 +179,7 @@ get_tdm <- function(vec) {
   return(doc_dtm)
 }
 
-spam_tdm <- get_tdm(all.spam)
+spam_tdm <- get_tdm(all_spam)
 ```
 
 Good approach to create training data = construct a data frame w/ all observed probabilities for each term, given we know it is spam.
@@ -258,39 +224,30 @@ We have now generated the training data for spam classification.
 # by sorting terms by occurence in a copy of the data frame in with()
 head(spam_df[with(spam_df, order(-occurrence)),])
 ```
-HTML tags appear to be the strongest text features associated w/ `spam` Over 80% of the messages in the spam training data contain the term "html"", as well as other common HTML-related terms, such as body, table, font,
-and head. Note, however, that these terms are not the most frequent by raw count. You
-can see this for yourself by replacing -occurrence with -frequency in the preceding
-statement. This is very important in terms of how we define our classifier. If we used
-raw count data and the subsequent densities as our training data, we might be over
-weighting certain kinds of spam—specifically, spam that contains HTML tables. However,
-we know that not all spam messages are constructed this way. As such, a better
-approach is to define the conditional probability of a message being spam based on
-how many messages contain the term.
-Writing Our First Bayesian Spam Classifier | 83
-www.it-ebooks.info
-Now that we have the spam training data, we need to balance it with the ham training
-data. As part of the exercise, we will build this training data using only the easy ham
-messages. Of course, it would be possible to incorporate the hard ham messages into
-the training set; in fact, that would be advisable if we were building a production system.
-But within the context of this exercise, it’s helpful to see how well a text classifier will
-work if trained using only a small corpus of easily classified documents.
-We will construct the ham training data in exactly the same way we did the spam, and
-therefore we will not reprint those commands here. The only way this step differs from
-generating the spam training data is that we use only the first 500 email messages in
-the data/easy_ham folder.
-You may note that there are actually 2,500 ham emails in this directory. So why are we
-ignoring four-fifths of the data? When we construct our first classifier, we will assume
-that each message has an equal probability of being ham or spam. As such, it is good
-practice to ensure that our training data reflects our assumptions. We only have 500
-spam messages, so we will limit or ham training set to 500 messages as well.
-To see how we limited the ham training data in this way, see line 102 in
-the email_classify.R file for this chapter.
-Once the ham training data has been constructed, we can inspect it just as we did the
-spam for comparison:
+HTML tags appear to be the strongest text features associated w/ `spam` (Over 80% of the messages in the spam training data contain the term "html"), as well as other common HTML-related terms, such as body, table, font, and head. Note, however, that these terms are not the most frequent by raw count, seen by  replacing `occurrence` w/ `frequency` in the preceding statement. 
+
+```{r}
+head(spam_df[with(spam_df, order(-frequency)),])
+```
+
+This is very important in terms of how we define our classifier. If we used raw count data + the subsequent densities as our training data, we might be over-weighting certain kinds of spam that contains HTML tables. However, we know not all spam messages are constructed this way. As such, a better
+approach is to define the **conditional probability** of a message being spam based on how many messages contain the term.
+
+
+Now that we have the spam training data, balance it w/ the `easy ham` (possible to incorporate `hard ham` messages into the training set (advisable if building a production system), but w/in the context of this exercise, it’s helpful to see how well a text classifier will work if trained using only a small corpus of easily classified documents)
+
+Construct the ham training data in exactly the same way we did the spam, + only difference = use only the 1st 500 email messages in `easy_ham`. There are actually 25k ham emails, but when constructing our 1st classifier, assume each message has an equal probability of being ham or spam. As such, it is good
+practice to ensure our training data reflects our assumptions. 
+
+We only have 500 spam messages, so limit ham training set to 500 messages as well.
+
 ```{r}
 ham_docs <- dir(easyham_path)
 ham_docs <- ham_docs[which(ham_docs != "cmds")]
+
+# limit from 26k to 500
+ham_docs <- ham_docs[1:500]
+
 all_ham <- sapply(ham_docs, function(x) get_msg(paste(easyham_path, x, sep="")))
 ham_tdm <- get_tdm(all_ham)
 ham_matrix <- as.matrix(ham_tdm)
@@ -321,33 +278,86 @@ ham_df <- ham_df %>%
 ```{r}
 head(ham_df[with(ham_df, order(-occurrence)),])
 ```
-head(spam_df)
-head(all_spam)
-head(easyham_df[with(easyham.df, order(-occurrence)),])
- term frequency density occurrence
-3553 yahoo 185 0.008712853 0.180
-966 dont 141 0.006640607 0.090
-2343 people 183 0.008618660 0.086
-1871 linux 159 0.007488344 0.084
-1876 list 103 0.004850940 0.078
-3240 time 91 0.004285782 0.064
 
+The 1st thing you will notice in `ham` training data is terms are much more sparsely distributed among emails. The term that occurs in the most documents, “yahoo,” does so in only 18% of them. The other terms all occur in less than 10% of the documents. Compare this to the top spam terms, which all occur in over 24% of spam emails. Already we can begin to see how this variation will allow us to separate
+spam from ham. 
+
+If a message contains just 1 or 2 terms strongly associated w/ spam, + it will take a lot of nonspam words for the message to be classified as ham. W/ both training sets defined, we are now ready to complete our classifier and test it!
+
+
+# Defining the Classifier and Testing It with Hard Ham
+
+We want to define a classifier that will take an email message file + calculate the probability it is spam or ham. Fortunately, we have already created most of the functions + generated the data needed to perform this calculation. 
+
+Before proceedING, there is 1 critical complication that we must consider = need to decide how to handle terms in new emails that do and do not match terms in our training set (see Figure 3-3). 
+
+To calculate probability an email is spam or ham, we need to find terms common between the training data + the message in question + then use the probabilities associated w/ these terms to calculate the conditional probability a message is of the training data’s type. 
+
+This is fairly straightforward, but what do we do w/ the terms not in our training data? To calculate the conditional probability of a message, we combine probabilities of each term in the training data by taking their product (ex: if frequency of "html" in a spam message = 0.30 + frequency of "table" in a spam message = 0.10, we’ll say the probability of seeing both in a spam message = 0.30 × 0.10 = 0.03).
+
+But terms in the email *not* in our training data, we have no info about their frequency in either spam or ham messages. 1 possible solution = assume that b/c we have not seen a term yet, its probability of occurring in a certain class = 0. This, however, is very misguided.
+
+1st = foolish to assume we will never see a term in the entire universe of spam + ham simply b/c we have not yet seen it. Moreover, b/c we calculate conditional probabilities using products, if we assigned a 0 probability to terms not in our training data, we'd calculate 0 as the probability of most messages, b/c we'd be multiplying all other probabilities by 0 every time we encountered an unknown term. 
+
+This would cause catastrophic results for our classifier b/c many/even all messages would be incorrectly assigned a 0 probability of being either spam or ham.
+
+Researchers have come up w/ many clever ways of trying to get around this problem, such as drawing a random probability from some distribution or using NLP techniques to estimate “spamminess” of a term given its context.
+
+For our purposes, use a very simple rule: *assign a very small probability to terms not in the training set* = a common way of dealing w/ missing terms in simple text classifiers + for our purposes serves just fine. In this exercise, by default set this probability to 0.0001%, sufficiently small for this data set. 
+
+Finally, b/c we're assuming all emails are equally likely to be ham or spam, we set our default prior belief an email of each to 50%. In order to return to this problem later, however, we construct `classify.email` function such that the prior can be varied.
+
+Be wary of always using 0.0001% for terms not in a training set. We are using it in this example, but in others it may be too large or too small, in which case the system you build will not work at all!
 ```{r}
-classify.email <- function(path, training.df, prior=0.5, c=1e-6) {
- msg <- get.msg(path)
- msg.tdm <- get.tdm(msg)
- msg.freq <- rowSums(as.matrix(msg.tdm))
+classify_email <- function(path, training_df, prior=0.5, c=1e-6) {
+ msg <- get_msg(path)
+ msg_tdm <- get_tdm(msg)
+ msg_freq <- rowSums(as_matrix(msg_tdm))
  # Find intersections of words
- msg.match <- intersect(names(msg.freq), training.df$term)
- if(length(msg.match) < 1) {
- return(prior*c^(length(msg.freq)))
+ msg_match <- intersect(names(msg_freq), training_df$term)
+ if(length(msg_match) < 1) {
+ return(prior*c^(length(msg_freq)))
  }
  else {
- match.probs <- training.df$occurrence[match(msg.match, training.df$term)]
- return(prior * prod(match.probs) * c^(length(msg.freq)-length(msg.match)))
+ match_probs <- training_df$occurrence[match(msg_match, training_df$term)]
+ return(prior * prod(match_probs) * c^(length(msg_freq)-length(msg_match)))
  }
 }
-
+```
+You will notice that the first three steps of the classify.email function proceed just as
+our training phase did. We must extract the message text w/ get.msg, turn it into a
+TDM w/ get.tdm, + finally calculate the frequency of terms w/ rowSums. Next, we
+need to find how the terms in the email message intersect w/ the terms in our training
+data, as depicted in Figure 3-3. To do so, we use the intersect command, passing the
+terms found in the email message + those in the training data. What will be returned
+are those terms in the gray shaded area of Figure 3-3.
+The final step of the classification is to determine whether any of the words in the email
+message are present in the training set, + if so, we use them to calculate the probability
+that this message is of the class in question.
+Assume for now that we are attempting to determine if this email message is spam.
+msg.match will contain all of the terms from the email message in our spam training
+data, spam.df. If that intersection is empty, then the length of msg.match will be less than
+zero, + we can update our prior only by multiplying it w/ the product of the number
+of terms in the email w/ our tiny probability value: c. The result will be a tiny probability
+of assigning the spam label to the email.
+Conversely, if this intersection is not empty, we need to find those terms from the email
+in our training data + look up their occurrence probabilities. We use the match function
+to do the lookup, which will return the term’s element position in the term column
+of our training data. We use these element positions to return the corresponding probabilities
+from the occurrence column, + return those values to match.probs. We then
+calculate the product of these values + combine it w/ our prior belief about the
+email being spam w/ the term probabilities + the probabilities of any missing terms.
+The result is our Bayesian estimate for the probability that a message is spam given the
+matching terms in our training data.
+As an initial test, we will use our training data from the spam + easy ham messages
+to classify hard ham emails. We know that all of these emails are ham, so ideally our
+classifier will assign a higher probability of being ham to all of these messages. We also
+know, however, that hard ham messages are “hard” to classify because they contain
+Writing Our First Bayesian Spam Classifier | 87
+www.it-ebooks.info
+terms that are also associated w/ spam. Now let’s see how our simple
+classifier does!
+```{r}
 hardham.docs <- dir(hardham_path)
 hardham.docs <- hardham.docs[which(hardham.docs != "cmds")]
 hardham.spamtest <- sapply(hardham.docs,
@@ -359,132 +369,9 @@ hardham.hamtest <- sapply(hardham.docs,
 hardham.res <- ifelse(hardham.spamtest > hardham.hamtest, TRUE, FALSE)
 summary(hardham.res)
 ```
-```{r}
-spam.classifier <- function(path) {
- pr.spam <- classify.email(path, spam.df)
- pr.ham <- classify.email(path, easyham.df)
- return(c(pr.spam, pr.ham, ifelse(pr.spam > pr.ham, 1, 0)))
-}
-```
-
-The first thing you will notice in the ham training data is that the terms are much more
-sparsely distributed among the emails. The term that occurs in the most documents,
-“yahoo,” does so in only 18% of them. The other terms all occur in less than 10% of
-the documents. Compare this to the top spam terms, which all occur in over 24% of
-the spam emails. Already we can begin to see how this variation will allow us to separate
-spam from ham. If a message contains just one or two terms strongly associated with
-spam, it will take a lot of nonspam words for the message to be classified as ham. With
-both training sets defined, we are now ready to complete our classifier and test it!
-84 | Chapter 3: Classification: Spam Filtering
-www.it-ebooks.info
-Defining the Classifier and Testing It with Hard Ham
-We want to define a classifier that will take an email message file and calculate the
-probability that it is spam or ham. Fortunately, we have already created most of the
-functions and generated the data needed to perform this calculation. Before we can
-proceed, however, there is one critical complication that we must consider.
-We need to decide how to handle terms in new emails that match terms in our training
-set and how to handle terms that do not match terms in our training set (see
-Figure 3-3). To calculate the probability that an email message is spam or ham, we will
-need to find the terms that are common between the training data and the message in
-question. We can then use the probabilities associated with these terms to calculate
-the conditional probability that a message is of the training data’s type. This is fairly
-straightforward, but what do we do with the terms from the email being classified that
-are not in our training data?
-To calculate the conditional probability of a message, we combine the probabilities of
-each term in the training data by taking their product. For example, if the frequency of
-seeing html in a spam message is 0.30 and the frequency of seeing table in a spam
-message is 0.10, then we’ll say that the probability of seeing both in a spam message is
-0.30 × 0.10 = 0.03. But for those terms in the email that are not in our training data,
-we have no information about their frequency in either spam or ham messages. One
-possible solution would be to assume that because we have not seen a term yet, its
-probability of occurring in a certain class is zero. This, however, is very misguided.
-First, it is foolish to assume that we will never see a term in the entire universe of spam
-and ham simply because we have not yet seen it. Moreover, because we calculate conditional
-probabilities using products, if we assigned a zero probability to terms not in
-our training data, elementary arithmetic tells us that we would calculate zero as the
-probability of most messages, because we would be multiplying all the other probabilities
-by zero every time we encountered an unknown term. This would cause
-catastrophic results for our classifier because many, or even all, messages would be
-incorrectly assigned a zero probability of being either spam or ham.
-Researchers have come up with many clever ways of trying to get around this problem,
-such as drawing a random probability from some distribution or using natural language
-processing (NLP) techniques to estimate the “spamminess” of a term given its context.
-For our purposes, we will use a very simple rule: assign a very small probability to terms
-that are not in the training set. This is, in fact, a common way of dealing with missing
-terms in simple text classifiers, and for our purposes it will serve just fine. In this exercise,
-by default we will set this probability to 0.0001%, or one-ten-thousandth of a
-percent, which is sufficiently small for this data set. Finally, because we are assuming
-that all emails are equally likely to be ham or spam, we set our default prior belief that
-an email is of some type to 50%. In order to return to this problem later, however, we
-construct the classify.email function such that the prior can be varied.
-Writing Our First Bayesian Spam Classifier | 85
-www.it-ebooks.info
-Figure 3-3. Jittered frequency of the terms “html” and “table” by email type
-Be wary of always using 0.0001% for terms not in a training set. We are
-using it in this example, but in others it may be too large or too small,
-in which case the system you build will not work at all!
-86 | Chapter 3: Classification: Spam Filtering
-www.it-ebooks.info
-classify.email <- function(path, training.df, prior=0.5, c=1e-6) {
- msg <- get.msg(path)
- msg.tdm <- get.tdm(msg)
- msg.freq <- rowSums(as.matrix(msg.tdm))
- # Find intersections of words
- msg.match <- intersect(names(msg.freq), training.df$term)
- if(length(msg.match) < 1) {
- return(prior*c^(length(msg.freq)))
- }
- else {
- match.probs <- training.df$occurrence[match(msg.match, training.df$term)]
- return(prior * prod(match.probs) * c^(length(msg.freq)-length(msg.match)))
- }
-}
-You will notice that the first three steps of the classify.email function proceed just as
-our training phase did. We must extract the message text with get.msg, turn it into a
-TDM with get.tdm, and finally calculate the frequency of terms with rowSums. Next, we
-need to find how the terms in the email message intersect with the terms in our training
-data, as depicted in Figure 3-3. To do so, we use the intersect command, passing the
-terms found in the email message and those in the training data. What will be returned
-are those terms in the gray shaded area of Figure 3-3.
-The final step of the classification is to determine whether any of the words in the email
-message are present in the training set, and if so, we use them to calculate the probability
-that this message is of the class in question.
-Assume for now that we are attempting to determine if this email message is spam.
-msg.match will contain all of the terms from the email message in our spam training
-data, spam.df. If that intersection is empty, then the length of msg.match will be less than
-zero, and we can update our prior only by multiplying it with the product of the number
-of terms in the email with our tiny probability value: c. The result will be a tiny probability
-of assigning the spam label to the email.
-Conversely, if this intersection is not empty, we need to find those terms from the email
-in our training data and look up their occurrence probabilities. We use the match function
-to do the lookup, which will return the term’s element position in the term column
-of our training data. We use these element positions to return the corresponding probabilities
-from the occurrence column, and return those values to match.probs. We then
-calculate the product of these values and combine it with our prior belief about the
-email being spam with the term probabilities and the probabilities of any missing terms.
-The result is our Bayesian estimate for the probability that a message is spam given the
-matching terms in our training data.
-As an initial test, we will use our training data from the spam and easy ham messages
-to classify hard ham emails. We know that all of these emails are ham, so ideally our
-classifier will assign a higher probability of being ham to all of these messages. We also
-know, however, that hard ham messages are “hard” to classify because they contain
-Writing Our First Bayesian Spam Classifier | 87
-www.it-ebooks.info
-terms that are also associated with spam. Now let’s see how our simple
-classifier does!
-hardham.docs <- dir(hardham.path)
-hardham.docs <- hardham.docs[which(hardham.docs != "cmds")]
-hardham.spamtest <- sapply(hardham.docs,
- function(p) classify.email(paste(hardham.path, p, sep=""),
- training.df=spam.df))
-hardham.hamtest <- sapply(hardham.docs,
- function(p) classify.email(paste(hardham.path, p, sep=""),
- training.df=easyham.df))
-hardham.res <- ifelse(hardham.spamtest > hardham.hamtest, TRUE, FALSE)
-summary(hardham.res)
-Just as before, we need to get all of the file paths in order, and then we can test the
-classifier for all hard ham messages by wrapping both a spam test and ham test in
-sapply calls. The vectors hardham.spamtest and hardham.hamtest contain the
+Just as before, we need to get all of the file paths in order, + then we can test the
+classifier for all hard ham messages by wrapping both a spam test + ham test in
+sapply calls. The vectors hardham.spamtest + hardham.hamtest contain the
 conditional probability calculations for each hard ham email of being either spam or
 ham given the appropriate training data. We then use the ifelse command to compare
 the probabilities in each vector. If the value in hardham.spamtest is greater than that in
@@ -493,10 +380,10 @@ ham. Finally, we use the summary command to inspect the results, listed in Table
 Table 3-2. Testing our classifier against “hard ham”
 Email type Number classified as ham Number classified as spam
 Hard ham 184 65
-Congratulations! You’ve written your first classifier, and it did fairly well at identifying
+Congratulations! You’ve written your first classifier, + it did fairly well at identifying
 hard ham as nonspam. In this case, we have approximately a 26% false-positive rate.
 That is, about one-quarter of the hard ham emails are incorrectly identified as spam.
-You may think this is poor performance, and in production we would not want to offer
-an email platform with these results, but considering how simple our classifier is, it is
+You may think this is poor performance, + in production we would not want to offer
+an email platform w/ these results, but considering how simple our classifier is, it is
 doing quite well. Of course, a better test is to see how the classifier performs against
-not only hard ham, but also easy ham and spam.
+not only hard ham, but also easy ham + spam.
