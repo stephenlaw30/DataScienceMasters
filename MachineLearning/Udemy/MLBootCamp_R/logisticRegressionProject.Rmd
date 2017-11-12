@@ -207,10 +207,13 @@ missmap(uci2, y.labels = c(''), y.at = c(1), legend = F, main = "Missing Values 
 ```
 Let's look at histogram of `age`, colored by income.
 ```{r}
-ggplot(uci2, aes(age)) + geom_histogram(aes(fill = income), binwidth = 5)
+ggplot(uci2, aes(age)) + geom_histogram(aes(fill = income), color = "black", binwidth = 2) + 
+  theme_bw()
 uci2 %>%
   group_by(income) %>%
   summarise(mean(age), median(age))
+ggplot(uci2,aes(age)) + geom_histogram(aes(fill=income),color='black',binwidth=1) + theme_bw()
+
 ```
 Both are quite right-skewed, indicating that the majority of both those making under and over \$50k per year are younger. But, we also notice the much larger amount of people making less than \$50k per year overall.
 
@@ -220,6 +223,16 @@ Look at hours worked per week.
 ggplot(uci2, aes(hr_per_week)) + geom_histogram(binwidth = 5)
 ```
 Look at the giant peak for up to 40 hours per week, which is expected. Also not the blip over there at 100 hours per week, and the other small "peak" at around 50 hours per week. 
+
+```{r}
+uci2 %<>%
+  mutate(aboveAvgHrPerWk = as.factor(if_else(hr_per_week < 40, "Part-time",
+                                             if_else(hr_per_week == 40, "Full-time","Over-time")))) %>%
+  select(-hr_per_week)
+
+table(uci2$aboveAvgHrPerWk)
+length(uci2$aboveAvgHrPerWk)
+```
 
 Rename the `country` to `region` to better reflect the factor levels.
 ```{r}
@@ -248,6 +261,7 @@ Logistic regression is based on the **Sigmiod (logistic) function**, which alway
 ## Train Test Split
 Split the data into a train and test set using `caTools` 
 ```{r}
+set.seed(12345)
 spl <- sample.split(uci2$income, SplitRatio = .75)
 train <- subset(uci2, spl == T)
 test <- subset(uci2, spl == F)
