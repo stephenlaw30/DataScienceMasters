@@ -310,3 +310,4 @@ cat("\nSpecificity (TN rate or Recall): ",specificity)
 cat("\nPrecision (Positive Predictive Value): ",precision)
 cat("\nAccuracy: ",accuracy)
 ```
+need the cost for recall vs. precision for specific problem
