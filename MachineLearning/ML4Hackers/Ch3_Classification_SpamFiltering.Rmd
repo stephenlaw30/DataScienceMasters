@@ -97,7 +97,7 @@ B/c we're focusing on only the email message/body, we need to extract this text 
 
 To begin building our classifier, 1st create R functions that can access the files + extract the message text by taking advantage of this text convention.
 
-```{r}
+```{r, message = F, warning = F}
 library(tidyverse)
 library(tm) # text mining
 library(ggplot2)
@@ -148,8 +148,6 @@ spam_docs <- spam_docs[which(spam_docs != "cmds")]
 # get text from each email + return in single character vector
 # use anonymous function to concatenate file name + path
 all_spam <- sapply(spam_docs, function(x) get_msg(paste(spam_path, x, sep="")))
-
-#head(all_spam)
 ```
 Now to create a **text corpus** from our vector of emails using the `tm` functions. Once we have the text represented as a corpus, we can manipulate the terms in the messages to begin building our **feature set** for the spam classifier. 
 
@@ -359,7 +357,7 @@ hardham_spamtest <- sapply(hardham_docs,
 # returns vector of conditional probability of ham for each email given the training data
 hardham_hamtest <- sapply(hardham_docs,
                           function(p) classify_email(paste(hardham_path, p, sep=""),
-                                          training_df = easyham.df))
+                                          training_df = easyham_df))
 
 # if the probability of an email being spam > being ham, classify as "success"
 hardham_res <- ifelse(hardham_spamtest > hardham_hamtest, TRUE, FALSE)
@@ -380,8 +378,8 @@ spam_classifier <- function(path) {
   
   # determine if email is spam (based on spam training data) or ham (based on easyham training data)
   # returns probabilities of spam + easy ham for each email
-  prob_spam <- classify.email(path, spam_df)
-  prob_ham <- classify.email(path, easyham_df)
+  prob_spam <- classify_email(path, spam_df)
+  prob_ham <- classify_email(path, easyham_df)
   
   return(c(prob_spam, prob_ham, ifelse(prob_spam > prob_ham, 1, 0)))
 }
@@ -490,55 +488,203 @@ This is not the case, but there is considerable clustering of message types as b
 Both of these observations may indicate a weak training data set for ham emails, as there are clearly many more terms that should be associated w/ ham that currently are not.
 
 # Improving the Results
-In this chapter we have introduced the idea of text classification. To do this, we constructed
-a very simple Bayesian classifier using a minimal number of assumptions and
-features. At its core, this type of classification is an application of classic conditional
-probability theory in a contemporary context. Despite the fact that we trained our
-classifier with only a fraction of the total available data, this simple method performed
+For a basic idea of  text classification, we constructed a very simple **Naive Bayes classifier** using a minimal number of assumptions + features. 
+
+At its core, this type of classification is an application of classic conditional probability theory in a contemporary context. Despite the fact we trained our classifier w/ only a fraction of the total available data (1st 500 files in `ham`), this simple method performed
 reasonably well.
-That said, the false-positive and false-negative rates found in the test data are far too
-high for any production spam filter. As we mentioned throughout this chapter, there
-90 | Chapter 3: Classification: Spam Filtering
-are many simple tweaks we could apply to improve the results of the current model.
-For example, our approach assumes a priori that each email has an equal probability
-of being ham or spam. In practice, however, we know that this relationship is actually
-much closer to 80%–20% ham-to-spam. One way we might improve results, then,
-would be to simply alter our prior beliefs to reflect this fact and recalculate the predicted
-probabilities.
-spam.classifier<-function(path) {
- pr.spam<-classify.email(path, spam.df, prior=0.2)
- pr.ham<-classify.email(path, easyham.df, prior=0.8)
- return(c(pr.spam, pr.ham, ifelse(pr.spam > pr.ham, 1, 0)))
+
+That said, the false-positive + false-negative rates found in the test data are far too
+high for any production spam filter. There are many simple tweaks we could apply to improve the results of the current model.
+
+For example, our approach assumes a priori that each email has an equal probability of being ham or spam. In practice, however, we know that this relationship is actually much closer to 80%–20% ham-to-spam. 
+
+1 way we might improve results would be to simply **alter our prior beliefs** to reflect this fact and recalculate the predicted probabilities.
+```{r}
+# alter priors to better reflect reality of 80/20 ham/spam
+spam_classifier_real <-function(path) {
+  prob_spam <- classify_email(path, spam_df, prior = 0.2)
+  prob_ham  <- classify_email(path, easyham_df, prior = 0.8)
+ return(c(prob_spam, prob_ham, ifelse(prob_spam > prob_ham, 1, 0)))
 }
-Figure 3-5. Scatterplot of predicted probabilities for email classification in log-log scale
-Writing Our First Bayesian Spam Classifier | 91
-You’ll remember that we left the prior parameter as something that could vary in the
-classify.email function, so we now only need to make the simple change to
-spam.classify shown in the preceding example. We could rerun the classifier now and
-compare the results, and we encourage you to do so. These new assumptions, however,
-violate the distributions of ham and spam messages in our training data. To be more
-accurate, we should go back and retrain the classifier with the complete easy ham data
-set. Recall that we limited our original ham training data to only the first 500 messages
-so that our training data would reflect the Bayesian assumptions. In that vein, we must
-incorporate the full data set in order to reflect our new assumptions.
+```
+
+Remember we left the `prior` parameter as something that could vary in `classify_email()`. We could rerun the classifier now + compare the results.
+```{r, echo = F}
+# Classify emails with new classifier
+spam2_class2 <- lapply(spam2_docs, 
+                      function(p) {spam_classifier_real(file.path(spam2_path, p))})
+easyham2_class2 <- lapply(easyham2_docs, 
+                         function(p) {spam_classifier_real(file.path(easyham2_path, p))})
+hardham2_class2 <- lapply(hardham2_docs, 
+                         function(p) { spam_classifier_real(file.path(hardham2_path, p))})
+
+## Create a single, final, data frame w/ all classification data in it
+
+# combine all rows from the list of classes for each email type
+# returns 3 cols = prob of being given class, prob of NOT being givenclass, binary class var (T/F)
+spam2_matrix2 <- do.call(rbind, spam2_class2)
+easyham2_matrix2 <- do.call(rbind, easyham2_class2)
+hardham2_matrix2 <- do.call(rbind, hardham2_class2)
+
+# combine these with the given class
+spam2_final2 <- cbind(spam2_matrix2, "SPAM")
+easyham2_final2 <- cbind(easyham2_matrix2, "EASYHAM")
+hardham2_final2 <- cbind(hardham2_matrix2, "HARDHAM")
+
+# combine all 3 matrices above into final matrix and turn into dataframe
+class_matrix2 <- rbind(easyham2_final2, hardham2_final2, spam2_final2)
+class_df2 <- data.frame(class_matrix2, stringsAsFactors = FALSE)
+
+# rename cols, combining hard + easy hams into 1 prob col
+names(class_df2) <- c("Prob_SPAM" ,"Prob_HAM", "Class", "Type")
+
+# fix types
+class_df2 %<>%
+  mutate(Prob_SPAM = as.numeric(Prob_SPAM),
+         Prob_HAM = as.numeric(Prob_HAM),
+         Class = as.logical(as.numeric(Class)),
+         Type = factor(Type))
+#head(class_df2)
+
+# get % of each class that was predicted FALSE (ham) and TRUE (spam)
+spam2_col2 <- get_results(subset(class_df2, Type == "SPAM")$Class)
+easyham2_col2 <- get_results(subset(class_df2, Type == "EASYHAM")$Class)
+hardham2_col2 <- get_results(subset(class_df2, Type == "HARDHAM")$Class)
+
+# create confusion matrix
+class_cm2 <- rbind(easyham2_col2, hardham2_col2, spam2_col2)
+colnames(class_cm2) <- c("NOT SPAM", "SPAM")
+class_cm2
+```
+
+This has slightly improved our easy ham and spam classifications, but not our hard ham classifications.
+
+```{r, echo = F}
+# Create final plot of results
+(class_plot2 <- ggplot(class_df2, aes(x = log(Prob_HAM), log(Prob_SPAM))) +
+    geom_point(aes(shape = Type, alpha = 0.5)) +
+    geom_abline(intercept = 0, slope = 1) +
+    scale_shape_manual(values = c("EASYHAM" = 1,
+                                  "HARDHAM" = 2,
+                                  "SPAM" = 3),
+                       name = "Email Type") +
+    scale_alpha(guide = "none") +
+    xlab("log[P(HAM)]") +
+    ylab("log[P(SPAM)]") +
+    theme_bw() +
+    theme(axis.text.x = element_blank(), axis.text.y = element_blank()))
+```
+
+These new assumptions, however, violate the distributions of ham and spam messages in our training data. To be more accurate, we should go back and retrain the classifier with the *complete* easy ham data set (we limited our original ham training data to only the 1st 500 messages so that our training data would reflect the Bayesian assumptions). 
+
+In that vein, we must incorporate the full data set in order to reflect our new assumptions.
 When we rerun the classifier with the new easyham.df and classify.email parameterization,
-we see a notable improvement in performance on false-positives (see Table 3-4).
-Table 3-4. Matrix for improved classifier results
-Email type % Classified as ham % Classified as spam
-Easy ham 0.90 0.10
-Hard ham 0.82 0.18
-Spam 0.18 0.82
-With these simple changes, we have reduced our false-positive rate by more than 50%!
-What is interesting, however, is that by improving performance in this way, our
-false-negative results suffer. In essence, what we are doing is moving the decision
-boundaries (recall Example 3-1). By doing so, we are explicitly trading off false positives
-for improvement in false negatives. This is an excellent example of why model specification
-is critical, and how each assumption and feature choice can affect all results.
-In the following chapter we will expand our view of classification beyond the simple
-binary—this or that—example in this exercise. As we mentioned at the outset, often it
-is difficult or impossible to classify observations based on a single decision boundary.
-In the next chapter we will explore how to rank emails based on features that are associated
-with higher priority. What remain important as we increase the spectrum of
-classification tasks are the features we decide to include in our model. As you’ll see
-next, the data may limit feature selection, which can have a serious impact on our model
-design.
+we see a notable improvement in performance on false-positives
+
+```{r, echo = F}
+easyham_docs <- dir(easyham_path)
+easyham_docs <- easyham_docs[which(easyham_docs != "cmds")]
+
+all_easyham <- sapply(easyham_docs, function(x) get_msg(paste(easyham_path, x, sep="")))
+easyham_tdm <- get_tdm(all_easyham)
+easyham_matrix <- as.matrix(easyham_tdm)
+easyham_counts <- rowSums(easyham_matrix)
+
+# create a data frame from these counts and make sure strings aren't factors
+easyham_df <- data.frame(cbind(names(easyham_counts), as.numeric(easyham_counts)), stringsAsFactors = F)
+
+# rename the columns and convert frequency back to numbers
+names(easyham_df) <- c("term","frequency")
+easyham_df %<>%
+   mutate(frequency = as.numeric(frequency))
+
+# calculate % of docs in which a given term in this matrix occurs
+easyham_occurrence <- sapply(1:nrow(easyham_matrix),
+  # pass through each term in the doc matrix and find cells w/ a positive element (a count > 0)
+  # divide by total # of cols in the TDM/# of docs in the ham corpus
+  function(i) {length(which(easyham_matrix[i,] > 0))/ncol(easyham_matrix)})
+
+# calculate frequency of each word w/in entire corpus
+easyham_density <- easyham_df$frequency/sum(easyham_df$frequency)
+
+# add new cols occurence + density vectors to data frame
+easyham_df <- easyham_df %>%
+  mutate(density = easyham_density, 
+         occurrence = easyham_occurrence)
+
+## re-create function w/ full easyham 
+# + alter priors to better reflect reality of 80/20 ham/spam
+spam_classifier_real <-function(path) {
+  prob_spam <- classify_email(path, spam_df, prior = 0.2)
+  prob_ham  <- classify_email(path, easyham_df, prior = 0.8)
+ return(c(prob_spam, prob_ham, ifelse(prob_spam > prob_ham, 1, 0)))
+}
+
+# Classify emails with new classifier
+spam2_class2 <- lapply(spam2_docs, 
+                      function(p) {spam_classifier_real(file.path(spam2_path, p))})
+easyham2_class2 <- lapply(easyham2_docs, 
+                         function(p) {spam_classifier_real(file.path(easyham2_path, p))})
+hardham2_class2 <- lapply(hardham2_docs, 
+                         function(p) { spam_classifier_real(file.path(hardham2_path, p))})
+
+## Create a single, final, data frame w/ all classification data in it
+
+# combine all rows from the list of classes for each email type
+# returns 3 cols = prob of being given class, prob of NOT being givenclass, binary class var (T/F)
+spam2_matrix2 <- do.call(rbind, spam2_class2)
+easyham2_matrix2 <- do.call(rbind, easyham2_class2)
+hardham2_matrix2 <- do.call(rbind, hardham2_class2)
+
+# combine these with the given class
+spam2_final2 <- cbind(spam2_matrix2, "SPAM")
+easyham2_final2 <- cbind(easyham2_matrix2, "EASYHAM")
+hardham2_final2 <- cbind(hardham2_matrix2, "HARDHAM")
+
+# combine all 3 matrices above into final matrix and turn into dataframe
+class_matrix2 <- rbind(easyham2_final2, hardham2_final2, spam2_final2)
+class_df2 <- data.frame(class_matrix2, stringsAsFactors = FALSE)
+
+# rename cols, combining hard + easy hams into 1 prob col
+names(class_df2) <- c("Prob_SPAM" ,"Prob_HAM", "Class", "Type")
+
+# fix types
+class_df2 %<>%
+  mutate(Prob_SPAM = as.numeric(Prob_SPAM),
+         Prob_HAM = as.numeric(Prob_HAM),
+         Class = as.logical(as.numeric(Class)),
+         Type = factor(Type))
+#head(class_df2)
+
+# get % of each class that was predicted FALSE (ham) and TRUE (spam)
+spam2_col2 <- get_results(subset(class_df2, Type == "SPAM")$Class)
+easyham2_col2 <- get_results(subset(class_df2, Type == "EASYHAM")$Class)
+hardham2_col2 <- get_results(subset(class_df2, Type == "HARDHAM")$Class)
+
+# create confusion matrix
+class_cm2 <- rbind(easyham2_col2, hardham2_col2, spam2_col2)
+colnames(class_cm2) <- c("NOT SPAM", "SPAM")
+class_cm2
+```
+
+```{r, echo = F}
+# Create final plot of results
+(class_plot2 <- ggplot(class_df2, aes(x = log(Prob_HAM), log(Prob_SPAM))) +
+    geom_point(aes(shape = Type, alpha = 0.5)) +
+    geom_abline(intercept = 0, slope = 1) +
+    scale_shape_manual(values = c("EASYHAM" = 1,
+                                  "HARDHAM" = 2,
+                                  "SPAM" = 3),
+                       name = "Email Type") +
+    scale_alpha(guide = "none") +
+    xlab("log[P(HAM)]") +
+    ylab("log[P(SPAM)]") +
+    theme_bw() +
+    theme(axis.text.x = element_blank(), axis.text.y = element_blank()))
+```
+
+With these simple changes, we have reduced our false-positive rate again (down to 1.2% and 4.4%, but false-negative results suffer (up to 29%). 
+
+In essence, what we are doing is moving the decision boundaries and are explicitly trading off false positives for improvement in false negatives. This is an excellent example of why model specification is critical, and how each assumption and feature choice can affect all results.
+
+Often it is difficult/impossible to classify observations based on a *single* decision boundary.
