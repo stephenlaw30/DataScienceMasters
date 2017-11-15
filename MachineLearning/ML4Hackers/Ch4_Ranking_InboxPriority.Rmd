@@ -9,6 +9,7 @@ output: html_document
 library(tidyverse)
 library(ggplot2)
 library(tm)
+library(magrittr)
 ```
 
 # How Do You Sort Something When You Don’t Know the Order?
@@ -121,7 +122,7 @@ Task of constructing the training data is one of **rectangularization** = shape 
 parse_email <- function(path) {
   full_msg <- msg_full(path)
   date <- get_date(full_msg)
-  from <- get_from(full_msg)
+  from <- get_sender(full_msg)
   subj <- get_subject(full_msg)
   msg <- get_msg(full_msg)
   
@@ -133,7 +134,7 @@ parse_email <- function(path) {
 
 The process of turning each email message into these vectors requires some classic text hacking.
 ```{r}
-# function to grab message text from email file
+# helper function to grab message text from email file
 msg_full <- function(path) {
   con <- file(path, open="rt", encoding="latin1") # open connection
     msg <- readLines(con) # read file contents into vector
@@ -158,18 +159,17 @@ Mailing-List: list zzzzteana@yahoogroups.com; contact
  forteana-owner@yahoogroups.com
 ........................................................
 
-We need to ID the line in each message that contains sender email address, which always has the term “From: ”. We'll use this info to search the character vector of each email to ID the
-correct element. However, there is variation in how the address is written (From: Joe McNally <joe@flaneur.org.uk>, or From: paul-bayes@svensson.org (Paul Svensson)).
+We need to ID the line in each message that contains sender email address, which always has the term “From: ” by searching the character vector of each email to ID thevcorrect element. However, there is variation in how the address is written.
 
-Sometimes the address is encapsulated in angled brackets (Email #1) whereas in others it is not enclosed in brackets (Email #2), but always contains the name. For that reason, write a `get_from()` function that uses RegEx's to extract the data for this feature.
+Sometimes the address is encapsulated in angled brackets (From: Joe McNally <joe@flaneur.org.uk>), whereas in others it is not (From: paul-bayes@svensson.org (Paul Svensson)), but it always contains the name. For that reason, write a `get_from()` function that uses RegEx's to extract the data for this feature.
 
 ```{r}
 # function to ID and extract sender email address
-get.from <- function(msg_vec) {
-  from <- msg_vec[grepl(pattern = "From: ", x = msg_vec)] # search for pattern
-  from <- strsplit(from, '[":<> ]')[[1]]     # split text on colons, <>'s, and empty spaces to return list of components
+get_sender <- function(msg_vec) {
+  from <- msg_vec[grepl(pattern="From: ", x=msg_vec)] # search for pattern + return line that matches
+  from <- strsplit(from, '[":<> ]')[[1]] # split on colons, <>'s, + spaces to return list of components
   from <- from[which(from !="" & from !=" ")] # remove the empty spaces
-  return(from[grepl("@", from)][1]) # find the list elements that contains "@: and return it
+  return(from[grepl("@", from)][1]) # find list elements that contains "@: and return it
 }
 ```
 ```{r,echo=F}
@@ -191,12 +191,12 @@ get_msg <- function(msg_vec) {
 }
 
 get_subject <- function(msg_vec) {
-  subj <- msg_vec[grepl("Subject: ", msg_vec)] # find line that starts w/ "Subject" and extract
+  subj <- msg_vec[grepl("Subject: ", msg_vec)] # find line that starts w/ "Subject" and extract it
   
-  if(length(subj) > 0) { # if we found a subject, split into 2 parts
-    return(strsplit(subj, "Subject: ")[[1]][2]) # get 1st list element from result + extract 2nd part (actual subject line)
+  if(length(subj) > 0) { # if we found a subject, split into 2 parts that returns as list
+    return(strsplit(subj, "Subject: ")[[1]][2]) # get 1st list element from result + extract 2nd part (actual subject line) of that list element
     } else {
-      return("") # return empty string as special values (integer(0),character(0) have length 0 from grepl
+      return("") # return empty string b/c special values (integer(0),character(0)) have length 0 from grepl
     }
 }
 ```
@@ -207,177 +207,165 @@ get_subject <- function(msg_vec) {
 ```
 
 The final element, the date + time a message was received, will cause us to suffer the most. This
-field will be difficult to work w/ for two reasons. First, dealing w/ dates is almost
-always a painful prospect, as different programming languages often have slightly different
-ways of thinking about time, + in this case, R is no different. Eventually we
-will want to convert the date strings into POSIX date objects in order to sort the data
-chronologically. But to do this, we need a common character representation of the
-dates, which leads directly to the second reason for our suffering: there is considerable
-Writing a Priority Inbox | 103
-variation w/in the SpamAssassin public corpus in how the receival dates + times
-of messages are represented. Example 4-2 illustrates a few examples of this variation.
-Example 4-2. Examples of email date + time received text pattern variation
-Email #1
-........................................................
-Date: Thu, 22 Aug 2002 18:26:25 +0700
- Date: Wed, 21 Aug 2002 10:54:46 -0500
- From: Chris Garrigues lt;cwg-dated-1030377287.06fa6d@DeepEddy.Comgt;
- Message-ID: lt;1029945287.4797.TMDA@deepeddy.vircio.comgt;
-........................................................
-Email #2
-........................................................
-List-Unsubscribe: lt;https://example.sourceforge.net/lists/listinfo/sitescooper-talkgt;,
- lt;mailto:sitescooper-talk-request@lists.sourceforge.net?subject=unsubscribegt;
-List-Archive: lt;http://www.geocrawler.com/redir-sf.php3?list=sitescooper-talkgt;
-X-Original-Date: 30 Aug 2002 08:50:38 -0500
-Date: 30 Aug 2002 08:50:38 -0500
-........................................................
-Email #3
-........................................................
-Date: Wed, 04 Dec 2002 11:36:32 GMT
-Subject: [zzzzteana] Re: Bomb Ikea
-Reply-To: zzzzteana@yahoogroups.com
-Content-Type: text/plain; charset=US-ASCII
-........................................................
-Email #4
-........................................................
-Path: not-for-mail
-From: Michael Hudson lt;mwh@python.netgt;
-Date: 04 Dec 2002 11:49:23 +0000
-Message-Id: lt;2madyyyyqa0s.fsf@starship.python.netgt;
-........................................................
+field will be difficult to work w/ for 2 reasons. 
+<ul>
+<li> Dealing w/ dates is almost always painful, as different programming languages often have slightly different ways of thinking about time. Eventually we want to convert date strings into **POSIX** date objects in order to sort data chronologically. To do this, we need a common character representation of the dates, which leads directly to the second reason for our suffering. </li>
+<li> There is considerable variation w/in the SpamAssassin public corpus in how receival dates + times of messages are represented. There are many things we need to be cognizant of when extracting date + time info from each email. </li>
+  <li> Data we want to extract is always IDed by “Date: ”; however, there are many traps in using this pattern that we must be mindful of. Sometimes there will be multiple lines that match this pattern, some lines may be partial matches, + in either case the data on these lines can be conflicting.  
+  <li> Dates + times are not stored in a uniform way across all emails (extraneous GMT offsets + other types of labeling info) 
+  <li> Format for the date + time can be totally different </li>
+</ul>
 
-As you can see, there are many things that we need to be cognizant of when extracting
-the date + time information from each email. The first thing to notice from the examples
-in Example 4-2 is that the data we want to extract is always identified by
-“Date: ”; however, there are many traps in using this pattern that we must be mindful
-of. As Email #1 from Example 4-2 illustrates, sometimes there will be multiple lines
-that match this pattern. Likewise, Email #2 shows that some lines may be partial
-matches, + in either case the data on these lines can be conflicting—as it is in Email
-#1. Next, we can observe even in these four examples that dates + times are not
-stored in a uniform way across all emails. In all emails, there are extraneous GMT offsets
-+ other types of labeling information. Finally, the format for the date + time in
-Email #4 is totally different from the previous two.
-All of this information will be critical in getting the data into a uniform + workable
-form. For now, however, we need to focus only on extracting the date + time information
-w/out the extraneous offset information by defining a get.date function.
-104 | Chapter 4: Ranking: Priority Inbox
-Once we have all of the date/time strings, we will need to deal w/ converting the
-conflicting date/time formats to a uniform POSIX object, but this will not be handled
-by the get.date function.
-get.date <- function(msg.vec) {
- date.grep <- grepl("^Date: ", msg.vec)
- date.grepl <- which(date.grep == TRUE)
- date <- msg.vec[date.grep[1]]
- date <- strsplit(date, "\\+|\\-|: ")[[1]][2]
- date <- gsub("^\\s+|\\s+$", "", date)
- return(strtrim(date, 25))
+All of this info will be critical in getting the data into a uniform + workable form. For now, we need to focus only on extracting the date + time info *w/out the extraneous offset info* by defining a `get.date()` function.
+
+Once we have all of the date/time strings, we will need to deal w/ converting conflicting date/time formats to a uniform POSIX object, but this will not be handled by `get.date`.
+```{r}
+get_date <- function(msg_vec) {
+  date_grep <- grepl("^Date: ", msg_vec) # search for pattern of "Date" at the start of line (boolean)
+  date <- msg_vec[which(date_grep == TRUE)[1]] # get 1st line w/ occurence of "Date" at start
+  date <- strsplit(date, "\\+|\\-|: ")[[1]][2] # split on +, -, or : into a list + grab 2nd element
+  date <- gsub("^\\s+|\\s+$", "", date) # sub in any leading/trailing whitespace with "\"
+  return(strtrim(date, 25)) # remove extraneous info
+  # standard data/time string = 25 characters = anything over this is extraneous.
 }
-As we mentioned, many emails have multiple full or partial matches to the “Date: ”
-pattern. Notice, however, from Emails #1 + #2 in Example 4-2 that only one line
-from the email has “Date: ” at the start of the string. In Email #1, there are several
-empty characters preceding this pattern, + in Email #2 the pattern is partially
-matched to “X-Original-Date: ”. We can force the regular expression to match only
-strings that have “Date: ” at the start of the string by using the caret operator w/
-"^Date: ". Now grepl will return TRUE only when that pattern starts an element of the
-message vector.
-Next, we want to return the first element in msg.vec that matches this pattern. We may
-be able to get away w/ simply returning the element in msg.vec that matches our
-pattern in grepl, but what if an email message contains a line that begins “Date: ”? If
-this edge case were to occur, we know the first element that matched our pattern will
-come from the message’s header because header information always comes before the
-message body. To prevent this problem, we always return the first matching element.
-Now we need to process this line of text in order to return a string that can eventually
-be converted into a POSIX object in R. We’ve already noted that there is extraneous
-information + that the dates + times are not stored in a uniform format. To isolate
-the date + time information, we will split the string by characters to denote extraneous
-information. In this case, that will be a colon, a plus sign, or a minus character.
-In most cases, this will leave us w/ only the date + time information, plus some
-trailing empty characters. The use of the gsub function in the next line will substitute
-any leading or trailing whitespace in the character string. Finally, to deal w/ the kind
-of extraneous data we observe in Email #3 in Example 4-2, we will simply trim off any
-characters after a 25-character limit. A standard data/time string is 25 characters long,
-so we know that anything over this is extraneous.
-easyham.docs <- dir(easyham.path)
-easyham.docs <- easyham.docs[which(easyham.docs != "cmds")]
-easyham.parse <- lapply(easyham.docs, function(p) parse.email(paste(easyham.path,
- p, sep="")))
-ehparse.matrix <- do.call(rbind, easyham.parse)
-allparse.df <- data.frame(ehparse.matrix, stringsAsFactors=FALSE)
-names(allparse.df) <- c("Date", "From.EMail", "Subject", "Message", "Path")
-Writing a Priority Inbox | 105
-Congratulations! You have successfully suffered though transforming this amorphous
-set of emails into a structured rectangle suitable for training our ranking algorithm.
-Now all we have to do is throw the switch. Similar to what we did in Chapter 3, we
-will create a vector w/ all of the “easy ham” files, remove the extra “cmds” file from
-the vector, + then use the lapply function to apply the parse.email function to each
-email file. Because we are pointing to files in the data directory for the previous chapter,
-we also have to be sure to concatenate the relative path to these files using the paste
-function + our easyham.path inside the lapply call.
-Next, we need to convert the list of vectors returned by lapply into a matrix—i.e., our
-data rectangle. As before, we will use the do.call function w/ rbind to create the
-ehparse.matrix object. We will then convert this to a data frame of character vectors,
-+ then set the column names to c("Date", "From.EMail", "Subject", "Message",
-"Path"). To check the results, use head(allparse.df) to inspect the first few rows of
-the data frame. To conserve space, we will not reproduce this here, but we recommend
-that you do.
-Before we can proceed to creating a weighting scheme from this data, however, there
-is still some remaining housekeeping.
-date.converter <- function(dates, pattern1, pattern2) {
- pattern1.convert <- strptime(dates, pattern1)
- pattern2.convert <- strptime(dates, pattern2)
- pattern1.convert[is.na(pattern1.convert)] <-
- pattern2.convert[is.na(pattern1.convert)]
- return(pattern1.convert)
-}
+```
+```{r}
+##test 
+#msg_vec <- c("Email #1","........................................................","Date: Thu, 22 Aug 2002 18:26:25 +0700","Date: Wed, 21 Aug 2002 10:54:46 -0500","From: Chris Garrigues","lt;cwg-dated-1030377287.06fa6d@DeepEddy.Comgt;","Message-ID: lt;1029945287.4797.TMDA@deepeddy.vircio.comgt;")
+
+#(date.grep <- grepl("^Date: ", msg_vec))
+#(date <- msg_vec[which(date.grep == TRUE)[1]])
+#(date <- strsplit(date, "\\+|\\-|: "))
+#(date <- gsub("^\\s+|\\s+$", "", date))
+#(strtrim(date, 25))
+```
+
+We've now transformed this amorphous set of emails into a structured rectangle suitable for training a ranking algorithm. Now we will create a vector w/ all of “easy ham” files, remove the extra “cmds” file from the vector, + then use `lapply` to apply `parse.email` with all its inner helper functions email file. 
+
+Next, we need to convert the list of vectors returned by `lapply` into a matrix via `do.call` w/ `rbind`, then convert this to a data frame of character vectors, + then set column names. 
+
+```{r, message=F,warning=F}
+# get all file + dir names in input dir
+easyham_docs <- dir(easyham_path)
+
+# ignore cmds files (long list of UNIX base commands to move files in that dir)
+easyham_docs <- easyham_docs[which(easyham_docs != "cmds")]
+
+# parse text from each email + return in list
+# use anonymous function to concatenate file name + path
+easyham_parse <- lapply(easyham_docs, function(x) parse_email(paste(easyham_path, x, sep="")))
+
+# transform returned list to matrix via do.call(function,list), then transform to dataframe
+ehparse_mtrx <- do.call(rbind, easyham_parse)
+allparse_df <- data.frame(ehparse_mtrx, stringsAsFactors=FALSE)
+names(allparse_df) <- c("Date", "From_EMail", "Subject", "Message", "Path")
+head(allparse_df)
+```
+
+Before we can proceed to creating a **weighting scheme** from this data, however, there is still some remaining housekeeping.
+
+Our 1st trial w/ extracting dates was simply isolating the text, now we need to take that text + convert it into POSIX objects that can be compared logically b/c we need to sort emails chronologically. 
+
+Temporal differences among observed features can be used to infer importance, so *character* representation of dates + times will not suffice. There are 2 variations on the date format (e.g. “Wed, 04 Dec 2002 11:36:32,” and “04 Dec 2002 11:49:23”). To convert these into POSIX, we need to use `strptime`, but pass it 2 different formats to make the conversion. 
+
+Each element of these strings matches a specific POSIX format element, so we will need to specify conversion strings that match these variants.
+```{r}
 pattern1 <- "%a, %d %b %Y %H:%M:%S"
 pattern2 <- "%d %b %Y %H:%M:%S"
-allparse.df$Date <- date.converter(allparse.df$Date, pattern1, pattern2)
-As we mentioned, our first trial w/ extracting the dates was simply isolating the text.
-Now we need to take that text + convert it into POSIX objects that can be compared
-logically. This is necessary because we need to sort the emails chronologically. Recall
-that running through this entire exercise is the notion of time, + how temporal differences
-among observed features can be used to infer importance. The character representation
-of dates + times will not suffice.
-As we saw in Example 4-2, there are two variations on the date format. From these
-examples, Email #3 has a date/time string of the format “Wed, 04 Dec 2002 11:36:32,”
-whereas Email #4 is of the format “04 Dec 2002 11:49:23”. To convert these two strings
-into POSIX formats, we will need to use the strptime function, but pass it two different
-date/time formats to make the conversion. Each element of these strings matches a
-specific POSIX format element, so we will need to specify conversion strings that match
-these variants.
-106 | Chapter 4: Ranking: Priority Inbox
-R uses the standard POSIX date/time format strings to make these conversions.
-There are many options for these strings, + we recommend
-reading through the documentation in the strptime function using
-the ?strptime command to see all of the options. Here we will be using
-only a select few, but understanding them in greater depth will be very
-useful for working w/ dates + times in R.
-We need to convert the strings in the Date column of allparse.df to the two different
-POSIX formats separately, then recombine them back into the data frame to complete
-the conversion. To accomplish this, we will define the date.converter function to take
-two different POSIX patterns + a character vector of date strings. When the pattern
-passed to strptime does not match the string passed to it, the default behavior is to
-return NA. We can use this to recombine the converted character vectors by replacing
-the elements w/ NA from the first conversion w/ those from the second. Because we
-know there are only two patterns present in the data, the result will be a single vector
-w/ all date strings converted to POSIX objects.
-allparse.df$Subject <- tolower(allparse.df$Subject)
-allparse.df$From.EMail <- tolower(allparse.df$From.EMail)
-priority.df <- allparse.df[w/(allparse.df, order(Date)),]
-priority.train <- priority.df[1:(round(nrow(priority.df) / 2)),]
-The final bit of cleanup is to convert the character vectors in the Subject + From email
-columns to all lowercase. Again, this is done to ensure that all data entries are as uniform
-as possible before we move into the training phase. Next, we sort the data chronologically
-using a combination of the w/ + order commands in R. (R has a particularly
-unintuitive way of doing sorting, but this shorthand is something you will find yourself
-doing very often, so it is best to get familiar w/ it.) The combination will return a
-vector of the element indices in ascending chronological order. Then, to order the data
-frame by these indices, we need to reference the elements of allparse.df in that order,
-+ add the final comma before closing the square bracket so all columns are sorted
-this way.
-Finally, we store the first half of the chronologically sorted data frame as prior
-ity.train. The data in this data frame will be used to train our ranker. Later, we will
-use the second half of priority.df to test the ranker. w/ the data fully formed, we
-are ready to begin designing our ranking scheme. Given our feature set, one way to
-proceed is to define weights for each observed feature in the training data.
+```
+
+R uses the standard POSIX date/time format strings to make these conversions (many options for these strings + `?strptime` has all of options). Here we will be using only a select few, but understanding them in greater depth will be very useful for working w/ dates + times in R.
+
+We need to convert strings in `Date` column to the 2 different POSIX formats *separately*, then recombine them back into the data frame to complete the conversion via a `date.converter` function to take 2 different POSIX patterns + a character vector of date strings
+
+When the pattern passed to `strptime` does not match the string passed to it, default behavior = return NA. We can use this to recombine the converted character vectors by replacing elements w/ NA from the 1st conversion w/ those from the 2nd + b/c we know there are only 2 patterns present in the data, the result will be a single vector w/ all date strings converted to POSIX objects.
+
+```{r}
+date_converter <- function(dates, pattern1, pattern2) {
+  pattern1_convert <- as.POSIXct(strptime(dates, pattern1))
+  pattern2_convert <- as.POSIXct(strptime(dates, pattern2))
+  
+  # replace NAs in pattern1_convert with values w/ same index from pattern2_convert
+  pattern1_convert[is.na(pattern1_convert)] <- pattern2_convert[is.na(pattern1_convert)]
+  
+  return(pattern1_convert)
+}
+
+allparse_df$Date <- date_converter(allparse_df$Date, pattern1, pattern2)
+head(allparse_df)
+#class(allparse_df$Date)
+```
+
+The final bit of cleanup is to convert the character vectors in `Subject` + `From email` columns to all lowercase to ensure all data entries are as uniform as possible before moving into the training phase. 
+```{r}
+allparse_df %<>%
+  mutate(Subject = tolower(Subject),
+         From_EMail = tolower(From_EMail))
+head(allparse_df)
+```
+
+Next, we sort the data chronologically using a combination of `with` + `order`, which returns a vector of the element *indices* in ascending chronological order. 
+```{r}
+priority_df <- allparse_df[with(allparse_df, order(Date)),]
+```
+
+Then, to order the data frame by these indices, we need to reference the elements of `allparse_df` in that order, + add the final comma before closing the square bracket so all columns are sorted this way.
+
+Finally, store the 1st half of the chronologically sorted data frame as priority_train to use to train our ranker. Later, we will use the 2nd half to test the ranker. 
+```{r}
+priority.train <- priority_df[1:(round(nrow(priority_df) / 2)),]
+head(priority.train)
+tail(priority.train)
+```
+
+W/ the data fully formed, we are ready to begin designing our ranking scheme. Given our feature set, 1 way to proceed is to define **weights** for each observed feature in the training data.
+
+# Creating a Weighting Scheme for Ranking
+Before we can proceed to implementing a weighting scheme, we need to digress briefly
+to discuss scales. Consider for a moment your own email activity. Do you interact with
+roughly the same people on a regular basis? Do you know about how many emails you
+receive in a day? How many emails do you receive from total strangers in a week? If
+you are like us, and we suspect, like most other people, your email activity crudely
+adheres to the 80/20 cliche. That is, about 80% of your email activity is conducted with
+about 20% of the total number of people in your address book. So, why is this important?
+We need to be able to devise a scheme for weighting the observation of certain features
+in our data, but because of the potential differences in scale among these observations,
+we cannot compare them directly. More precisely, we cannot compare their absolute
+values directly. Let’s take the training data that we have just finished parsing. We know
+that one of the features that we are adding to our ranker is an approximation of social
+interaction based on the volume of emails received from each address in our training
+data.
+from.weight <- ddply(priority.train, .(From.EMail), summarise, Freq=length(Subject))
+To begin to explore how this scaling affects our first feature, we will need to count the
+number of times each email address appears in our data. To do this, we will use the
+plyr package, which we have already loaded in as a dependency for ggplot2. If you
+worked through the example in Chapter 1, you have already seen plyr in action. Briefly,
+the family of functions in plyr are used to chop data into smaller squares and cubes so
+that we can operate over these pieces all at once. (This is very similar to the popular
+Map-Reduce paradigm used in many large-scale data analysis environments.) Here we
+will perform a very simple task: find all of the columns with matching addresses in the
+From.Email column and count them.
+To do this, we use the ddply function, which operates on data frames, with our training
+data. The syntax has us define the data grouping we want first—which in this case is
+only the From.EMail dimension—and then the operation we will run over that grouping.
+Here we will use the summarise option to create a new column named Freq with
+the count information. You can use the head(from.weight) command to inspect
+the results.
+In this case, the operation asks for the length of the vector at column
+Subject in the chopped-up data frame, but we actually could have used
+any column name from the training data to get the same result because
+all columns matching our criteria will have the same length. Becoming
+more familiar with using plyr for manipulating data will be extremely
+valuable to you going forward, and we highly recommend the package
+author’s documentation [HW11].
+108 | Chapter 4: Ranking: Priority Inbox
+To get a better sense of the scale of this data, let’s plot the results. Figure 4-2 shows a
+bar chart of the volume of emails from users who have sent more than six emails. We
+have performed this truncation to make it easier to read, but even with this data removed,
+we can already see how quickly the data scales. The top emailer, tim.one@comcast.ent,
+has sent 45 messages in our data. That’s about 15 times more emails than the
+average person in our training data! But tim.one@comcast.ent is pretty unique. As you
+can see from Figure 4-2, there are only a few other senders near his level, and the
+frequency drops off very quickly after them. How could we weight an observation from
+an average person in our training data without skewing that value to account for outliers
+like our top emailers?
