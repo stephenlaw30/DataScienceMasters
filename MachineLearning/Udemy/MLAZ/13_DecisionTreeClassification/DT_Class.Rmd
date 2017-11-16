@@ -1,0 +1,136 @@
+---
+title: "Decision Tree Classification""
+author: "Steve Newns"
+output: html_document
+---
+
+# Kernel SVM
+
+```{r, warning=F,message=F}
+library(tidyverse)
+library(ggplot2)
+library(caTools) # for splitting data
+library(rpart) # decision trees
+library(ElemStatLearn) # visualize results
+```
+
+Social network`s automotive business client has launched its brand new luxury SUV and purchased ads for its marketing campaign. The social network collected data on the users and whether or not the bought the SUV after seeing the ad.
+
+We will only use age and salary to predict this
+```{r}
+## import data 
+social <- read.csv("../data/Social_Network_Ads.csv")
+
+## Cut down dataset
+social <- social %>%
+  select(Age,EstimatedSalary,Purchased) %>% # cut down cols
+  mutate(Purchased = factor(Purchased, levels = c(0,1)), # encode outcome
+         # scale data (age is in 10s, salary in 10k's)
+         Age = c(scale(Age)), # use c(scale)) to prevent scale from changing class of the column
+         EstimatedSalary = c(scale(EstimatedSalary))) # Encode target/outcome variable as fact
+```
+
+Now to get to the modeling.
+
+```{r}
+# split data into Training + Test sets
+set.seed(123)
+
+spl <- sample.split(social$Purchased, SplitRatio = 0.75) # tidy does not work here
+
+training <- social %>%
+  subset(spl == TRUE)
+test <- social %>%
+  subset(spl == FALSE)
+```
+
+## Fitting Decision Tree to the Training set
+
+```{r}
+social.dtc <- rpart(Purchased ~ ., training)
+
+# Predict on test set results
+y_pred.dtc <- predict(social.dtc, test[-3])
+head(y_pred.dtc)
+```
+This time, `predict` returns not a vector, but a matrix of probabilities. See the very high probability that the 1st 5 observations have a high probability of not purchasing the SUV. We need the argument `type = "class"` within `predict` to get actual classifications.
+
+```{r}
+y_pred.dtc <- predict(social.dtc, test[-3], type = "class")
+head(y_pred.dtc)
+```
+
+Now we will check our prediction results vs. the actual results with a confusion matrix.
+```{r}
+## Making the Confusion Matrix
+(cm <- table(test$Purchased, y_pred.dtc))
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or Recall): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nAccuracy: ",accuracy)
+```
+
+Now we need to visualize the results.
+
+```{r}
+## Create function to visualize different set results
+plot.dtc.model <- function(set) {
+  x1 <- seq(min(set[,1]) - 1, max(set[,1]) + 1, by = 0.05) # get sminimum scaled age + go up to the max by increments of .1
+  x2 <- seq(min(set[,2]) - 1, max(set[,2]) + 1, by = 0.05) # get minimum scaled salary + go up to the max by increments of .1
+  
+  set.grid <- expand.grid(x1,x2) # Create DF from all possible combos of the age + salary vectors to make a grid
+  colnames(set.grid) <- c("Age","EstimatedSalary")
+  
+  y_pred.dtc.grid <- predict(social.dtc, set.grid, type = "class") # use grid to predict values w/ our model
+  
+  plot(set[,-3],
+       main = c("Decision Tree (", deparse(substitute(set), nlines = 1),
+                " set)"), # get set name from argument given
+       xlab = "Age",
+       ylab = "Estimated Salary",
+       xlim = range(x1),
+       ylim = range(x2))
+  
+  contour(x1,x2, matrix(as.numeric(y_pred.dtc.grid), length(x1), length(x2)), add = T) # add logistic regression "split" line
+  
+  points(set.grid, pch = 19, col = if_else(y_pred.dtc.grid == 1, "springgreen3", "tomato"))
+  points(set, pch = 19, col = if_else(set[,3] == 1, "green4", "red3"))
+  
+}
+
+plot.dtc.model(training)
+plot.dtc.model(test)
+```
+
+See that our classifier is indeed making better predictions than linear classifiers because it can curve. It's capturing more points in the correct regions than the linear classifiers. We are also not overfitting since we do not see our classifier creating red regions around those scattered red dots above and to the right of the red region.
+
+# Plotting Decision Tree
+
+The data cannot be scaled here for the tree to be interpretable.
+```{r}
+social <- read.csv("../data/Social_Network_Ads.csv")
+
+social <- social %>%
+  select(Age,EstimatedSalary,Purchased) %>% # cut down cols
+  mutate(Purchased = factor(Purchased, levels = c(0,1))) # encode outcome
+
+set.seed(123)
+
+spl <- sample.split(social$Purchased, SplitRatio = 0.75) # tidy does not work here
+
+training <- social %>%
+  subset(spl == TRUE)
+test <- social %>%
+  subset(spl == FALSE)
+
+social.dtc <- rpart(Purchased ~ ., training)
+
+plot(social.dtc) # plot tree
+text(social.dtc) # plot labels
+```
