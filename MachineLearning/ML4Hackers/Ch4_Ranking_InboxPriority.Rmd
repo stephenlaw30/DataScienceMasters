@@ -10,6 +10,7 @@ library(tidyverse)
 library(ggplot2)
 library(tm)
 library(magrittr)
+library(plyr) # ddply
 ```
 
 # How Do You Sort Something When You Don’t Know the Order?
@@ -258,7 +259,7 @@ easyham_parse <- lapply(easyham_docs, function(x) parse_email(paste(easyham_path
 # transform returned list to matrix via do.call(function,list), then transform to dataframe
 ehparse_mtrx <- do.call(rbind, easyham_parse)
 allparse_df <- data.frame(ehparse_mtrx, stringsAsFactors=FALSE)
-names(allparse_df) <- c("Date", "From_EMail", "Subject", "Message", "Path")
+names(allparse_df) <- c("Date", "Sender_EMail", "Subject", "Message", "Path")
 head(allparse_df)
 ```
 
@@ -300,7 +301,7 @@ The final bit of cleanup is to convert the character vectors in `Subject` + `Fro
 ```{r}
 allparse_df %<>%
   mutate(Subject = tolower(Subject),
-         From_EMail = tolower(From_EMail))
+         Sender_EMail = tolower(Sender_EMail))
 head(allparse_df)
 ```
 
@@ -313,59 +314,123 @@ Then, to order the data frame by these indices, we need to reference the element
 
 Finally, store the 1st half of the chronologically sorted data frame as priority_train to use to train our ranker. Later, we will use the 2nd half to test the ranker. 
 ```{r}
-priority.train <- priority_df[1:(round(nrow(priority_df) / 2)),]
-head(priority.train)
-tail(priority.train)
+priority_train <- priority_df[1:(round(nrow(priority_df) / 2)),]
+head(priority_train)
+tail(priority_train)
 ```
 
 W/ the data fully formed, we are ready to begin designing our ranking scheme. Given our feature set, 1 way to proceed is to define **weights** for each observed feature in the training data.
 
 # Creating a Weighting Scheme for Ranking
-Before we can proceed to implementing a weighting scheme, we need to digress briefly
-to discuss scales. Consider for a moment your own email activity. Do you interact with
-roughly the same people on a regular basis? Do you know about how many emails you
-receive in a day? How many emails do you receive from total strangers in a week? If
-you are like us, and we suspect, like most other people, your email activity crudely
-adheres to the 80/20 cliche. That is, about 80% of your email activity is conducted with
-about 20% of the total number of people in your address book. So, why is this important?
-We need to be able to devise a scheme for weighting the observation of certain features
-in our data, but because of the potential differences in scale among these observations,
-we cannot compare them directly. More precisely, we cannot compare their absolute
-values directly. Let’s take the training data that we have just finished parsing. We know
-that one of the features that we are adding to our ranker is an approximation of social
-interaction based on the volume of emails received from each address in our training
-data.
-from.weight <- ddply(priority.train, .(From.EMail), summarise, Freq=length(Subject))
-To begin to explore how this scaling affects our first feature, we will need to count the
-number of times each email address appears in our data. To do this, we will use the
-plyr package, which we have already loaded in as a dependency for ggplot2. If you
-worked through the example in Chapter 1, you have already seen plyr in action. Briefly,
-the family of functions in plyr are used to chop data into smaller squares and cubes so
-that we can operate over these pieces all at once. (This is very similar to the popular
-Map-Reduce paradigm used in many large-scale data analysis environments.) Here we
-will perform a very simple task: find all of the columns with matching addresses in the
-From.Email column and count them.
-To do this, we use the ddply function, which operates on data frames, with our training
-data. The syntax has us define the data grouping we want first—which in this case is
-only the From.EMail dimension—and then the operation we will run over that grouping.
-Here we will use the summarise option to create a new column named Freq with
-the count information. You can use the head(from.weight) command to inspect
-the results.
-In this case, the operation asks for the length of the vector at column
-Subject in the chopped-up data frame, but we actually could have used
-any column name from the training data to get the same result because
-all columns matching our criteria will have the same length. Becoming
-more familiar with using plyr for manipulating data will be extremely
-valuable to you going forward, and we highly recommend the package
-author’s documentation [HW11].
-108 | Chapter 4: Ranking: Priority Inbox
-To get a better sense of the scale of this data, let’s plot the results. Figure 4-2 shows a
-bar chart of the volume of emails from users who have sent more than six emails. We
-have performed this truncation to make it easier to read, but even with this data removed,
-we can already see how quickly the data scales. The top emailer, tim.one@comcast.ent,
-has sent 45 messages in our data. That’s about 15 times more emails than the
-average person in our training data! But tim.one@comcast.ent is pretty unique. As you
-can see from Figure 4-2, there are only a few other senders near his level, and the
-frequency drops off very quickly after them. How could we weight an observation from
-an average person in our training data without skewing that value to account for outliers
-like our top emailers?
+
+Most peoples' email activity crudely adheres to the 80/20 cliche (80% of activity conducted w/ 20% of the total # of people in your address book). We need to devise a scheme for weighting the observation of certain features in data, but b/c of potential differences in scale among these observations, we cannot compare their absolute values directly. 
+
+1 of the features being added to our ranker = an approximation of social interaction based on volume of emails received from each address in our training data.
+
+Functions in `plyr` = used to chop data into smaller squares/cubes so we can operate over pieces all at once (very similar to Map-Reduce paradigm in many large-scale data analysis environments). We find all columns w/ matching addresses in `Sender_EMail` column + count them any column for the creation of `Freq` (all columns matching our criteria will have the same length). 
+```{r}
+# in training data, 
+sender_weight <- ddply(priority_train, .(Sender_EMail), summarise, Freq=length(Subject))
+#sender_weight_rank <- allparse_df[with(sender_weight, order(Freq)),]
+#sender_weight <- sender_weight_rank[1:(round(nrow(sender_weight_rank) / 2)),]
+sender_weight <- sender_weight[order(sender_weight$Freq,decreasing = F),]
+head(sender_weight[order(sender_weight$Freq,decreasing = T),])
+```
+
+To get a better sense of the scale of this data, plot the results w/ a bar chart of volume of emails from users who have sent more than 6 emails. 
+
+```{r}
+sender_weight_6Plus <- subset(sender_weight, Freq > 6)
+from_scales <- ggplot(sender_weight_6Plus) +
+  geom_rect(aes(xmin = 1:nrow(sender_weight_6Plus) - 0.5,
+                xmax = 1:nrow(sender_weight_6Plus) + 0.5,
+                ymin = 0,
+                ymax = Freq,
+                fill = "lightgrey",
+                color = "darkblue")) +
+  scale_x_continuous(breaks = 1:nrow(sender_weight_6Plus), labels = sender_weight_6Plus$Sender_EMail) +
+  coord_flip() +
+  scale_fill_manual(values = c("lightgrey" = "lightgrey"), guide = "none") +
+  scale_color_manual(values = c("darkblue" = "darkblue"), guide = "none") +
+  ylab("Number of Emails Received (truncated at 6)") +
+  xlab("Sender Address") +
+  theme_bw() +
+  theme(axis.text.y = element_text(size = 5, hjust = 1))
+from_scales
+```
+
+See how quickly the data scales. The top emailer, tim.one@comcast.ent, has sent 45 messages, about 15 times more emails than the average person in our training data! Tim is pretty unique + there are only a few other senders near his level, + frequency drops off very quickly after them. 
+
+We need to weight an observation from an average person in training data w/out skewing that value to account for outliers like our top emailers w/ **log**.
+
+# A log-weighting scheme
+
+Need to make the numerical relationship among units in our feature set less extreme. If we compare absolute frequency counts, an email from Tim will be weighted as 15X more important than email from an average sender = very problematic b/c we want to establish a threshold for being either a priority message or not based on the range of weight values produced by our ranker at the learning stage. 
+
+W/ such extreme skewness, our threshold will be either far too low or far too high, so we need to rescale the units to account for the nature of our data.
+
+A **logarithm** = function that returns the exponent value that would satisfy an equation where some base # being raised to that exponent = the # given to the logarithmic function. The **base value** in a log-transformation is critical. We are familiar w/ thinking of things in base 2/binary = solves an equation for the exponent value where the input value = 2 raised to that exponent. Ex: Transforming 16 by log base-two = 4 b/c base-TWO raised to the 4th power = 16. In essence, we are “reversing” an exponential, so these types of transformations work best when the data fits such a function. 
+
+2 most common log-transformations = **natural log** + **log base-10** transformation. 
+
+For ln, base = e, an irrational constant (like pi) = ~2.718. Rates of change by this constant are very often observed in nature + the derivation can be done geometrically as a function of the angles inside a circle. A natural log spiral can be observed in many naturally occurring phenomenon (interior structure of a nautilus shell, spiraling winds of a hurricane/tornado, scattering of interstellar particles in our galaxy, many professional camera settings’ apertures = set to vary by natural logs). Given the intimate relationship between this value + many naturally occurring phenomena, it is a great function for rescaling social data that is exponential. 
+
+Alternatively, log base-10 transformations (**log10**) replaces e w/ a 10 + will reduce large values to much smaller ones than the natural log (log10 transformation of 1k = 3 b/c 10 raised to the 3rd = 1k, whereas ln = ~6.9). Therefore, it makes sense to use a log base-10 transformation when data scales by
+a very large exponent.
+
+The ways in which both of these options would transform our email volume data are illustrated here:
+```{r}
+# Log weight scheme, very simple but effective
+sender_weight_log <- transform(sender_weight,
+                         Weight = log(Freq + 1),
+                         log10Weight = log10(Freq + 1))
+
+(sender_rescaled <- ggplot(sender_weight_log, aes(x = 1:nrow(sender_weight_log))) +
+  geom_line(aes(y = Weight, linetype = "ln")) +
+  geom_line(aes(y = log10Weight, linetype = "log10")) +
+  geom_line(aes(y = Freq, linetype = "Absolute")) +
+  scale_linetype_manual(values = c("ln" = 1,
+                                   "log10" = 2,
+                                   "Absolute" = 3),
+                        name = "Scaling") +
+  xlab("") +
+  ylab("Number of emails Receieved") +
+  theme_bw() +
+  theme(axis.text.y = element_blank(), axis.text.x = element_blank()))
+```
+
+In this figure, we can see that the volume of emails sent by the
+users in the training data follows a fairly steep exponential. By transforming those values
+by the natural log and log base-10, we significantly flatten out that line. As we know,
+the log base-10 transforms the values substantially, whereas the natural log still provides
+some variation that will allow us to pull out meaningful weights from this training
+data. For this reason, we will use the natural log to define the weight for our email
+volume feature.
+110 | Chapter 4: Ranking: Priority Inbox
+As we have done here and as we explained in detail in Chapter 2, it is
+always a good idea to explore your data visually as you are working
+through any machine learning problem. We want to know how all of
+the observations in our feature set relate to one another in order to make
+the best predictions. Often the best way to do this is through data visualization.
+from.weight <- transform(from.weight, Weight=log(Freq + 1))
+Finally, recall from grade school mathematics your rules for exponents. Anything raised
+to zero always equals one. This is very important to keep in mind when using
+log-transformation in a weighting scheme because any observation equal to one will be
+Figure 4-3. A natural-log spiral, often observed in nature
+Writing a Priority Inbox | 111
+transformed to zero. This is problematic in a weighting scheme because multiplying
+other weights with zero will zero out the entire value. To avoid this, we always add one
+to all observations before taking logs.
+There is actually a function in R called log1p that computes log(1 +
+p), but for the purposes of learning and being explicit, we will do this
+addition “by hand.”
+Given the rescaling, this does not affect our results, and it keeps all weights greater than
+zero. In this case, we are using the default base value for the log function, which is the
+natural log.
+For our purposes we will never have an observation in our feature set
+that is equal to zero, because we are counting things. If there are no
+observations of something, then it simply doesn’t enter our training
+data. In some cases, however, this will not be true, and you may have
+zero observations in your data. The log of zero is undefined, and if you
+try to compute it in R, it will return the special value -Inf. Often, having
+instances of -Inf in your data will cause things to blow up.
