@@ -331,8 +331,6 @@ Functions in `plyr` = used to chop data into smaller squares/cubes so we can ope
 ```{r}
 # in training data, 
 sender_weight <- ddply(priority_train, .(Sender_EMail), summarise, Freq=length(Subject))
-#sender_weight_rank <- allparse_df[with(sender_weight, order(Freq)),]
-#sender_weight <- sender_weight_rank[1:(round(nrow(sender_weight_rank) / 2)),]
 sender_weight <- sender_weight[order(sender_weight$Freq,decreasing = F),]
 head(sender_weight[order(sender_weight$Freq,decreasing = T),])
 ```
@@ -399,38 +397,222 @@ sender_weight_log <- transform(sender_weight,
   theme(axis.text.y = element_blank(), axis.text.x = element_blank()))
 ```
 
-In this figure, we can see that the volume of emails sent by the
-users in the training data follows a fairly steep exponential. By transforming those values
-by the natural log and log base-10, we significantly flatten out that line. As we know,
-the log base-10 transforms the values substantially, whereas the natural log still provides
-some variation that will allow us to pull out meaningful weights from this training
-data. For this reason, we will use the natural log to define the weight for our email
-volume feature.
-110 | Chapter 4: Ranking: Priority Inbox
-As we have done here and as we explained in detail in Chapter 2, it is
-always a good idea to explore your data visually as you are working
-through any machine learning problem. We want to know how all of
-the observations in our feature set relate to one another in order to make
-the best predictions. Often the best way to do this is through data visualization.
-from.weight <- transform(from.weight, Weight=log(Freq + 1))
-Finally, recall from grade school mathematics your rules for exponents. Anything raised
-to zero always equals one. This is very important to keep in mind when using
-log-transformation in a weighting scheme because any observation equal to one will be
-Figure 4-3. A natural-log spiral, often observed in nature
-Writing a Priority Inbox | 111
-transformed to zero. This is problematic in a weighting scheme because multiplying
-other weights with zero will zero out the entire value. To avoid this, we always add one
-to all observations before taking logs.
-There is actually a function in R called log1p that computes log(1 +
-p), but for the purposes of learning and being explicit, we will do this
-addition “by hand.”
-Given the rescaling, this does not affect our results, and it keeps all weights greater than
-zero. In this case, we are using the default base value for the log function, which is the
-natural log.
-For our purposes we will never have an observation in our feature set
-that is equal to zero, because we are counting things. If there are no
-observations of something, then it simply doesn’t enter our training
-data. In some cases, however, this will not be true, and you may have
-zero observations in your data. The log of zero is undefined, and if you
-try to compute it in R, it will return the special value -Inf. Often, having
-instances of -Inf in your data will cause things to blow up.
+Always a good idea to explore data visually as working through any ML problem. We want to know how all observations in a feature set relate to one another in order to make the best predictions. Best way = data viz. 
+
+See the volume of emails sent by users in the training data follows a fairly steep exponential. By transforming those values by the natural log + log base-10, we significantly flatten out that line. log10 transforms values substantially, whereas ln still provides some variation that allows us to pull out meaningful weights from training data, therefore we use ln to define the weight for email volume.
+
+```{r}
+# take natural log transform of frequency, adding one to avoid raising values to 0
+# log1p() is another option, but less explicit
+sender_weight_ln<- transform(sender_weight, Weight = log(Freq + 1))
+```
+
+Our rescaling = raising to 0 does not affect results + keeps all weights greater > 0. For our purposes we'll never have an observation in our feature set that's = 0, b/c we're counting. If there are no observations of something, it simply doesn’t enter our training data. 
+
+In some cases, this won't be true + you may have 0 observations in your data. The log of 0 is undefined, + if you try to compute it, it returns `-Inf` + causes things to blow up.
+
+# Weighting from Email Thread Activity
+
+2nd feature to extract = email thread activity. We have no way of knowing whether a user we're building this ranking for has responded to any emails, but we can group messages by their thread + measure how active they've been since they started. Again, our assumption in building this feature = time is important. Therefore threads w/ more messages sent over a short period of time = more active + consequently more important.
+
+Emails in our data set do not contain specific thread IDs, but a logical way to ID threads = look for emails w/ a shared subject line. If a subject begins w/ “re: ”, we know this is part of some thread. When we see a message like this, we can look around for other messages in that thread + measure activity.
+
+```{r}
+find_threads <- function(email_df) {
+  # split the subject line if we find "re:" and return list
+  response_threads <- strsplit(email_df$Subject, "re: ") 
+  
+  # if 1st item in list is blank due to finding and splitting on "re", return T/F
+  is_thread <- sapply(response_threads, 
+                      function(subj) ifelse(subj[1] == "", TRUE, FALSE))
+  
+  # get all thread indexes and get the senders email from data frame
+  threads <- response_threads[is_thread]
+  senders <- email_df$Sender_EMail[is_thread]
+  
+  # re-write threads as a vector, not as list
+  threads <- sapply(threads, function(t) paste(t[2:length(t)], collapse = "re: "))
+  
+  # return matrix of senders for each thread component/initial thread subject line
+  return(cbind(senders,threads))
+}
+
+threads_matrix <- find_threads(priority_train)
+head(threads_matrix)
+```
+
+Next we'll create a weighting based on most active senders in the threads as a supplement to the volume-based weighting but focusing only on those senders present in the `threads_matrix` The
+function email.thread will take the threads.matrix as input and generate this secondary volume-based weighting. This will be very similar to what we did in the previous section,
+except this time we will use the table function to count the frequency of senders
+in the threads. This is done simply to show a different method for accomplishing the
+same calculation on a matrix in R, rather than a data frame using plyr. Most of this
+function simply performs housekeeping on the senders.df data frame, but notice that
+we are again using a natural-log weighting.
+
+```{r}
+email_thread <- function(threads_matrix) {
+  # get senders from matrix of threads and get frequencies of each
+  senders <- threads_matrix[, 1]
+  senders_freq <- table(senders)
+  
+  # create matrix of the sender emails from the frequency table, the frequencies + their ln transform
+  # then convert matrix to dataframe
+  senders_matrix <- cbind(names(senders_freq), senders_freq, log(senders_freq + 1))
+  senders_df <- data.frame(senders_matrix, stringsAsFactors=FALSE)
+  
+  # rename the rows as numbers and rename col names, then convert col types to correct ones
+  row.names(senders_df) <- 1:nrow(senders_df)
+  names(senders_df) <- c("From_EMail", "Freq", "Weight")
+  
+  senders_df %<>%
+    mutate(Freq <- as.numeric(Freq),
+           Weight <- as.numeric(Weight))
+  
+ return(senders_df)
+}
+senders_df <- email_thread(threads_matrix)
+head(senders_df)
+```
+
+As the final piece to the email thread feature, create a weighting based on threads we *know* are active. We've already IDed all threads in training data + created a weighting based on the terms in those threads. Now we want to take that knowledge + give additional weight to known threads that're also active. The assumption here = if we already know the threads, we expect a user to place more importance on those threads that're more active.
+
+```{r}
+get.threads <- function(threads.matrix, email.df) {
+ threads <- unique(threads.matrix[, 2])
+ thread.counts <- lapply(threads, function(t) thread.counts(t, email.df))
+ thread.matrix <- do.call(rbind, thread.counts)
+ return(cbind(threads, thread.matrix))
+}
+thread.counts <- function(thread, email.df) {
+ thread.times <- email.df$Date[which(email.df$Subject == thread
+ | email.df$Subject == paste("re:", thread))]
+ freq <- length(thread.times)
+ min.time <- min(thread.times)
+ max.time <- max(thread.times)
+ time.span <- as.numeric(difftime(max.time, min.time, units="secs"))
+ if(freq < 2) {
+ return(c(NA,NA,NA))
+ }
+ else {
+ trans.weight <- freq / time.span
+ log.trans.weight <- 10 + log(trans.weight, base=10)
+ return(c(freq,time.span, log.trans.weight))
+ }
+}
+thread.weights <- get.threads(threads.matrix, priority.train)
+thread.weights <- data.frame(thread.weights, stringsAsFactors=FALSE)
+names(thread.weights) <- c("Thread","Freq","Response","Weight")
+thread.weights$Freq <- as.numeric(thread.weights$Freq)
+thread.weights$Response <- as.numeric(thread.weights$Response)
+thread.weights$Weight <- as.numeric(thread.weights$Weight)
+thread.weights <- subset(thread.weights, is.na(thread.weights$Freq) == FALSE)
+```
+Using the threads.matrix we just created, we will go back into the training data to find
+all of the emails inside each thread. To do this, we create the get.threads function,
+which will take the threads.matrix and our training data as arguments. Using the
+unique command, we create a vector of all thread subjects in our data. Now we need
+to take this information and measure each thread’s activity.
+114 | Chapter 4: Ranking: Priority Inbox
+The thread.counts function will do this. Using the thread subject and training data as
+parameters, we will collect all of the date- and timestamps for all emails matching the
+thread in the thread.times vector. We can measure how many emails have been received
+in training data for this thread by measuring the length of thread.times.
+Finally, to measure the activity level, we need to know how long the thread has existed
+in our training data. Implicitly, there is truncation on either side of this data. That is,
+there may be emails that were received in a thread before our training data started or
+after data collection was completed. There is nothing we can do about this, so we will
+take the minimum and maximum date/times for each thread and use these to measure
+the time span. The function difftime will calculate the amount of time elapsed between
+two POSIX objects in some units. In our case, we want the smallest unit possible:
+seconds.
+Due to the truncation, it may be that we observe only a single message in a thread. This
+could be a thread that ended just as the training data got collected or just started when
+collection ended. Before we can create a weight based on the activity over the time span
+of a thread, we must flag those threads for which we have only one message. The ifstatement
+at the end of thread.counts does this check and returns a vector of NA if the
+current thread has only one message. We will use this later to scrub these from the
+activity-based weighting data.
+The final step is to create a weighting for those messages we can measure. We start by
+calculating the ratio of messages-to-seconds elapsed in the thread. So, if a message were
+sent every second in a given thread, the result would be one. Of course, in practice, this
+number is much lower: the average number of messages in each thread is about 4.5,
+and the average elapsed time is about 31,000 seconds (8.5 hours). Given these scales,
+the vast majority of our ratios are tiny fractions. As before, we still want to transform
+these values using logs, but because we are dealing with fractional values, this will result
+in negative numbers. We cannot have a negative weight value in our scheme, so we will
+have to perform an additional transformation that is formally called an affine transformation.
+An affine transformation is simply a linear movement of points in space. Imagine a
+square drawn on piece of graph paper. If you wanted to move that square to another
+position on the paper, you could do so by defining a function that moved all of the
+points in the same direction. This is an affine transformation. To get non-negative
+weights in log.trans.weight, we will simply add 10 to all the log-transformed values.
+This will ensure that all of the values will be proper weights with a positive value.
+As before, once we have generated the weight data with get.threads and
+thread.counts, we will perform some basic housekeeping on the thread.weights data
+frame to keep the naming consistent with the other weight data frames. In the final
+step, we use the subset function to remove any rows that refer to threads with only one
+message (i.e., truncated threads). We can now use head(thread.weights) to check the
+results.
+Writing a Priority Inbox | 115
+head(thread.weights)
+ Thread Freq Response Weight
+1 please help a newbie compile mplayer :-) 4 42309 5.975627
+2 prob. w/ install/uninstall 4 23745 6.226488
+3 http://apt.nixia.no/ 10 265303 5.576258
+4 problems with 'apt-get -f install' 3 55960 5.729244
+5 problems with apt update 2 6347 6.498461
+6 about apt, kernel updates and dist-upgrade 5 240238 5.318328
+The first two rows are good examples of how this weighting scheme values thread
+activity. In both of these threads, there have been four messages.
+The prob. w/ install/uninstall thread, however, has been in the data for about half
+as many seconds. Given our assumptions, we would think that this thread is more
+important and therefore should have a higher weight. In this case, we give messages
+from this thread about 1.04 times more weight than those from the please help a
+newbie compile mplayer :-) thread. This may or may not seem reasonable to you, and
+therein lies part of the art in designing and applying a scheme such as this to a general
+problem. It may be that in this case our user would not value things this way, whereas
+others might, but because we want a general solution, we must accept the consequences
+of our assumptions.
+term.counts <- function(term.vec, control) {
+ vec.corpus <- Corpus(VectorSource(term.vec))
+ vec.tdm <- TermDocumentMatrix(vec.corpus, control=control)
+ return(rowSums(as.matrix(vec.tdm)))
+}
+thread.terms <- term.counts(thread.weights$Thread,
+ control=list(stopwords=stopwords()))
+thread.terms <- names(thread.terms)
+term.weights <- sapply(thread.terms,
+ function(t) mean(thread.weights$Weight[grepl(t, thread.weights$Thread,
+ fixed=TRUE)]))
+term.weights <- data.frame(list(Term=names(term.weights), Weight=term.weights),
+ stringsAsFactors=FALSE, row.names=1:length(term.weights))
+The final weighting data we will produce from the threads are the frequent terms in
+these threads. Similar to what we did in Chapter 3, we create a general function called
+term.counts that takes a vector of terms and a TermDocumentMatrix control list to produce
+the TDM and extract the counts of terms in all of the threads. The assumption in
+creating this weighting data is that frequent terms in active thread subjects are more
+important than terms that are either less frequent or not in active threads. We are
+attempting to add as much information as possible to our ranker in order to create a
+more granular stratification of emails. To do so, rather than look only for already-active
+threads, we want to also weight threads that “look like” previously active threads, and
+term weighting is one way to do this.
+msg.terms <- term.counts(priority.train$Message,
+ control=list(stopwords=stopwords(),
+ removePunctuation=TRUE, removeNumbers=TRUE))
+116 | Chapter 4: Ranking: Priority Inbox
+msg.weights <- data.frame(list(Term=names(msg.terms),
+ Weight=log(msg.terms, base=10)), stringsAsFactors=FALSE,
+ row.names=1:length(msg.terms))
+msg.weights <- subset(msg.weights, Weight > 0)
+The final weighting data we will build is based on term frequency in all email messages
+in the training data. This will proceed almost identically to our method for counting
+terms in the spam classification exercise; however, this time we will assign log-transformed
+weights based on these counts. As with the term-frequency weighting for thread
+subjects, the implicit assumption in the msg.weights data frame is that a new message
+that looks like other messages we have seen before is more important than a message
+that is totally foreign to us.
+We now have five weight data frames with which to perform our ranking! This includes
+from.weight (social activity feature), senders.df (sender activity in threads),
+thread.weights (thread message activity), term.weights (terms from active threads),
+and msg.weights (common terms in all emails). We are now ready to run our training
+data through the ranker to find a threshold for marking a message as important
