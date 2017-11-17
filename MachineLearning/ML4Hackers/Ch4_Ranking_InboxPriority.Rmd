@@ -476,44 +476,8 @@ head(senders_df)
 
 As the final piece to the email thread feature, create a weighting based on threads we *know* are active. We've already IDed all threads in training data + created a weighting based on the terms in those threads. Now we want to take that knowledge + give additional weight to known threads that're also active. The assumption here = if we already know the threads, we expect a user to place more importance on those threads that're more active.
 
-```{r}
-get.threads <- function(threads.matrix, email.df) {
- threads <- unique(threads.matrix[, 2])
- thread.counts <- lapply(threads, function(t) thread.counts(t, email.df))
- thread.matrix <- do.call(rbind, thread.counts)
- return(cbind(threads, thread.matrix))
-}
-thread.counts <- function(thread, email.df) {
- thread.times <- email.df$Date[which(email.df$Subject == thread
- | email.df$Subject == paste("re:", thread))]
- freq <- length(thread.times)
- min.time <- min(thread.times)
- max.time <- max(thread.times)
- time.span <- as.numeric(difftime(max.time, min.time, units="secs"))
- if(freq < 2) {
- return(c(NA,NA,NA))
- }
- else {
- trans.weight <- freq / time.span
- log.trans.weight <- 10 + log(trans.weight, base=10)
- return(c(freq,time.span, log.trans.weight))
- }
-}
-thread.weights <- get.threads(threads.matrix, priority.train)
-thread.weights <- data.frame(thread.weights, stringsAsFactors=FALSE)
-names(thread.weights) <- c("Thread","Freq","Response","Weight")
-thread.weights$Freq <- as.numeric(thread.weights$Freq)
-thread.weights$Response <- as.numeric(thread.weights$Response)
-thread.weights$Weight <- as.numeric(thread.weights$Weight)
-thread.weights <- subset(thread.weights, is.na(thread.weights$Freq) == FALSE)
-```
-Using the threads.matrix we just created, we will go back into the training data to find
-all of the emails inside each thread. To do this, we create the get.threads function,
-which will take the threads.matrix and our training data as arguments. Using the
-unique command, we create a vector of all thread subjects in our data. Now we need
-to take this information and measure each thread’s activity.
-114 | Chapter 4: Ranking: Priority Inbox
-The thread.counts function will do this. Using the thread subject and training data as
+Using `threads_matrix` go back into the training data to find all emails inside each thread via a new `get_threads()` function to take `threads_matrix` + training data as arguments. 
+Using `unique` command, create a vector of all thread subjects in our data, take this info + measure each thread’s activity w/ `thread_counts()`. Using the thread subject and training data as
 parameters, we will collect all of the date- and timestamps for all emails matching the
 thread in the thread.times vector. We can measure how many emails have been received
 in training data for this thread by measuring the length of thread.times.
@@ -525,6 +489,49 @@ take the minimum and maximum date/times for each thread and use these to measure
 the time span. The function difftime will calculate the amount of time elapsed between
 two POSIX objects in some units. In our case, we want the smallest unit possible:
 seconds.
+
+```{r}
+# helper function to count 
+thread_counts <- function(thread, email_df) {
+  # find those emails who start a thread or are a part of a thread
+  thread_times <- email_df$Date[which(email_df$Subject == thread 
+                                      | email_df$Subject == paste("re:", thread))]
+  # count # of messages in the thred, then get the 1st and last messages times + get the difference
+  freq <- length(thread_times)
+  time_span <- as.numeric(difftime(max(thread_times), min(thread_times), units = "secs"))
+  
+  # if a 'thread' only has 1 message, return all nulls for the thread count since its not a thread
+  if(freq < 2) {
+    return(c(NA,NA,NA))
+  } else {
+    # otherwise get the average number of messages in the thread + its log10 transform
+    trans_weight <- freq / time_span
+    log_trans_weight <- 10 + log(trans_weight, base = 10)
+    # concatenate the frequency, the time  span, and its log10 weight
+    return(c(freq, time_span, log_trans_weight))
+  }
+}
+
+get_threads <- function(threads_matrix, email_df) {
+  # get all unique threads and count them
+  uniq_threads <- unique(threads_matrix[, 2])
+  thread_counts <- lapply(uniq_threads, function(t) thread_counts(t, email_df))
+  thread_matrix <- do.call(rbind, thread_counts)
+  return(cbind(uniq_threads, thread_matrix))
+}
+thread_weights <- get_threads(threads_matrix, priority_train)
+head(thread_weights)
+```
+
+thread_weights <- get_threads(threads_matrix, priority_train)
+thread_weights <- data_frame(thread_weights, stringsAsFactors=FALSE)
+names(thread_weights) <- c("Thread","Freq","Response","Weight")
+thread_weights$Freq <- as_numeric(thread_weights$Freq)
+thread_weights$Response <- as_numeric(thread_weights$Response)
+thread_weights$Weight <- as_numeric(thread_weights$Weight)
+thread_weights <- subset(thread_weights, is_na(thread_weights$Freq) == FALSE)
+```
+
 Due to the truncation, it may be that we observe only a single message in a thread. This
 could be a thread that ended just as the training data got collected or just started when
 collection ended. Before we can create a weight based on the activity over the time span
