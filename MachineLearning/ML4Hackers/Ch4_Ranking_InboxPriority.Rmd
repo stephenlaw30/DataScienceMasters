@@ -477,21 +477,14 @@ head(senders_df)
 As the final piece to the email thread feature, create a weighting based on threads we *know* are active. We've already IDed all threads in training data + created a weighting based on the terms in those threads. Now we want to take that knowledge + give additional weight to known threads that're also active. The assumption here = if we already know the threads, we expect a user to place more importance on those threads that're more active.
 
 Using `threads_matrix` go back into the training data to find all emails inside each thread via a new `get_threads()` function to take `threads_matrix` + training data as arguments. 
-Using `unique` command, create a vector of all thread subjects in our data, take this info + measure each thread’s activity w/ `thread_counts()`. Using the thread subject and training data as
-parameters, we will collect all of the date- and timestamps for all emails matching the
-thread in the thread.times vector. We can measure how many emails have been received
-in training data for this thread by measuring the length of thread.times.
-Finally, to measure the activity level, we need to know how long the thread has existed
-in our training data. Implicitly, there is truncation on either side of this data. That is,
-there may be emails that were received in a thread before our training data started or
-after data collection was completed. There is nothing we can do about this, so we will
-take the minimum and maximum date/times for each thread and use these to measure
-the time span. The function difftime will calculate the amount of time elapsed between
-two POSIX objects in some units. In our case, we want the smallest unit possible:
-seconds.
+Using `unique` command, create a vector of all thread subjects in our data, take this info + measure each thread’s activity w/ `thread_counts()`. Using the thread's subject + training data as parameters, collect all date + timestamps for all emails matching threads in the vector, measure how many emails have been received in training data for this thread, + measure activity level.
+
+Implicitly, there is truncation on either side of this data (may be emails received in a thread before training data started or after data collection was completed = nothing we can do about this = take min + max date/times for each thread + use these to measure time span). Due to the truncation, it may be we observe only a single message in a thread (may have ended just as training data got collected or just started when collection ended). Flag those threads w/ only 1 message + returns vector of `NA` (use this later to scrub these from the activity-based weighting data).
+
+Final step = create a measurable weighting for those messages by calculating ratio of messages-to-seconds elapsed in the thread (message sent every second in a given thread = 1). Avg # of messages in each thread = 4.5 + average elapsed time = ~31K seconds (8.5 hours). Given these scales, vast majority of ratios = tiny fractions. Transform these *fractional* values using an **affine transformation** (b/c normal transformation resulits in negative values + cannot have a negative weight value in scheme). **Affine transformation** = a linear movement of points in space (ex: function to move all points in a square in the same direction in the 2D space). To get non-negative weights, simply add 10 to all log-transformed values to ensure all values will be proper weights w/ a positive value.
 
 ```{r}
-# helper function to count 
+# helper function to count threads
 thread_counts <- function(thread, email_df) {
   # find those emails who start a thread or are a part of a thread
   thread_times <- email_df$Date[which(email_df$Subject == thread 
@@ -513,113 +506,68 @@ thread_counts <- function(thread, email_df) {
 }
 
 get_threads <- function(threads_matrix, email_df) {
-  # get all unique threads and count them
+  # get all unique threads and count + calculate weight + log10 wieght over timespan w/ helper function
   uniq_threads <- unique(threads_matrix[, 2])
   thread_counts <- lapply(uniq_threads, function(t) thread_counts(t, email_df))
+  # combine each threads info into single matrix and then return
   thread_matrix <- do.call(rbind, thread_counts)
   return(cbind(uniq_threads, thread_matrix))
 }
-thread_weights <- get_threads(threads_matrix, priority_train)
+
+# get matrix of threads + timespan + weights then convert to dataframe, rename cols + fix col types
+thread_weights <- get_threads(threads_matrix, priority_train) #head(thread_weights)
+thread_weights <- data.frame(thread_weights, stringsAsFactors=FALSE)
+names(thread_weights) <- c("Thread","Freq","Response","Weight")
+thread_weights %<>% 
+  mutate(Freq = as.numeric(Freq),
+         Response = as.numeric(Response),
+         Weight = as.numeric(Weight)) %>%
+  filter(is.na(thread_weights$Freq) == F)
+
 head(thread_weights)
 ```
 
-thread_weights <- get_threads(threads_matrix, priority_train)
-thread_weights <- data_frame(thread_weights, stringsAsFactors=FALSE)
-names(thread_weights) <- c("Thread","Freq","Response","Weight")
-thread_weights$Freq <- as_numeric(thread_weights$Freq)
-thread_weights$Response <- as_numeric(thread_weights$Response)
-thread_weights$Weight <- as_numeric(thread_weights$Weight)
-thread_weights <- subset(thread_weights, is_na(thread_weights$Freq) == FALSE)
+The 1st 2 rows are good examples of how this weighting scheme values thread activity. Both threads have 4 messages but row 2 has been in the data for about 1/2 as many seconds. *Given our assumptions*, we assume this thread is more important + therefore should have a higher weight (~1.04 times more weight ). This may or may not seem reasonable + therein lies part of the art in designing + applying a scheme such as this to a general problem. It may be that in this case our user would not value things this way, whereas others might, but b/c we want a *general solution*, we must accept the consequences of our assumptions.
+
+Our assumption in creating weighting data is that frequent terms in active thread subjects = more important than terms in less frequent/not in active threads. We're attempting to add as much info as possible to our ranker to create a more granular stratification of emails. To do so, rather than look only for already-active threads, we want to also weight threads that “look like” previously active threads, + term weighting is one way to do this.
+
+```{r}
+get_terms <- function(term_vec, control) {
+  # given vector of thread titles, create corpus and TDM of them + return as matrix of terms + counts
+  vec_corpus <- Corpus(VectorSource(term_vec))
+  vec_tdm <- TermDocumentMatrix(vec_corpus, control=control)
+  return(rowSums(as.matrix(vec_tdm)))
+}
+
+# get frequent terms in the threads + return just the actual terms (the col names of matrix)
+thread_terms <- get_terms(thread_weights$Thread, control = list(stopwords = stopwords()))
+thread_terms <- names(thread_terms) 
+
+# For a term, get all weights of threads with that term and average the weights
+term_weights <- sapply(thread_terms,
+                       function(t) mean(thread_weights$Weight[grepl(t, thread_weights$Thread,
+                                                                    fixed = TRUE)]))
+
+term_weights <- data.frame(row.names = 1:length(term_weights), 
+                           list(Term = names(term_weights), Weight = term_weights),
+                           stringsAsFactors = FALSE)
+head(term_weights)
 ```
 
-Due to the truncation, it may be that we observe only a single message in a thread. This
-could be a thread that ended just as the training data got collected or just started when
-collection ended. Before we can create a weight based on the activity over the time span
-of a thread, we must flag those threads for which we have only one message. The ifstatement
-at the end of thread.counts does this check and returns a vector of NA if the
-current thread has only one message. We will use this later to scrub these from the
-activity-based weighting data.
-The final step is to create a weighting for those messages we can measure. We start by
-calculating the ratio of messages-to-seconds elapsed in the thread. So, if a message were
-sent every second in a given thread, the result would be one. Of course, in practice, this
-number is much lower: the average number of messages in each thread is about 4.5,
-and the average elapsed time is about 31,000 seconds (8.5 hours). Given these scales,
-the vast majority of our ratios are tiny fractions. As before, we still want to transform
-these values using logs, but because we are dealing with fractional values, this will result
-in negative numbers. We cannot have a negative weight value in our scheme, so we will
-have to perform an additional transformation that is formally called an affine transformation.
-An affine transformation is simply a linear movement of points in space. Imagine a
-square drawn on piece of graph paper. If you wanted to move that square to another
-position on the paper, you could do so by defining a function that moved all of the
-points in the same direction. This is an affine transformation. To get non-negative
-weights in log.trans.weight, we will simply add 10 to all the log-transformed values.
-This will ensure that all of the values will be proper weights with a positive value.
-As before, once we have generated the weight data with get.threads and
-thread.counts, we will perform some basic housekeeping on the thread.weights data
-frame to keep the naming consistent with the other weight data frames. In the final
-step, we use the subset function to remove any rows that refer to threads with only one
-message (i.e., truncated threads). We can now use head(thread.weights) to check the
-results.
-Writing a Priority Inbox | 115
-head(thread.weights)
- Thread Freq Response Weight
-1 please help a newbie compile mplayer :-) 4 42309 5.975627
-2 prob. w/ install/uninstall 4 23745 6.226488
-3 http://apt.nixia.no/ 10 265303 5.576258
-4 problems with 'apt-get -f install' 3 55960 5.729244
-5 problems with apt update 2 6347 6.498461
-6 about apt, kernel updates and dist-upgrade 5 240238 5.318328
-The first two rows are good examples of how this weighting scheme values thread
-activity. In both of these threads, there have been four messages.
-The prob. w/ install/uninstall thread, however, has been in the data for about half
-as many seconds. Given our assumptions, we would think that this thread is more
-important and therefore should have a higher weight. In this case, we give messages
-from this thread about 1.04 times more weight than those from the please help a
-newbie compile mplayer :-) thread. This may or may not seem reasonable to you, and
-therein lies part of the art in designing and applying a scheme such as this to a general
-problem. It may be that in this case our user would not value things this way, whereas
-others might, but because we want a general solution, we must accept the consequences
-of our assumptions.
-term.counts <- function(term.vec, control) {
- vec.corpus <- Corpus(VectorSource(term.vec))
- vec.tdm <- TermDocumentMatrix(vec.corpus, control=control)
- return(rowSums(as.matrix(vec.tdm)))
-}
-thread.terms <- term.counts(thread.weights$Thread,
- control=list(stopwords=stopwords()))
-thread.terms <- names(thread.terms)
-term.weights <- sapply(thread.terms,
- function(t) mean(thread.weights$Weight[grepl(t, thread.weights$Thread,
- fixed=TRUE)]))
-term.weights <- data.frame(list(Term=names(term.weights), Weight=term.weights),
- stringsAsFactors=FALSE, row.names=1:length(term.weights))
-The final weighting data we will produce from the threads are the frequent terms in
-these threads. Similar to what we did in Chapter 3, we create a general function called
-term.counts that takes a vector of terms and a TermDocumentMatrix control list to produce
-the TDM and extract the counts of terms in all of the threads. The assumption in
-creating this weighting data is that frequent terms in active thread subjects are more
-important than terms that are either less frequent or not in active threads. We are
-attempting to add as much information as possible to our ranker in order to create a
-more granular stratification of emails. To do so, rather than look only for already-active
-threads, we want to also weight threads that “look like” previously active threads, and
-term weighting is one way to do this.
-msg.terms <- term.counts(priority.train$Message,
- control=list(stopwords=stopwords(),
- removePunctuation=TRUE, removeNumbers=TRUE))
-116 | Chapter 4: Ranking: Priority Inbox
-msg.weights <- data.frame(list(Term=names(msg.terms),
- Weight=log(msg.terms, base=10)), stringsAsFactors=FALSE,
- row.names=1:length(msg.terms))
-msg.weights <- subset(msg.weights, Weight > 0)
-The final weighting data we will build is based on term frequency in all email messages
-in the training data. This will proceed almost identically to our method for counting
-terms in the spam classification exercise; however, this time we will assign log-transformed
-weights based on these counts. As with the term-frequency weighting for thread
-subjects, the implicit assumption in the msg.weights data frame is that a new message
-that looks like other messages we have seen before is more important than a message
-that is totally foreign to us.
-We now have five weight data frames with which to perform our ranking! This includes
-from.weight (social activity feature), senders.df (sender activity in threads),
-thread.weights (thread message activity), term.weights (terms from active threads),
-and msg.weights (common terms in all emails). We are now ready to run our training
-data through the ranker to find a threshold for marking a message as important
+The final weighting data = based on term frequency in all email *messages* in the training data which proceeds almost identically to counting terms in spam classification, but this time assigning log-transformed weights based on these counts. As w/ term-frequency weighting for thread subjects, the implicit assumption = a new message that looks like other messages seen before is more important than a message that is totally foreign to us.
+
+```{r}
+# get all terms in training data messages
+msg_terms <- get_terms(priority_train$Message,
+                       control=list(stopwords=stopwords(), removePunctuation=TRUE, removeNumbers=TRUE))
+
+# calculate weights of terms in messages
+msg_weights <- data.frame(row.names=1:length(msg_terms),
+                          list(Term = names(msg_terms), Weight=log(msg_terms, base=10)),
+                          stringsAsFactors=FALSE)
+
+# get just positive weights
+msg_weights <- subset(msg_weights, Weight > 0)
+head(msg_weights)
+```
+We now have 5 weight data frames w/ which to perform ranking = `sender_weight` (social activity feature), `senders_df` (sender activity in threads), `thread_weights` (thread message activity), `term_weights` (terms from active threads), and `msg_weights` (common terms in all emails). We're now ready to run training data through the ranker to find a threshold for marking a message as important.
