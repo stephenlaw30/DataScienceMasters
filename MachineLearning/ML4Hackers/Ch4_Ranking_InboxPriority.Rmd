@@ -571,3 +571,177 @@ msg_weights <- subset(msg_weights, Weight > 0)
 head(msg_weights)
 ```
 We now have 5 weight data frames w/ which to perform ranking = `sender_weight` (social activity feature), `senders_df` (sender activity in threads), `thread_weights` (thread message activity), `term_weights` (terms from active threads), and `msg_weights` (common terms in all emails). We're now ready to run training data through the ranker to find a threshold for marking a message as important.
+
+# Training and Testing the Ranker
+
+To generate a priority rank for each message in training data, multiply all weights produced above, so for each message, we parse the email, take the extracted features, and then match them to corresponding weight data frames to get the appropriate weighting value. 
+
+We then take the product of these values to produce a single—and-unique rank value for each message. `rank_message`takes a file path to a message + produces a priority ranking for that message based on the features we defined and their subsequent weights. 
+
+It relies on many functions already defined, as well  as a new function, `get_weights`, which does the weight lookup when the feature does not map to a single weight (i.e., subject and message terms). It takes 3 args: some search terms (a string), the weight data frame in which to do the lookup, + a single Boolean value for `term`, which allows us to tell the application whether it is doing a lookup on a *term* data frame or on a *thread* data frame (lookups treated slightly differently due to differences in column labels in `thread_weights`. We use `match` to find elements in the weight data frame that match `search_term` and return its weight value. 
+
+For non-matches, 1st, we do 1 safety check to make sure the search term being passed to `get_weights` is valid by checking that it has some positive length (same type of check in parsing email data to check if an email had a subject line). If it is an invalid search term, simply return a 1 (which will not alter the product computed in the next step) 
+
+Next, `match` will return an `NA` any elements in the search vector that do not match `search_term` to extract the weight values for only those matched elements that are not `NA`. If there are no matches, `term_match` vector will be all `NA`, in which case `match_weights` will have a zero length. So, we do an additional check for this case, and if encountered, again return 1. 
+
+If we *have* matched some weight values, we return the mean of all these weights as our result.
+
+```{r}
+get_weights <- function(search_term, weight_df, term = TRUE) {
+  if(length(search_term) > 0) {
+        if(term) {
+            term_match <- match(names(search_term), weight_df$Term)
+        } else {
+            term_match <- match(search_term, weight_df$Thread)
+        }
+
+        match_weights <- weight_df$Weight[which(!is_na(term_match))]
+    
+        if(length(match_weights) > 1) {
+            return(1)
+        } else {
+            return(mean(match_weights))
+        }
+    } else {
+        return(1)
+    }
+}
+```
+
+`rank_message` uses rules similar to the `get_weights` for assigning weight values to features extracted from each email in the data set. 1st, it calls `parse_email` to extract the 4 features of interest +  proceeds to use a series of if-then clauses to determine whether any features extracted from the
+current email are present in any of the weight data frames being used to rank + then assigns weights appropriately.
+
+`from` and`thread_from` use the social interaction features to find weight based on thesender’s email address. Note that, in both cases, if `ifelse` does not match anything in the data weight data frames, a 1 is returned (same strategy implemented in `get_weights`
+
+For thread+ term-based weighting, some internal text parsing is done. For threads, 1st check if the email being ranked is part of a thread (exact same way as during training phase). If so, look up a rank + otherwise assign a 1. For term-based weighting, use `term_counts` to get the terms of interest from the email features + weight accordingly. 
+
+In the final step, generate the rank by passing all weight values just looked up to `prod`. `rank_message` then returns a vector w/ the email’s date/time, sender’s address, subject, + rank.
+
+```{r}
+rank.message <- function(path) {
+    msg <- parse.email(path)
+    # Weighting based on message author
+    # First is just on the total frequency
+    from <- ifelse(length(which(from.weight$From.EMail == msg[2])) > 0,
+        from.weight$Weight[which(from.weight$From.EMail == msg[2])], 1)
+    # Second is based on senders in threads, and threads themselves
+    thread.from <- ifelse(length(which(senders.df$From.EMail == msg[2])) > 0,
+        senders.df$Weight[which(senders.df$From.EMail == msg[2])], 1)
+    subj <- strsplit(tolower(msg[3]), "re: ")
+    is.thread <- ifelse(subj[[1]][1] == "", TRUE, FALSE)
+    if(is.thread) {
+        activity <- get.weights(subj[[1]][2], thread.weights, term=FALSE)
+    }
+    else {
+        activity <- 1
+    }
+    # Next, weight based on terms    
+    # Weight based on terms in threads
+    thread.terms <- term.counts(msg[3], control=list(stopwords=stopwords()))
+    thread.terms.weights <- get.weights(thread.terms, term.weights)
+    # Weight based terms in all messages
+    msg.terms <- term.counts(msg[4], control=list(stopwords=stopwords(),
+        removePunctuation=TRUE, removeNumbers=TRUE))
+    msg.weights <- get.weights(msg.terms, msg.weights)
+    # Calculate rank by interacting all weights
+    rank <- prod(from, thread.from, activity, 
+        thread.terms.weights, msg.weights)
+    return(c(msg[1], msg[2], msg[3], rank))
+}
+```
+
+train.paths <- priority.df$Path[1:(round(nrow(priority.df) / 2))]
+test.paths <- priority.df$Path[((round(nrow(priority.df) / 2)) + 1):nrow(priority.df)]
+train.ranks <- lapply(train.paths, rank.message)
+train.ranks.matrix <- do.call(rbind, train.ranks)
+train.ranks.matrix <- cbind(train.paths, train.ranks.matrix, "TRAINING")
+train.ranks.df <- data.frame(train.ranks.matrix, stringsAsFactors=FALSE)
+names(train.ranks.df) <- c("Message", "Date", "From", "Subj", "Rank", "Type")
+train.ranks.df$Rank <- as.numeric(train.ranks.df$Rank)
+priority.threshold <- median(train.ranks.df$Rank)
+train.ranks.df$Priority <- ifelse(train.ranks.df$Rank >= priority.threshold, 1, 0)
+We are now ready to fire up our ranker! Before we can proceed, we will split our data
+into two chronologically divided sets. The first will be the training data, which we call
+
+We will now calculate the rank values for all of the emails in our test set. This process
+proceeds exactly the same way as it did for our training data, so to save space we will
+not reproduce the code here. To see the code, refer to the 
+code/priority_inbox.R
+ file
+included for this chapter, starting at about line 308. Once we have calculated the ranks
+for the test data, we can compare the results and see how well our ranker did on new
+emails.
+Figure 4-6
+ overlays the density of ranks from the test data on the densities in 
+Fig-
+ure 4-5
+. This illustration is very informative regarding the quality of our ranker. First,
+we notice that there is much more density in the test data at the very low end of the
+distributions. This means that there are many more emails with a low rank. Addition-
+ally, the test density estimate is much less smooth than the training data. This is evi-
+dence that the test data includes many observations not in our training data. Because
+Figure 4-6. Density of weights for our test data overlaid on training data density
+122
+|
+Chapter 4:
+Ranking: Priority Inbox
+these observations do not match anything in our training data, the ranker effectively
+ignores this information.
+Although this is problematic, we avoid disaster because we used an inclusive threshold
+for priority email. Note that there is still a reasonable amount of density for the test
+data to the right of the threshold line. This means our ranker was still able to find emails
+to recommend as important from the test data. As a final check, let’s actually see which
+emails our ranker pushed to the top (
+Table 4-1
+).
+There is an inherent “unknowable” quality to creating a ranker of this
+type. Throughout this entire exercise, we have posited assumptions
+about each feature we included in our design and attempted to justify
+these intuitively. However, we can never know the “ground truth” as to
+how well our ranker is doing, because we can’t go back and ask the user
+for whom these emails were sent whether the ordering is good or makes
+sense. In the classification exercise, we knew the labels for each email
+in the training and test set, so we could measure explicitly how well the
+classifier was doing using the confusion matrix. In this case we can’t,
+but we can try to infer how well the ranker is doing by looking at the
+results. This is what makes this exercise something distinct from stan-
+dard supervised learning.
+Table 4-1
+ shows the 40 newest emails in the test data that have been labeled as priority
+by our ranker. The table is meant to mimic what you might see in your email inbox if
+you were using this ranker to perform priority inbox sorting over your emails, with the
+added information of the email’s rank. If you can excuse the somewhat odd or con-
+troversial subject headings, we’ll explore these results to check how the ranker is
+grouping emails.
+
+What’s most encouraging about these results is that the ranker is grouping threads
+together very well. You can see several examples of this in the table, where emails from
+the same thread have all been marked as priority and are grouped together. Also, the
+ranker appears to be giving appropriately high ranks to emails from frequent senders,
+as  is  the  case  for  outlier  senders  such  as 
+tomwhore@slack.net
+  and
+yyyy@spamassassin.taint.org
+. Finally, and perhaps most encouraging, the ranker is
+prioritizing messages that were not present in the training data. In fact, only 12 out of
+the 85 threads in the test data marked as priority are continuations from the training
+data (about 14%). This shows that our ranker is able to apply observations from training
+data to new threads in the test data and make recommendations without updating.
+This is very good!
+In this chapter we have introduced the idea of moving beyond a feature set with only
+one element to a more complex model with many features. We have actually accom-
+plished a fairly difficult task, which is to design a ranking model for email when we can
+see only one half of the transactions. Relying on social interactions, thread activity, and
+common terms, we specified four features of interest and generated five weighting data
+124
+|
+Chapter 4:
+Ranking: Priority Inbox
+frames to perform the ranking. The results, which we have just explored, were encour-
+aging, though without 
+ground truth
+, difficult to test explicitly.
+With the last two chapters behind us, you’ve worked through a relatively simple ex-
+ample of supervised learning used to perform spam classification and a very basic form
+of heuristic-based ranking. You are ready to move on to the workhorse of statistical
+learning: regression
