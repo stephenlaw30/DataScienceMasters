@@ -1,5 +1,5 @@
 ---
-title: "SVM"
+title: "Decision Tree Classification""
 author: "Steve Newns"
 output: html_document
 ---
@@ -9,20 +9,18 @@ output: html_document
 ```{r, warning=F,message=F}
 library(tidyverse)
 library(ggplot2)
-library(caTools)
-library(e1071) # most popular SVM libary, other is `kernlab`
-library(ElemStatLearn)
+library(caTools) # for splitting data
+library(rpart) # decision trees
+library(ElemStatLearn) # visualize results
+library(randomForest)
 ```
 
 Social network`s automotive business client has launched its brand new luxury SUV and purchased ads for its marketing campaign. The social network collected data on the users and whether or not the bought the SUV after seeing the ad.
 
-We will only use age and salary to predict this. 
-
-Can use kernel SVM to overcome to non-linear relationship between our variables.
-
-```{r, message=F,warning=F}
+We will only use age and salary to predict this
+```{r}
 ## import data 
-social <- read_csv("Social_Network_Ads.csv")
+social <- read.csv("../data/Social_Network_Ads.csv")
 
 ## Cut down dataset
 social <- social %>%
@@ -41,29 +39,27 @@ set.seed(123)
 
 spl <- sample.split(social$Purchased, SplitRatio = 0.75) # tidy does not work here
 
-(training <- social %>%
-  subset(spl == TRUE))
-(test <- social %>%
-  subset(spl == FALSE))
+training <- social %>%
+  subset(spl == TRUE)
+test <- social %>%
+  subset(spl == FALSE)
 ```
 
-## Fitting Kernel SVM to the Training set
-
-We will set `type` to be **C-classification** to make sure we're doing a classification machine and `kernel` to be **linear**, as we are starting w/ the most basic kernel, the **linear kernel**.
-
-Then, we will make predictions on the test set with the **(Gaussian) Radial Basis Function** kernel.
+## Fitting Decision Tree to the Training set
 
 ```{r}
-social.svm <- svm(Purchased ~ ., training, type = 'C-classification', kernel = 'radial')
+social.rf <- randomForest(Purchased ~ ., training, nTree = 10)
 
 # Predict on test set results
-y_pred.svm <- predict(social.svm, test[-3])
+y_pred.rf <- predict(social.rf, test[-3])
+head(y_pred.rf)
 ```
 
 Now we will check our prediction results vs. the actual results with a confusion matrix.
+
 ```{r}
 ## Making the Confusion Matrix
-(cm <- table(test$Purchased, y_pred.svm))
+(cm <- table(test$Purchased, y_pred.rf))
 
 sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
 specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
@@ -77,35 +73,39 @@ cat("\nAccuracy: ",accuracy)
 ```
 
 Now we need to visualize the results.
+
 ```{r}
 ## Create function to visualize different set results
-plot.svm.model <- function(set) {
+plot.rf.model <- function(set) {
   x1 <- seq(min(set[,1]) - 1, max(set[,1]) + 1, by = 0.05) # get sminimum scaled age + go up to the max by increments of .1
   x2 <- seq(min(set[,2]) - 1, max(set[,2]) + 1, by = 0.05) # get minimum scaled salary + go up to the max by increments of .1
   
   set.grid <- expand.grid(x1,x2) # Create DF from all possible combos of the age + salary vectors to make a grid
   colnames(set.grid) <- c("Age","EstimatedSalary")
   
-  y_pred.svm.grid <- predict(social.svm, set.grid) # use grid to predict values w/ our model
+  y_pred.rf.grid <- predict(social.rf, set.grid, type = "class") # use grid to predict values w/ our model
   
   plot(set[,-3],
-       main = c("Radial SVM (", deparse(substitute(set))," set)"), # get set name from argument given
+       main = c("Random Forest (", deparse(substitute(set), nlines = 1),
+                " set)"), # get set name from argument given
        xlab = "Age",
        ylab = "Estimated Salary",
        xlim = range(x1),
        ylim = range(x2))
   
-  contour(x1,x2, matrix(as.numeric(y_pred.svm.grid), length(x1), length(x2)), add = T) # add logistic regression "split" line
+  contour(x1,x2, matrix(as.numeric(y_pred.rf.grid), length(x1), length(x2)), add = T) # add logistic regression "split" line
   
-  points(set.grid, pch = 19, col = if_else(y_pred.svm.grid == 1, "springgreen3", "tomato"))
+  points(set.grid, pch = 19, col = if_else(y_pred.rf.grid == 1, "springgreen3", "tomato"))
   points(set, pch = 19, col = if_else(set[,3] == 1, "green4", "red3"))
   
 }
 
-plot.svm.model(training)
-plot.svm.model(test)
+plot.rf.model(training)
+plot.rf.model(test)
 ```
 
-See that our classifier is indeed non-linear + also capture most DP's correctly.
+See that our classifier is indeed making better predictions than linear classifiers because it can curve. It's capturing more points in the correct regions than the linear classifiers. We are see our classifier creating red regions around those scattered red dots above and to the right of the red region, making it more flexible than the original decision tree. It didn't overfit to traning in some places, as we can see multiple red points incorrectly classified, but in the test set plot we can see red regions with no test points in them, indicating some bias to the traning data by the forest.
 
-Since our data is in a 2D space and our classifer is non-linear, that means our data was mapped/projected onto a 3D space and a **hyperplane** was found that linearly seperated the data in the 3D space. Then the data and the hyperplane were projected back into the 2D space to give the plots above with the non-linear classifier.
+ # Classification conclusion.
+ 
+ It looks like **Kernel SVM** would be the best bet for this business problem, as it had good out-of-sample accuracy and did not overfit.
