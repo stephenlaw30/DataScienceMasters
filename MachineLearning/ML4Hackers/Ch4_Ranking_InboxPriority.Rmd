@@ -14,112 +14,81 @@ library(plyr) # ddply
 ```
 
 # How Do You Sort Something When You Don’t Know the Order?
-**binary classification** = placing items into 1 of 2 types or classes + In many cases, we will be satisfied w/ an approach that can make such a distinction. 
+**Binary classification** is placing items into 1 of 2 types or classes. But what if the items in one class are *not* created equally + we want to **rank** the items within a class? (e.g. one email = most "spammy", another = second most spammy). We not only want to filter spam but also place more "important” messages at the top of a queue, but **generating rules** to do so is a very common problem + increasingly common task in ML.
 
-But what if the items in one class are *not* created equally + we want to **rank** the items w/in a class? (say 1 email = most spammy + another = second most spammy, or want to distinguish among them in some other meaningful way?)
-
-we not only want to filter spam but also wanted to place “more important” messages at the top of the queue = **generating rules** = a very common problem + increasingly common task in ML
-
-Recommendation systems implicitly produce a ranking of products.
-Ex: Netflix + Amazon recommendations are based on 2 kinds of data
+Recommendation systems implicitly produce a ranking of products, such as Netflix + Amazon recommendations that're based on 2 kinds of data
 <ul>
-<li> the data pertaining to the inventory itself (TV has type (e.g., plasma, LCD, LED), manufacturer, price, + so on while movies have genre, cast, director, etc.) </li>
+<li> the data pertaining to the inventory itself (TV's have type (e.g. plasma, LCD, LED), manufacturer, price, + so on while movies have genre, cast, director, etc.) </li>
 <li> the data related to the behavior of the customers </li>
 </ul> 
 
-For both types of data, the *features are well-identified* (know the labels for categorical data such as product type or movie genre) + *user-generated data is well structured* (form of purchase/rental records + explicit ratings).
+For both types of data, the *features are well-identified* (known labels for categorical data such as product type or movie genre) + *user-generated data is well structured* (purchase/rental records, explicit ratings).
 
-B/c we usually have explicit examples of the outputs of interest when doing ranking,
-this is supervised learning. For spam classification, we knew the terms associated w/ spam + ham messages, + we trained a classifier using that "recipe", a very simple problem where we were able to obtain relatively good classification results using a feature set w/ only a single element: email message terms.
+B/c we usually have explicit examples of the outputs of interest when doing ranking, this is supervised learning. For spam classification, we knew the terms associated w/ spam + ham messages, + we trained a classifier using that "recipe", a very simple problem where we were able to obtain relatively good classification results using a feature set w/ only a single element: email message terms.
 
-For **ranking**, need to assign a unique **weight** to each item to **stratify** them in a finer way.
-
-To sort something when you don’t already know its order (context = ordering emails by importance), reword the question in terms of the features available in the (email) data + how those features relate to an item's (email’s) priority
+For **ranking**, need to assign a unique **weight** to each item to **stratify** them in a finer way. To sort something when you don’t already know its order, reword the question in terms of the features available in the (email) data + how those features relate to an item's (email’s) priority.
 
 # Ordering Email Messages by Priority
 
-*What makes an email important?": step back + think about what email is = a transaction-based medium that people send + receive over time. As such, in order to determine importance of an email, we need to focus on the transactions themselves. 
+*What makes an email important?* Step back + think about what email is: a transaction-based medium that people send + receive over time. As such, in order to determine importance of an email, we need to focus on the transactions themselves. 
 
-Unlike spam classification where we could use static info from all emails to determine type, to rank emails by importance, must focus on the *dynamics of the in-and-outbound transactions*.
+Unlike spam classification where we could use static info from all emails to determine type, in order to rank emails by importance, we must focus on the *dynamics of the in-and-outbound transactions*. Specifically, want to determine the **likelihood** a person will interact w/ a new email once it has been received = *Given a set of features, how likely is the reader to perform an action on this email in the immediate future?*
 
-Specifically, want to determine the **likelihood** a person will interact w/ a new email once it has been received = *Given a set of features we, how likely is the reader to perform an action on this email in the immediate future?*
-
-The critical new dimension this problem incorporates is **time**. In transaction-based context, in order to rank things by importance, we need some concept of time. A natural way to use time to determine importance of an email = measure how long it takes a user to perform some action on an email.
-
-Shorter the average time it given its set of features = the more important emails of that type may be. The *implicit assumption* in this model = more important emails will be acted on sooner. Intuitively, this makes sense. 
+The critical new dimension this problem incorporates is **time**. In transaction-based context, in order to rank things by importance, we need some concept of time. A natural way to use time to determine importance of an email = measure how long it takes a user to perform some action on an email. The shorter the average time given its set of features = the more important emails of that type may be. The *implicit assumption* in this model = more important emails will be acted on sooner. Intuitively, this makes sense. 
 
 Before we can begin, however, we must determine *which features* in email are good proxy measures for priority.
 
 # Priority Features of Email
-Gmail's “priority inbox” = 2010 + several months after the priority inbox feature was
-released, they published a paper, “The Learning Behind Gmail Priority Inbox,” which describes their strategy for designing the supervised learning approach + how to implement it at scale.
+
+Gmail's “priority inbox” = 2010 + several months after the priority inbox feature was released, they published a paper, “The Learning Behind Gmail Priority Inbox,” which describes their strategy for designing the supervised learning approach + how to implement it at scale.
 
 As mentioned, measuring time is critical + Google had the luxury of a long + detailed history of users’ interactions w/ email. Google priority inbox attempts to predict probability a user will perform some action on an email w/in a fixed # of seconds from delivery. The set of actions is large: reading, replying, labeling, etc., + delivery is not explicitly the time an email is received by the server, but the time it is delivered to a user
 
-This is a relatively simple problem to state "What is probability a user will perform some actions, w/in our set of possible actions, between some minimum + maximum numbers of seconds, given a set of features for that email + the knowledge that the user has recently checked his email?"
+This is a relatively simple problem to state: "What is probability a user will perform some actions, w/in our set of possible actions, between some minimum + maximum numbers of seconds, given a set of features for that email + the knowledge that the user has recently checked his email?" Google incorporated a very large # of possible email features. Everyone has a different way of ordering priority of email, so given this variability in how users may evaluate the feature set, Google needed to incorporate multiple features. Google engineers explored various different types of email features. Google's long history of user interactions w/ Gmail afforded them a rich perspective into what actions users perform on emails + when.
 
-Google incorporated a very large # of possible email features. Everyone has a different way of ordering priority of email, so given this variability in how users may evaluate the feature set, Google needed to incorporate multiple features. 
+We will again use the **SpamAssassin public corpus**, + though this data was distributed as a means of testing spam classification algorithms, it also contains a convenient timeline of a single user’s email. Given this single **thread**, we can repurpose the data set to design + test a priority email ranking system. Also, we will focus only on ham emails, so we'd know all messages are those a user would want in her inbox.
 
-Google engineers explored various different types of email features. Google's long history of user interactions w/ Gmail afforded them a rich perspective into what actions users perform on emails + when.
+Before we can proceed, consider how our data differs from that of a full-detail email log + how that affects the features we'll be able to use in our algorithm. There were 4 categories proposed by Google + we need to determine how they might fit into the data we are using.
 
-We will again use the **SpamAssassin public corpus**, + though this data was distributed as a means of testing spam classification algorithms, it also contains a convenient timeline of a single user’s email. 
+Most critical difference between a full-detail email log + what we have = we can only see messages *received*  =  “flying half-blind” b/c we have no data on when + how a user responded to emails, or if a user was the originator of a thread. This is a significant limitation, + therefore the methods + algorithms used in this chapter should be considered *exercises only* + NOT examples of how enterprise priority inbox systems should be implemented. 
 
-Given this single **thread**, we can repurpose the data set to design + test a priority email ranking system. Also, we will focus only on ham emails, so we'd know all messages are those a user would want in her inbox.
+Given email is a transaction-based medium, **social features** will be paramount in assessing importance of an email. In our case, we see only 1/2 of a transaction. For a full-detail case, we'd want to measure volume of interactions between a user + various email senders in order to determine which senders receive more immediate actions from the user. W/ our data, however, we can measure only incoming volume, so we assume this 1-way volume is a good proxy for the type of social features we're attempting to extract from the data.
 
-Before we can proceed, consider how our data differs from that of a full-detail email log + how that affects the features we'll be able to use in our algorithm. There were 4 categories proposed by Google --> determine how they might fit into the data we are using.
+Clearly this is not ideal. Recall we're only using ham messages. If one receives a large volume of ham email messages from a certain address, it may be that the user has a strong social connection to the sender. Alternatively, it may be the case that the user is signed up to a mailing list w/ a high volume + would prefer these emails not receive a high priority. This is exactly the reason why we must incorporate other features to balance these types of info when developing our ranking system.
 
-Most critical difference between a full-detail email log + what we have = we can only see messages received =  “flying half-blind” b/c we have no data on when + how a user responded to emails, or if a user was the originator of a thread. This is a significant limitation, + therefore the methods + algorithms used in this chapter should be considered *exercises only* + NOT examples of how enterprise priority inbox systems should be implemented. 
+1 problem w/ looking only at volume of messages from a given address = the **temporal component** is protracted. B/c our data set is *static* compared to a fully detailed email log, we must partition the data into **temporal segments** + measure volume over these periods to get a better understanding of the temporal dynamics. We will simply order all of messages chronologically, then split the set in half. The 1st half = used to train the ranking algorithm, + the 2nd half = used to test. As such, message volume from each email address over the entire time period covered by the training data will be used to train our ranker’s social feature.
 
-Given email is a transaction-based medium, social features will be paramount in assessing importance of an email. In our case, we see only 1/2 of a transaction. For a full-detail case, we'd  want to measure volume of interactions between a user + various email senders in order to determine which senders receive more immediate actions from the user. W/ our data, however,
-we can measure only incoming volume, so we assume this 1-way volume is a good proxy for the type of social features we're attempting to extract from the data.
-
-Clearly this is not ideal. Recall that we are only using ham messages. If one receives a large volume of ham email messages from a certain address, it may be that the user has a strong social connection to the sender. Alternatively, it may be the case that the user is signed up to a mailing list w/ a high volume + would prefer these emails not receive a high priority. This is exactly the reason why we must incorporate other features to balance these types of info when developing our ranking system.
-
-1 problem w/ looking only at volume of messages from a given address = the **temporal component** is protracted. B/c our data set is *static* compared to a fully detailed email log, we must partition the data into **temporal segments** + measure volume over these periods to get a better understanding of the temporal dynamics.
-
-We will simply order all of messages chronologically, then split the set in half. The 1st half = used to train the ranking algorithm, + the 2nd half = used to test. As such, message volume from each email address over the entire time period covered by the training data will be used to train our ranker’s social feature.
-
-Given the nature of our data, this may be a good start, but we will need to achieve a deeper understanding if we hope to rank messages more accurately. 1 way to partition data to gain a more granular view of these dynamics = identify conversation threads + measure intra-thread activity. (To ID threads, we can borrow techniques used by other email clients + match message subjects w/ key thread terms, such as “RE:”.) 
-
-Although we don't know what actions a user is taking on a thread, the assumption here = if it is very active, it is likely to be more important. 
-
-By compressing temporal partitions into these small pieces, we can get a much more accurate proxy for the thread features we need to model email priority.
+Given the nature of our data, this may be a good start, but we will need to achieve a deeper understanding if we hope to rank messages more accurately. 1 way to partition data to gain a more granular view of these dynamics = ID conversation threads + measure intra-thread activity. (To ID threads, we can borrow techniques used by other email clients + match message subjects w/ key thread terms, such as “RE:”.) Although we don't know what actions a user is taking on a thread, the assumption here = if it is very active, it is likely to be more important. By compressing temporal partitions into these small pieces, we can get a much more accurate proxy for the thread features we need to model email priority.
 
 Next, there are many content features we could extract from emails to add to a feature set. Keep things relatively simple by extending text-mining techniques to say if there are common terms in subjects + bodies of emails received by a user, future emails that contain these terms in the subject + body may be more important than those that do not (a common technique mentioned briefly in the description of Google’s priority inbox). 
 
 By adding content features based on terms for both the email subject + body, we will encounter an interesting problem of **weighting**. Typically, there are considerably fewer terms in an email’s subject than the body + therefore, we should not weight the relative importance of common terms in these 2 features equally.
 
-There are also many features used in enterprise distributed priority inbox implementations that are simply unavailable to us in this exercise (blind to much of the social feature set, + therefore must use proxies to measure these interactions, + there are many user actions we do not even have the ability to approximate, like labeling or moving emails)
-
-Although this is a weakness to the approach described here when compared to those that use full-detail email logs, the fact that they are missing will not affect our results.
+There are also many features used in enterprise distributed priority inbox implementations that are simply unavailable to us in this exercise (blind to much of the social feature set + therefore must use proxies to measure these interactions, + there are many user actions we do not even have the ability to approximate, like labeling or moving emails). Although this is a weakness to the approach described here when compared to those that use full-detail email logs, the fact that they are missing will not affect our results.
 
 We now have a basic blueprint for the feature set we'll use to create our email ranking system, beginning by ordering messages chronologically (b/c in this case much of what we're interested in predicting is contained in the temporal dimension) + the 1st half = train, 2nd half = test sets of ranker. Next, we have 4 features to use during training:
 <ul>
-<li> a proxy for the social feature = measures volume of messages from a given user in the training data. </li>
-<li> attempt to compress temporal measurements by looking for threads + ranking active threads higher than inactive ones. </li>
-<li> 2 content features based on frequent terms in email subjects + message bodies. </li>
+<li> a proxy for the social feature = measures **volume of messages from a given user** in the training data. </li>
+<li> attempt to compress temporal measurements by looking for threads + ranking **active threads** higher than inactive ones. </li>
+<li> 2 content features based on **frequent terms** in email subjects + message bodies. </li>
 </ul>
 
 # Writing a Priority Inbox
 
-Before we can get to the sexy parts of ML, we need to get our hands dirty hacking at the data to split, pull, + parse it until it’s in a shape fit for analysis. Also, here, we are not
-concerned w/ type of email, but rather w/ how each should be ranked in terms of priority. Therefore, we use ham = largest data set. B/c we may safely assume a user would not distinguish among emails in this way when determining which emails have a higher priority,
-there is no reason to carry this info into our ranking system (i.e. assume users are not acting on emails that were harder to ID as ham than those that were easy). Instead, we
-want to be able to *learn as much about our features sets from a single user’s emails*,
+Before we can get to the "sexy"" parts of ML, we need to get our hands dirty hacking at the data to split, pull, + parse it until it’s in a shape fit for analysis. Also, here, we are not concerned w/ type of email, but rather w/ how each should be ranked in terms of priority. Therefore, we use ham = largest data set. B/c we may safely assume a user would not distinguish among emails in this way when determining which emails have a higher priority, there is no reason to carry this info into our ranking system (i.e. assume users are not acting on emails that were harder to ID as ham than those that were easy). Instead, we want to be able to *learn as much about our features sets from a single user’s emails*.
 
 ```{r}
 easyham_path <- "./data/easy_ham/"
 ```
 
-Next, create a series of functions to work together to parse each email into the feature set needed = need to extract 4 elements from each email message: sender’s address, date received,
-subject, + message body.
+Next, create a series of functions to work together to parse each email into the feature set needed = need to extract 4 elements from each email message: sender’s address, date received, subject, + message body.
 
 # Functions for Extracting the Feature Set
 
-Task of constructing the training data is one of **rectangularization** = shape the email data set to fit into a usable feature set. Features extracted = columns, + each row = unique values from a single email. 
+Task of constructing the training data is one of **rectangularization** = to shape the email data set to fit into a usable feature set w/ features extracted = columns, + each row = unique values from a single email. 
 
 ```{r}
-# function to parse email file for features needed for ranking
+# function to parse email file for features needed for ranking via helper functions
 parse_email <- function(path) {
   full_msg <- msg_full(path)
   date <- get_date(full_msg)
@@ -131,9 +100,11 @@ parse_email <- function(path) {
 }
 ```
 
-`parse.email()` calls a series of **helper functions** that extract the appropriate data from each message + then orders these elements into a single vector = row of data 
+`parse.email()` calls a series of **helper functions** that extract the appropriate data from each message + then orders these elements into a single vector/row of data 
 
-The process of turning each email message into these vectors requires some classic text hacking.
+The process of turning each email message into these vectors requires some classic text hacking. We return the entire email as a character vector + will write separate functions to work on this vector to extract necessary data (fight way through the data to extract as much usable info as possible from the email messages) + organize them in a uniform way.
+
+
 ```{r}
 # helper function to grab message text from email file
 msg_full <- function(path) {
@@ -141,35 +112,21 @@ msg_full <- function(path) {
     msg <- readLines(con) # read file contents into vector
   close(con) # close connection
  
-  return(msg) # return vector of file lines
+  return(msg) # return vector of file lines of a single email
 }
 ```
 
-We return the entire email as a character vector + will write separate functions to work on this vector to extract necessary data (fight way through the data to extract as much usable info as possible from the email messages) + organize them in a uniform way
+1st up = relatively easy task of extracting sender’s address by IDing the text patterns in the email messages that ID the data we're looking for. We need to ID the line in each message that contains sender email address, which always has the term “From: ” by searching the character vector of each email to ID the correct element. However, there is variation in how the address is written. Sometimes the address is encapsulated in angled brackets (From: Joe McNally <joe@flaneur.org.uk>), whereas in others it is not (From: paul-bayes@svensson.org (Paul Svensson)), but it always contains the name. For that reason, `get_from()` uses RegEx's to extract the data for this feature.
 
-1st = relatively easy task of extracting sender’s address by IDing the text patterns in the email messages that ID the data we're looking for. 
-
-........................................................
-X-Sender: fortean3@pop3.easynet.co.uk (Unverified)
-Message-Id: <p05100300ba138e802c7d@[194.154.104.171]>
-To: Yahoogroups Forteana <zzzzteana@yahoogroups.com>
-From: Joe McNally <joe@flaneur.org.uk>
-X-Yahoo-Profile: wolf_solent23
-MIME-Version: 1.0
-Mailing-List: list zzzzteana@yahoogroups.com; contact
- forteana-owner@yahoogroups.com
-........................................................
-
-We need to ID the line in each message that contains sender email address, which always has the term “From: ” by searching the character vector of each email to ID thevcorrect element. However, there is variation in how the address is written.
-
-Sometimes the address is encapsulated in angled brackets (From: Joe McNally <joe@flaneur.org.uk>), whereas in others it is not (From: paul-bayes@svensson.org (Paul Svensson)), but it always contains the name. For that reason, write a `get_from()` function that uses RegEx's to extract the data for this feature.
-
-```{r}
+```{r get_sender}
 # function to ID and extract sender email address
 get_sender <- function(msg_vec) {
-  from <- msg_vec[grepl(pattern="From: ", x=msg_vec)] # search for pattern + return line that matches
-  from <- strsplit(from, '[":<> ]')[[1]] # split on colons, <>'s, + spaces to return list of components
-  from <- from[which(from !="" & from !=" ")] # remove the empty spaces
+  from <- msg_vec[grepl(pattern="From: ", x = msg_vec)] # search for pattern in msg_vec + return line that matches
+  # grepl, rather than returning vector *indices* like grep, returns a vector of the same length as the input w/ *Boolean* values
+  
+  # This pattern will always put the address as the 1st element in the list, so we can pull that from the list w/ [[1]]. 
+  from <- strsplit(from, '[":<> ]')[[1]] # split on colons, <>'s, + spaces to return list of components in "From" line
+  from <- from[which(from !="" & from !=" ")] # remove the empty spaces returned due to variation in patterns
   return(from[grepl("@", from)][1]) # find list elements that contains "@: and return it
 }
 ```
@@ -181,21 +138,19 @@ get_sender <- function(msg_vec) {
 #(from <- from[which(from !="" & from !=" ")])
 #(from[grepl("@", from)][1])
 ```
-
-`grepl()`, rather than returning vector indices like `grep()`, returns a vector of the same length as the input w/ Boolean values indicating where a pattern was matched in the vector. After getting the correct line, in `strsplit()`  we split the character element into a list by colons, <>'s, and empty spaces. This pattern will always put the address as the 1st element in the list, so we can pull that from the list w/ [[1]]. 
-
-Because of the variation in the pattern, however, it will also add empty elements to this vector. In order to return only the email address itself, we ignore those empty elements + look for the remaining element containing “@”. This parses 1/4 of the data needed to generate training data.
-```{r}
+```{r get_msg + get_subjec}
+# function to retrieve email message body text 
 get_msg <- function(msg_vec) {
-  msg <- msg_vec[seq(which(msg_vec == "")[1] + 1, length(msg_vec), 1)] # start email body extraction after 1st line break to end of msg
+  msg <- msg_vec[seq(which(msg_vec == "")[1] + 1, length(msg_vec), 1)] # start email body extraction after 1st line break up to end of msg
   return(paste(msg, collapse="\n")) # collapse into single vector
 }
 
+# function to retrieve email subject line
 get_subject <- function(msg_vec) {
   subj <- msg_vec[grepl("Subject: ", msg_vec)] # find line that starts w/ "Subject" and extract it
   
-  if(length(subj) > 0) { # if we found a subject, split into 2 parts that returns as list
-    return(strsplit(subj, "Subject: ")[[1]][2]) # get 1st list element from result + extract 2nd part (actual subject line) of that list element
+  if(length(subj) > 0) { # if a subject is found, split into 2 parts, returned as list
+    return(strsplit(subj, "Subject: ")[[1]][2]) # extract 2nd component (subject line) of 1st list element
     } else {
       return("") # return empty string b/c special values (integer(0),character(0)) have length 0 from grepl
     }
@@ -207,24 +162,22 @@ get_subject <- function(msg_vec) {
 #(strsplit(subj, "Subject: "))
 ```
 
-The final element, the date + time a message was received, will cause us to suffer the most. This
-field will be difficult to work w/ for 2 reasons. 
+The final element, the date + time a message was received, will cause us to suffer the most for 2 reasons:
 <ul>
 <li> Dealing w/ dates is almost always painful, as different programming languages often have slightly different ways of thinking about time. Eventually we want to convert date strings into **POSIX** date objects in order to sort data chronologically. To do this, we need a common character representation of the dates, which leads directly to the second reason for our suffering. </li>
 <li> There is considerable variation w/in the SpamAssassin public corpus in how receival dates + times of messages are represented. There are many things we need to be cognizant of when extracting date + time info from each email. </li>
-  <li> Data we want to extract is always IDed by “Date: ”; however, there are many traps in using this pattern that we must be mindful of. Sometimes there will be multiple lines that match this pattern, some lines may be partial matches, + in either case the data on these lines can be conflicting.  
+  <li> Data we want to extract is always IDed by “Date: ”; however, there are many traps in using this pattern that we must be mindful of. Sometimes there will be multiple lines that match this pattern, some lines may be partial matches, + in either case, the data on these lines can be conflicting.  
   <li> Dates + times are not stored in a uniform way across all emails (extraneous GMT offsets + other types of labeling info) 
   <li> Format for the date + time can be totally different </li>
 </ul>
 
-All of this info will be critical in getting the data into a uniform + workable form. For now, we need to focus only on extracting the date + time info *w/out the extraneous offset info* by defining a `get.date()` function.
+All of this info will be critical in getting the data into a uniform + workable form. For now, we need to focus only on extracting the date + time info *w/out the extraneous offset info* by defining `get_date()`. Once we have all of the date/time strings, we will need to deal w/ converting conflicting date/time formats to a uniform POSIX object, but this will not be handled by `get_date`.
 
-Once we have all of the date/time strings, we will need to deal w/ converting conflicting date/time formats to a uniform POSIX object, but this will not be handled by `get.date`.
-```{r}
+```{r get_date}
 get_date <- function(msg_vec) {
-  date_grep <- grepl("^Date: ", msg_vec) # search for pattern of "Date" at the start of line (boolean)
-  date <- msg_vec[which(date_grep == TRUE)[1]] # get 1st line w/ occurence of "Date" at start
-  date <- strsplit(date, "\\+|\\-|: ")[[1]][2] # split on +, -, or : into a list + grab 2nd element
+  date_grep <- grepl("^Date: ", msg_vec) # search for pattern of "Date" at the start of line (^) + return boolean
+  date <- msg_vec[which(date_grep == TRUE)[1]] # grab line after 1st occurence of "Date" at start
+  date <- strsplit(date, "\\+|\\-|: ")[[1]][2] # split on +, -, or : into a list + grab 2nd element (actual date + time)
   date <- gsub("^\\s+|\\s+$", "", date) # sub in any leading/trailing whitespace with "\"
   return(strtrim(date, 25)) # remove extraneous info
   # standard data/time string = 25 characters = anything over this is extraneous.
@@ -237,19 +190,20 @@ get_date <- function(msg_vec) {
 #(date.grep <- grepl("^Date: ", msg_vec))
 #(date <- msg_vec[which(date.grep == TRUE)[1]])
 #(date <- strsplit(date, "\\+|\\-|: "))
+#(date <- strsplit(date, "\\+|\\-|: "))[[1]][2]
 #(date <- gsub("^\\s+|\\s+$", "", date))
 #(strtrim(date, 25))
 ```
 
-We've now transformed this amorphous set of emails into a structured rectangle suitable for training a ranking algorithm. Now we will create a vector w/ all of “easy ham” files, remove the extra “cmds” file from the vector, + then use `lapply` to apply `parse.email` with all its inner helper functions email file. 
+We're now able to transform an amorphous set of emails into a structured rectangle suitable for training a ranking algorithm. Now we will create a vector w/ all of “easy ham” files, remove the extra `cmds` file from the vector, + then use `lapply` to apply `parse_._email` with all its inner helper functions to the email files. 
 
-Next, we need to convert the list of vectors returned by `lapply` into a matrix via `do.call` w/ `rbind`, then convert this to a data frame of character vectors, + then set column names. 
+First, we need to convert the list of vectors returned by `lapply` into a matrix via `do.call` w/ `rbind`, then convert this to a data frame of character vectors, + then set column names. 
 
-```{r, message=F,warning=F}
+```{r, get easy ham, message=F,warning=F}
 # get all file + dir names in input dir
 easyham_docs <- dir(easyham_path)
 
-# ignore cmds files (long list of UNIX base commands to move files in that dir)
+# ignore any cmds files (long list of UNIX base commands to move files in that dir)
 easyham_docs <- easyham_docs[which(easyham_docs != "cmds")]
 
 # parse text from each email + return in list
@@ -263,16 +217,14 @@ names(allparse_df) <- c("Date", "Sender_EMail", "Subject", "Message", "Path")
 head(allparse_df)
 ```
 
-Before we can proceed to creating a **weighting scheme** from this data, however, there is still some remaining housekeeping.
-
-Our 1st trial w/ extracting dates was simply isolating the text, now we need to take that text + convert it into POSIX objects that can be compared logically b/c we need to sort emails chronologically. 
+Before we can proceed to creating a **weighting scheme** from this data, however, there is still some remaining housekeeping. Our 1st trial w/ extracting dates was simply isolating the text, now we need to take that text + convert it into POSIX objects that can be compared logically b/c we need to sort emails chronologically. 
 
 Temporal differences among observed features can be used to infer importance, so *character* representation of dates + times will not suffice. There are 2 variations on the date format (e.g. “Wed, 04 Dec 2002 11:36:32,” and “04 Dec 2002 11:49:23”). To convert these into POSIX, we need to use `strptime`, but pass it 2 different formats to make the conversion. 
 
 Each element of these strings matches a specific POSIX format element, so we will need to specify conversion strings that match these variants.
 ```{r}
-pattern1 <- "%a, %d %b %Y %H:%M:%S"
-pattern2 <- "%d %b %Y %H:%M:%S"
+posi_pattern1 <- "%a, %d %b %Y %H:%M:%S"
+posi_pattern2 <- "%d %b %Y %H:%M:%S"
 ```
 
 R uses the standard POSIX date/time format strings to make these conversions (many options for these strings + `?strptime` has all of options). Here we will be using only a select few, but understanding them in greater depth will be very useful for working w/ dates + times in R.
@@ -292,7 +244,7 @@ date_converter <- function(dates, pattern1, pattern2) {
   return(pattern1_convert)
 }
 
-allparse_df$Date <- date_converter(allparse_df$Date, pattern1, pattern2)
+allparse_df$Date <- date_converter(allparse_df$Date, posi_pattern1, posi_pattern2)
 head(allparse_df)
 #class(allparse_df$Date)
 ```
@@ -305,14 +257,14 @@ allparse_df %<>%
 head(allparse_df)
 ```
 
-Next, we sort the data chronologically using a combination of `with` + `order`, which returns a vector of the element *indices* in ascending chronological order. 
+Next, we sort the data chronologically using a combination of `with` + `order`, which returns a vector of the element *indices* in ascending chronological order. Then, to order the data frame by these indices, we need to reference the elements of `allparse_df` in that order, + add the final comma before closing the square bracket so all columns are sorted this way.
+
 ```{r}
 priority_df <- allparse_df[with(allparse_df, order(Date)),]
+head(priority_df)
 ```
 
-Then, to order the data frame by these indices, we need to reference the elements of `allparse_df` in that order, + add the final comma before closing the square bracket so all columns are sorted this way.
-
-Finally, store the 1st half of the chronologically sorted data frame as priority_train to use to train our ranker. Later, we will use the 2nd half to test the ranker. 
+Finally, we store the 1st half of the chronologically sorted data frame as `priority_train` to use to train our ranker. Later, we will use the 2nd half to test the ranker. 
 ```{r}
 priority_train <- priority_df[1:(round(nrow(priority_df) / 2)),]
 head(priority_train)
@@ -327,10 +279,13 @@ Most peoples' email activity crudely adheres to the 80/20 cliche (80% of activit
 
 1 of the features being added to our ranker = an approximation of social interaction based on volume of emails received from each address in our training data.
 
-Functions in `plyr` = used to chop data into smaller squares/cubes so we can operate over pieces all at once (very similar to Map-Reduce paradigm in many large-scale data analysis environments). We find all columns w/ matching addresses in `Sender_EMail` column + count them any column for the creation of `Freq` (all columns matching our criteria will have the same length). 
-```{r}
-# in training data, 
-sender_weight <- ddply(priority_train, .(Sender_EMail), summarise, Freq=length(Subject))
+Functions in `plyr` = used to chop data into smaller squares/cubes so we can operate over pieces all at once (very similar to Map-Reduce paradigm in many large-scale data analysis environments). We find all columns w/ matching addresses in the `Sender_EMail` column + count them any column for the creation of `Freq` (all columns matching our criteria will have the same length). 
+```{r sender_weight}
+# subset dataframe by sender email, summarize the subsets by counting frequency of sender email, combine back into dataframe
+# done in 1 step w/ ddply()
+sender_weight <- ddply(priority_train, .(Sender_EMail), summarise, Freq = length(Subject))
+
+# reorder by most frequent sender emails
 sender_weight <- sender_weight[order(sender_weight$Freq,decreasing = F),]
 head(sender_weight[order(sender_weight$Freq,decreasing = T),])
 ```
@@ -340,12 +295,14 @@ To get a better sense of the scale of this data, plot the results w/ a bar chart
 ```{r}
 sender_weight_6Plus <- subset(sender_weight, Freq > 6)
 from_scales <- ggplot(sender_weight_6Plus) +
+  # create "rectangles" for each sender with height/lenght = sender email's frequency
   geom_rect(aes(xmin = 1:nrow(sender_weight_6Plus) - 0.5,
                 xmax = 1:nrow(sender_weight_6Plus) + 0.5,
                 ymin = 0,
                 ymax = Freq,
                 fill = "lightgrey",
                 color = "darkblue")) +
+  # get x-axis labels for each sender
   scale_x_continuous(breaks = 1:nrow(sender_weight_6Plus), labels = sender_weight_6Plus$Sender_EMail) +
   coord_flip() +
   scale_fill_manual(values = c("lightgrey" = "lightgrey"), guide = "none") +
@@ -357,30 +314,25 @@ from_scales <- ggplot(sender_weight_6Plus) +
 from_scales
 ```
 
-See how quickly the data scales. The top emailer, tim.one@comcast.ent, has sent 45 messages, about 15 times more emails than the average person in our training data! Tim is pretty unique + there are only a few other senders near his level, + frequency drops off very quickly after them. 
-
-We need to weight an observation from an average person in training data w/out skewing that value to account for outliers like our top emailers w/ **log**.
+See how quickly the data scales. The top emailer, tim.one@comcast.ent, has sent 45 messages, about 15 times more emails than the average person in our training data. Tim is pretty unique + there are only a few other senders near his level, + frequency drops off very quickly after them. We need to weight an observation from an *average* person in training data w/out skewing that value to account for outliers like our top emailers via **log** transforms.
 
 # A log-weighting scheme
 
-Need to make the numerical relationship among units in our feature set less extreme. If we compare absolute frequency counts, an email from Tim will be weighted as 15X more important than email from an average sender = very problematic b/c we want to establish a threshold for being either a priority message or not based on the range of weight values produced by our ranker at the learning stage. 
+Need to make the numerical relationship among units in our feature set less extreme. If we compare absolute frequency counts, an email from Tim will be weighted as 15X more important than email from an average sender = very problematic b/c we want to establish a threshold for being either a priority message or not based on the range of weight values produced by our ranker at the learning stage. W/ such extreme skewness, our threshold will be either far too low or far too high, so we need to rescale the units to account for the nature of our data.
 
-W/ such extreme skewness, our threshold will be either far too low or far too high, so we need to rescale the units to account for the nature of our data.
+A **logarithm** = function that returns the exponent value that would satisfy an equation where some base # being raised to that exponent = the # given to the logarithmic function. The **base value** in a log-transformation is critical. We are familiar w/ thinking of things in base 2/binary = solves an equation for the exponent value where the input value = 2 raised to that exponent. Ex: Transforming 16 by log base-two = 4 b/c base-*TWO* raised to the 4th power = 16. In essence, we are “reversing” an exponential, so these types of transformations work best when the data fits such a function. 
 
-A **logarithm** = function that returns the exponent value that would satisfy an equation where some base # being raised to that exponent = the # given to the logarithmic function. The **base value** in a log-transformation is critical. We are familiar w/ thinking of things in base 2/binary = solves an equation for the exponent value where the input value = 2 raised to that exponent. Ex: Transforming 16 by log base-two = 4 b/c base-TWO raised to the 4th power = 16. In essence, we are “reversing” an exponential, so these types of transformations work best when the data fits such a function. 
+2 most common log-transformations = **natural log (ln)** + **log base-10 (log10)** transformation. 
 
-2 most common log-transformations = **natural log** + **log base-10** transformation. 
+For ln, the base = e, an irrational constant (like pi) = ~2.718. Rates of change by this constant are very often observed in nature + the derivation can be done geometrically as a function of the angles inside a circle. A natural log spiral can be observed in many naturally occurring phenomenon (interior structure of a nautilus shell, spiraling winds of a hurricane/tornado, scattering of interstellar particles in our galaxy, many professional camera settings’ apertures = set to vary by natural logs). Given the intimate relationship between this value + many naturally occurring phenomena, it is a great function for rescaling social data that is exponential. 
 
-For ln, base = e, an irrational constant (like pi) = ~2.718. Rates of change by this constant are very often observed in nature + the derivation can be done geometrically as a function of the angles inside a circle. A natural log spiral can be observed in many naturally occurring phenomenon (interior structure of a nautilus shell, spiraling winds of a hurricane/tornado, scattering of interstellar particles in our galaxy, many professional camera settings’ apertures = set to vary by natural logs). Given the intimate relationship between this value + many naturally occurring phenomena, it is a great function for rescaling social data that is exponential. 
+Alternatively, log10 transformations replaces e w/ a 10 + reduces large values to much smaller ones than ln (log10 transformation of 1k = 3 b/c 10 raised to the 3rd = 1k, whereas ln = ~6.9). Therefore, it makes sense to use a log base-10 transformation when data scales by a very large exponent.
 
-Alternatively, log base-10 transformations (**log10**) replaces e w/ a 10 + will reduce large values to much smaller ones than the natural log (log10 transformation of 1k = 3 b/c 10 raised to the 3rd = 1k, whereas ln = ~6.9). Therefore, it makes sense to use a log base-10 transformation when data scales by
-a very large exponent.
-
-The ways in which both of these options would transform our email volume data are illustrated here:
+It's always a good idea to explore data visually as working through any ML problem. We want to know how all observations in a feature set relate to one another in order to make the best predictions. Best way = data viz. The ways in which both of these options would transform our email volume data are illustrated here:
 ```{r}
 # Log weight scheme, very simple but effective
 sender_weight_log <- transform(sender_weight,
-                         Weight = log(Freq + 1),
+                         Weight = log(Freq + 1), 
                          log10Weight = log10(Freq + 1))
 
 (sender_rescaled <- ggplot(sender_weight_log, aes(x = 1:nrow(sender_weight_log))) +
@@ -397,32 +349,28 @@ sender_weight_log <- transform(sender_weight,
   theme(axis.text.y = element_blank(), axis.text.x = element_blank()))
 ```
 
-Always a good idea to explore data visually as working through any ML problem. We want to know how all observations in a feature set relate to one another in order to make the best predictions. Best way = data viz. 
-
 See the volume of emails sent by users in the training data follows a fairly steep exponential. By transforming those values by the natural log + log base-10, we significantly flatten out that line. log10 transforms values substantially, whereas ln still provides some variation that allows us to pull out meaningful weights from training data, therefore we use ln to define the weight for email volume.
+
+In our rescaling, raising to 0 does not affect results + keeps all weights greater > 0 since we add 1 to get rid of frequencies = 0. For our purposes we'll never have an observation in our feature set that's = 0, b/c we're counting. If there are no observations of something, it simply doesn’t enter our training data. In some cases, this won't be true + you may have 0 observations in your data. The log of 0 is undefined, + if you try to compute it, it returns `-Inf` + causes things to blow up.
 
 ```{r}
 # take natural log transform of frequency, adding one to avoid raising values to 0
 # log1p() is another option, but less explicit
-sender_weight_ln<- transform(sender_weight, Weight = log(Freq + 1))
+sender_weight_ln <- transform(sender_weight, Weight = log(Freq + 1))
 ```
-
-Our rescaling = raising to 0 does not affect results + keeps all weights greater > 0. For our purposes we'll never have an observation in our feature set that's = 0, b/c we're counting. If there are no observations of something, it simply doesn’t enter our training data. 
-
-In some cases, this won't be true + you may have 0 observations in your data. The log of 0 is undefined, + if you try to compute it, it returns `-Inf` + causes things to blow up.
 
 # Weighting from Email Thread Activity
 
-2nd feature to extract = email thread activity. We have no way of knowing whether a user we're building this ranking for has responded to any emails, but we can group messages by their thread + measure how active they've been since they started. Again, our assumption in building this feature = time is important. Therefore threads w/ more messages sent over a short period of time = more active + consequently more important.
+The 2nd feature to extract = **email thread activity**. We have no way of knowing whether a user we're building this ranking for has responded to any emails, but we can group messages by their thread + measure how active they've been since they started. Again, our assumption in building this feature = time is important. Therefore threads w/ more messages sent over a short period of time = more active + consequently more important.
 
 Emails in our data set do not contain specific thread IDs, but a logical way to ID threads = look for emails w/ a shared subject line. If a subject begins w/ “re: ”, we know this is part of some thread. When we see a message like this, we can look around for other messages in that thread + measure activity.
 
-```{r}
+```{r get threads + senders }
 find_threads <- function(email_df) {
-  # split the subject line if we find "re:" and return list
+  # split the subject line if we find "re:" and return a list
   response_threads <- strsplit(email_df$Subject, "re: ") 
   
-  # if 1st item in list is blank due to finding and splitting on "re", return T/F
+  # if 1st item in list is blank due to actually finding and splitting on "re", return T/F
   is_thread <- sapply(response_threads, 
                       function(subj) ifelse(subj[1] == "", TRUE, FALSE))
   
@@ -437,28 +385,25 @@ find_threads <- function(email_df) {
   return(cbind(senders,threads))
 }
 
+# find the threads in the training data
 threads_matrix <- find_threads(priority_train)
 head(threads_matrix)
 ```
 
-Next we'll create a weighting based on most active senders in the threads as a supplement to the volume-based weighting but focusing only on those senders present in the `threads_matrix` The
-function email.thread will take the threads.matrix as input and generate this secondary volume-based weighting. This will be very similar to what we did in the previous section,
-except this time we will use the table function to count the frequency of senders
-in the threads. This is done simply to show a different method for accomplishing the
-same calculation on a matrix in R, rather than a data frame using plyr. Most of this
-function simply performs housekeeping on the senders.df data frame, but notice that
-we are again using a natural-log weighting.
+Next we'll create a weighting based on most active senders in the threads as a supplement to the volume-based weighting, but focusing only on those senders present in the `threads_matrix`. `email_thread` will take the `threads_matrix` as input + generate this secondary volume-based weighting, very similar to above but this time using `table` to count the frequency of senders in the threads. 
 
-```{r}
+This is done simply to show a different method for accomplishing the same calculation on a matrix in R, rather than a data frame using `plyr`. Most of this function simply performs housekeeping on the `senders_weights` data frame, but notice that we are again using a natural-log weighting.
+
+```{r sender_activity}
 email_thread <- function(threads_matrix) {
-  # get senders from matrix of threads and get frequencies of each
+  # get the senders from matrix of threads and get frequencies of each
   senders <- threads_matrix[, 1]
   senders_freq <- table(senders)
   
-  # create matrix of the sender emails from the frequency table, the frequencies + their ln transform
+  # create matrix of the sender emails from the frequency table, the frequencies, + their ln transform
   # then convert matrix to dataframe
   senders_matrix <- cbind(names(senders_freq), senders_freq, log(senders_freq + 1))
-  senders_df <- data.frame(senders_matrix, stringsAsFactors=FALSE)
+  senders_df <- data.frame(senders_matrix, stringsAsFactors = FALSE)
   
   # rename the rows as numbers and rename col names, then convert col types to correct ones
   row.names(senders_df) <- 1:nrow(senders_df)
@@ -470,51 +415,58 @@ email_thread <- function(threads_matrix) {
   
  return(senders_df)
 }
-senders_df <- email_thread(threads_matrix)
-head(senders_df)
+
+# get the calculated weight for each sender email in our matrix of thread participants
+sender_activity <- email_thread(threads_matrix)
+head(sender_activity)
 ```
 
-As the final piece to the email thread feature, create a weighting based on threads we *know* are active. We've already IDed all threads in training data + created a weighting based on the terms in those threads. Now we want to take that knowledge + give additional weight to known threads that're also active. The assumption here = if we already know the threads, we expect a user to place more importance on those threads that're more active.
+As the final piece to the email thread feature, we create a weighting based on threads we *know* are active. We've already IDed all threads in training data + will create a weighting based on the terms in those threads. We want to give additional weight to known threads that're also active. The assumption here = if we already know alll the threads, we expect a user to place more importance on those threads that're more active.
 
-Using `threads_matrix` go back into the training data to find all emails inside each thread via a new `get_threads()` function to take `threads_matrix` + training data as arguments. 
-Using `unique` command, create a vector of all thread subjects in our data, take this info + measure each thread’s activity w/ `thread_counts()`. Using the thread's subject + training data as parameters, collect all date + timestamps for all emails matching threads in the vector, measure how many emails have been received in training data for this thread, + measure activity level.
+Using `threads_matrix`, we go back into the training data to find all emails inside each thread via a new `get_threads()` function to take `threads_matrix` + training data as arguments. Using `unique`, we create a vector of all the thread subjects in our data, then take this vector + measure each thread’s activity w/ `thread_counts()`. Using the thread's subject + training data as parameters, it collects all date + timestamps for all emails matching the threads in the vector + measure show many emails in the training data have been received for a specific thread + measures activity level.
 
-Implicitly, there is truncation on either side of this data (may be emails received in a thread before training data started or after data collection was completed = nothing we can do about this = take min + max date/times for each thread + use these to measure time span). Due to the truncation, it may be we observe only a single message in a thread (may have ended just as training data got collected or just started when collection ended). Flag those threads w/ only 1 message + returns vector of `NA` (use this later to scrub these from the activity-based weighting data).
+Implicitly, there is truncation on either side of this data (may be emails received in a thread before training data started or after data collection was completed) + there's nothing we can do about this, so we take min + max date/times for each thread + use these to measure time span. Due to the truncation, it may be we observe only a single message in a thread (may have ended just as training data got collected or just started when collection ended). Flag those threads w/ only 1 message + return vector of `NA` (used later to scrub these from the activity-based weighting data).
 
-Final step = create a measurable weighting for those messages by calculating ratio of messages-to-seconds elapsed in the thread (message sent every second in a given thread = 1). Avg # of messages in each thread = 4.5 + average elapsed time = ~31K seconds (8.5 hours). Given these scales, vast majority of ratios = tiny fractions. Transform these *fractional* values using an **affine transformation** (b/c normal transformation resulits in negative values + cannot have a negative weight value in scheme). **Affine transformation** = a linear movement of points in space (ex: function to move all points in a square in the same direction in the 2D space). To get non-negative weights, simply add 10 to all log-transformed values to ensure all values will be proper weights w/ a positive value.
+Final step = create a measurable weighting for those messages by calculating ratio of messages-to-seconds elapsed in the thread (message sent every second in a given thread = 1). Avg # of messages in each thread = 4.5 + average elapsed time = ~31K seconds (8.5 hours). Given these scales, vast majority of ratios = tiny fractions. Transform these *fractional* values using an **affine transformation** (b/c normal transformation results in negative values + we cannot have a negative weight value in scheme). **Affine transformation** = a linear movement of points in space (ex: function to move all points in a square in the same direction in the 2D space). To get non-negative weights, simply add 10 to all log-transformed values to ensure all values will be proper weights w/ a positive value.
 
-```{r}
+```{r thread_weights}
 # helper function to count threads
 thread_counts <- function(thread, email_df) {
-  # find those emails who start a thread or are a part of a thread
+  # find those emails who start a thread or are a part of a thread + grab the date + time of them
   thread_times <- email_df$Date[which(email_df$Subject == thread 
                                       | email_df$Subject == paste("re:", thread))]
-  # count # of messages in the thred, then get the 1st and last messages times + get the difference
+  
+  # count # of messages in a thred, then get time difference  between 1st and last message
   freq <- length(thread_times)
   time_span <- as.numeric(difftime(max(thread_times), min(thread_times), units = "secs"))
   
-  # if a 'thread' only has 1 message, return all nulls for the thread count since its not a thread
+  # if a 'thread' only has 1 message, return all nulls for freq, time+spam + ln transform since its not a thread
   if(freq < 2) {
     return(c(NA,NA,NA))
   } else {
-    # otherwise get the average number of messages in the thread + its log10 transform
+    # otherwise get the average # of messages in the thread + its log10 transform
     trans_weight <- freq / time_span
-    log_trans_weight <- 10 + log(trans_weight, base = 10)
-    # concatenate the frequency, the time  span, and its log10 weight
+    log_trans_weight <- 10 + log(trans_weight, base = 10) # add 10 (affine transformation) to avoid negative weights
+    
+    # concatenate the frequency, the timespan, and thread's log10 weight
     return(c(freq, time_span, log_trans_weight))
   }
 }
 
+# function to get all threads
 get_threads <- function(threads_matrix, email_df) {
-  # get all unique threads and count + calculate weight + log10 wieght over timespan w/ helper function
+  # get all unique threads 
   uniq_threads <- unique(threads_matrix[, 2])
+  
+  # get counts/freq, timespan, + calculated weight w/ helper function thread_counts()
   thread_counts <- lapply(uniq_threads, function(t) thread_counts(t, email_df))
-  # combine each threads info into single matrix and then return
+  
+  # combine each threads' info into single matrix and then return
   thread_matrix <- do.call(rbind, thread_counts)
   return(cbind(uniq_threads, thread_matrix))
 }
 
-# get matrix of threads + timespan + weights then convert to dataframe, rename cols + fix col types
+# get matrix of threads, freq, timespan, weights + then convert to dataframe, rename cols + fix col types
 thread_weights <- get_threads(threads_matrix, priority_train) #head(thread_weights)
 thread_weights <- data.frame(thread_weights, stringsAsFactors=FALSE)
 names(thread_weights) <- c("Thread","Freq","Response","Weight")
@@ -529,48 +481,49 @@ head(thread_weights)
 
 The 1st 2 rows are good examples of how this weighting scheme values thread activity. Both threads have 4 messages but row 2 has been in the data for about 1/2 as many seconds. *Given our assumptions*, we assume this thread is more important + therefore should have a higher weight (~1.04 times more weight ). This may or may not seem reasonable + therein lies part of the art in designing + applying a scheme such as this to a general problem. It may be that in this case our user would not value things this way, whereas others might, but b/c we want a *general solution*, we must accept the consequences of our assumptions.
 
-Our assumption in creating weighting data is that frequent terms in active thread subjects = more important than terms in less frequent/not in active threads. We're attempting to add as much info as possible to our ranker to create a more granular stratification of emails. To do so, rather than look only for already-active threads, we want to also weight threads that “look like” previously active threads, + term weighting is one way to do this.
+Our assumption in creating weighting data is that frequent terms in active thread subjects = more important than terms in less frequent/not in active threads. We're attempting to add as much info as possible to our ranker to create a more granular stratification of emails. To do so, rather than look only for already-active threads, we want to also weight threads that “look like” previously active threads, + **term weighting** is one way to do this.
 
-```{r}
+```{r term_weights}
 get_terms <- function(term_vec, control) {
-  # given vector of thread titles, create corpus and TDM of them + return as matrix of terms + counts
+  # given vector of thread titles, create corpus and TDM of the threads + return matrix of terms + counts w/in
   vec_corpus <- Corpus(VectorSource(term_vec))
   vec_tdm <- TermDocumentMatrix(vec_corpus, control=control)
   return(rowSums(as.matrix(vec_tdm)))
 }
 
-# get frequent terms in the threads + return just the actual terms (the col names of matrix)
+# get frequent terms in the threads + return only terms (the col names of matrix, not their frequency)
 thread_terms <- get_terms(thread_weights$Thread, control = list(stopwords = stopwords()))
 thread_terms <- names(thread_terms) 
 
-# For a term, get all weights of threads with that term and average the weights
+# For a term, get all weights of threads with that term and average these weights
 term_weights <- sapply(thread_terms,
                        function(t) mean(thread_weights$Weight[grepl(t, thread_weights$Thread,
                                                                     fixed = TRUE)]))
-
+# format into a data frame
 term_weights <- data.frame(row.names = 1:length(term_weights), 
                            list(Term = names(term_weights), Weight = term_weights),
                            stringsAsFactors = FALSE)
 head(term_weights)
 ```
 
-The final weighting data = based on term frequency in all email *messages* in the training data which proceeds almost identically to counting terms in spam classification, but this time assigning log-transformed weights based on these counts. As w/ term-frequency weighting for thread subjects, the implicit assumption = a new message that looks like other messages seen before is more important than a message that is totally foreign to us.
+The *final* weighting data = based on term frequency in all email *messages* in the training data, which proceeds almost identically to counting terms in spam classification, but this time including assigning log-transformed weights based on these counts. As w/ term-frequency weighting for thread subjects, the implicit assumption = a new message that looks like other messages seen before is more important than a message that is totally foreign to us.
 
-```{r}
-# get all terms in training data messages
+```{r msg_weights}
+# get matrix of all terms in training data messages + frequencies
 msg_terms <- get_terms(priority_train$Message,
-                       control=list(stopwords=stopwords(), removePunctuation=TRUE, removeNumbers=TRUE))
+                       control = list(stopwords=stopwords(), removePunctuation=TRUE, removeNumbers=TRUE))
 
-# calculate weights of terms in messages
+# calculate weights of terms in messages + return data frame
 msg_weights <- data.frame(row.names=1:length(msg_terms),
-                          list(Term = names(msg_terms), Weight=log(msg_terms, base=10)),
+                          list(Term = names(msg_terms), Weight = log(msg_terms, base = 10)),
                           stringsAsFactors=FALSE)
 
 # get just positive weights
 msg_weights <- subset(msg_weights, Weight > 0)
 head(msg_weights)
 ```
-We now have 5 weight data frames w/ which to perform ranking = `sender_weight` (social activity feature), `senders_df` (sender activity in threads), `thread_weights` (thread message activity), `term_weights` (terms from active threads), and `msg_weights` (common terms in all emails). We're now ready to run training data through the ranker to find a threshold for marking a message as important.
+
+We now have 5 weight data frames w/ which to perform ranking = `sender_weight` (social activity feature), `sender_activity` (sender activity in threads), `thread_weights` (thread message activity), `term_weights` (terms from active threads), and `msg_weights` (common terms in all emails). We're now ready to run training data through the ranker to find a threshold for marking a message as important.
 
 # Training and Testing the Ranker
 
@@ -608,7 +561,7 @@ get_weights <- function(search_term, weight_df, term = TRUE) {
 }
 ```
 
-`rank_message` uses rules similar to the `get_weights` for assigning weight values to features extracted from each email in the data set. 1st, it calls `parse_email` to extract the 4 features of interest +  proceeds to use a series of if-then clauses to determine whether any features extracted from the
+`rank_message` uses rules similar to `get_weights` for assigning weight values to features extracted from each email in the data set. 1st, it calls `parse_email` to extract the 4 features of interest +  proceeds to use a series of if-then clauses to determine whether any features extracted from the
 current email are present in any of the weight data frames being used to rank + then assigns weights appropriately.
 
 `from` and`thread_from` use the social interaction features to find weight based on thesender’s email address. Note that, in both cases, if `ifelse` does not match anything in the data weight data frames, a 1 is returned (same strategy implemented in `get_weights`
@@ -618,34 +571,36 @@ For thread+ term-based weighting, some internal text parsing is done. For thread
 In the final step, generate the rank by passing all weight values just looked up to `prod`. `rank_message` then returns a vector w/ the email’s date/time, sender’s address, subject, + rank.
 
 ```{r}
-rank.message <- function(path) {
-    msg <- parse.email(path)
-    # Weighting based on message author
-    # First is just on the total frequency
-    from <- ifelse(length(which(from.weight$From.EMail == msg[2])) > 0,
-        from.weight$Weight[which(from.weight$From.EMail == msg[2])], 1)
+rank_message <- function(path) {
+  # call parse_email to utilize its inner helper functions to grab features out of emails
+  msg <- parse_email(path)
+    
+  ## Weighting based on message author
+  # First Weighting = just on total frequency of 
+  from <- ifelse(length(which(from_weight$From_EMail == msg[2])) > 0,
+        from_weight$Weight[which(from_weight$From_EMail == msg[2])], 1)
     # Second is based on senders in threads, and threads themselves
-    thread.from <- ifelse(length(which(senders.df$From.EMail == msg[2])) > 0,
-        senders.df$Weight[which(senders.df$From.EMail == msg[2])], 1)
+    thread_from <- ifelse(length(which(senders_df$From_EMail == msg[2])) > 0,
+        senders_df$Weight[which(senders_df$From_EMail == msg[2])], 1)
     subj <- strsplit(tolower(msg[3]), "re: ")
-    is.thread <- ifelse(subj[[1]][1] == "", TRUE, FALSE)
-    if(is.thread) {
-        activity <- get.weights(subj[[1]][2], thread.weights, term=FALSE)
+    is_thread <- ifelse(subj[[1]][1] == "", TRUE, FALSE)
+    if(is_thread) {
+        activity <- get_weights(subj[[1]][2], thread_weights, term=FALSE)
     }
     else {
         activity <- 1
     }
     # Next, weight based on terms    
     # Weight based on terms in threads
-    thread.terms <- term.counts(msg[3], control=list(stopwords=stopwords()))
-    thread.terms.weights <- get.weights(thread.terms, term.weights)
+    thread_terms <- term_counts(msg[3], control=list(stopwords=stopwords()))
+    thread_terms_weights <- get_weights(thread_terms, term_weights)
     # Weight based terms in all messages
-    msg.terms <- term.counts(msg[4], control=list(stopwords=stopwords(),
+    msg_terms <- term_counts(msg[4], control=list(stopwords=stopwords(),
         removePunctuation=TRUE, removeNumbers=TRUE))
-    msg.weights <- get.weights(msg.terms, msg.weights)
+    msg_weights <- get_weights(msg_terms, msg_weights)
     # Calculate rank by interacting all weights
-    rank <- prod(from, thread.from, activity, 
-        thread.terms.weights, msg.weights)
+    rank <- prod(from, thread_from, activity, 
+        thread_terms_weights, msg_weights)
     return(c(msg[1], msg[2], msg[3], rank))
 }
 ```
