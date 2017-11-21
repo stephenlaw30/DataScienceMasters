@@ -121,13 +121,20 @@ msg_full <- function(path) {
 ```{r get_sender}
 # function to ID and extract sender email address
 get_sender <- function(msg_vec) {
-  from <- msg_vec[grepl(pattern="From: ", x = msg_vec)] # search for pattern in msg_vec + return line that matches
-  # grepl, rather than returning vector *indices* like grep, returns a vector of the same length as the input w/ *Boolean* values
+  # search for pattern in msg_vec + return line that matches
+  # grepl, rather than returning vector *indices* like grep, returns a vector of the same length as
+  #   the input w/ *Boolean* values
+  from <- msg_vec[grepl(pattern="From: ", x = msg_vec)] 
   
-  # This pattern will always put the address as the 1st element in the list, so we can pull that from the list w/ [[1]]. 
-  from <- strsplit(from, '[":<> ]')[[1]] # split on colons, <>'s, + spaces to return list of components in "From" line
-  from <- from[which(from !="" & from !=" ")] # remove the empty spaces returned due to variation in patterns
-  return(from[grepl("@", from)][1]) # find list elements that contains "@: and return it
+  # split on colons, <>'s, + spaces to return list of components in "From" line
+  # This pattern always put the address as 1st element i#n list, so pull w/ [[1]]. 
+  from <- strsplit(from, '[":<> ]')[[1]] 
+  
+  # remove the empty spaces returned due to variation in patterns
+  from <- from[which(from !="" & from !=" ")] 
+  
+  # find list elements that contains "@: and return it
+  return(from[grepl("@", from)][1]) 
 }
 ```
 ```{r,echo=F}
@@ -141,13 +148,17 @@ get_sender <- function(msg_vec) {
 ```{r get_msg + get_subjec}
 # function to retrieve email message body text 
 get_msg <- function(msg_vec) {
-  msg <- msg_vec[seq(which(msg_vec == "")[1] + 1, length(msg_vec), 1)] # start email body extraction after 1st line break up to end of msg
-  return(paste(msg, collapse="\n")) # collapse into single vector
+  # start email body extraction after 1st line break up to end of msg
+  msg <- msg_vec[seq(which(msg_vec == "")[1] + 1, length(msg_vec), 1)] 
+  
+  # collapse into single vector
+  return(paste(msg, collapse="\n")) 
 }
 
 # function to retrieve email subject line
 get_subject <- function(msg_vec) {
-  subj <- msg_vec[grepl("Subject: ", msg_vec)] # find line that starts w/ "Subject" and extract it
+  # find line that starts w/ "Subject" and extract it
+  subj <- msg_vec[grepl("Subject: ", msg_vec)] 
   
   if(length(subj) > 0) { # if a subject is found, split into 2 parts, returned as list
     return(strsplit(subj, "Subject: ")[[1]][2]) # extract 2nd component (subject line) of 1st list element
@@ -527,36 +538,38 @@ We now have 5 weight data frames w/ which to perform ranking = `sender_weight` (
 
 # Training and Testing the Ranker
 
-To generate a priority rank for each message in training data, multiply all weights produced above, so for each message, we parse the email, take the extracted features, and then match them to corresponding weight data frames to get the appropriate weighting value. 
+To generate a priority rank for each message in training data, we multiply all weights produced above. So, for each email, we parse the message, extract the features, + then match them to the corresponding weight data frames to get the appropriate weighting value. 
 
-We then take the product of these values to produce a single—and-unique rank value for each message. `rank_message`takes a file path to a message + produces a priority ranking for that message based on the features we defined and their subsequent weights. 
+We then take the product of these values to produce a single—and-unique rank value for each message. `rank_message` will take a file path of a message + produce a priority ranking for that message based on the defined features + their subsequent weights. 
 
-It relies on many functions already defined, as well  as a new function, `get_weights`, which does the weight lookup when the feature does not map to a single weight (i.e., subject and message terms). It takes 3 args: some search terms (a string), the weight data frame in which to do the lookup, + a single Boolean value for `term`, which allows us to tell the application whether it is doing a lookup on a *term* data frame or on a *thread* data frame (lookups treated slightly differently due to differences in column labels in `thread_weights`. We use `match` to find elements in the weight data frame that match `search_term` and return its weight value. 
+It relies on many functions already defined, as well as a new function, `get_weights`, which does the weight lookup when a feature does not map to a single weight (i.e., subject and message terms). It takes 3 args: some search terms (a string), the weight data frame in which to do the lookup, + a single Boolean value for `term`, which allows us to tell the application whether it is doing a lookup on a *term* data frame or on a *thread* data frame (lookups treated slightly differently due to differences in column labels in `thread_weights`). We use `match` to find elements in the given weight data frame that match `search_term` and return this term's weight value. 
 
-For non-matches, 1st, we do 1 safety check to make sure the search term being passed to `get_weights` is valid by checking that it has some positive length (same type of check in parsing email data to check if an email had a subject line). If it is an invalid search term, simply return a 1 (which will not alter the product computed in the next step) 
+For non-matches, 1st, we do 1 safety check to make sure the search term being passed to `get_weights` is valid by checking if it has some positive length (same type of check in parsing email data to check if an email had a subject line). If it is an invalid search term, simply return a 1 (which will not alter the product computed in the next step).
 
-Next, `match` will return an `NA` any elements in the search vector that do not match `search_term` to extract the weight values for only those matched elements that are not `NA`. If there are no matches, `term_match` vector will be all `NA`, in which case `match_weights` will have a zero length. So, we do an additional check for this case, and if encountered, again return 1. 
-
-If we *have* matched some weight values, we return the mean of all these weights as our result.
+Next, `match` will return an `NA` for any elements in the search term vector that do not match `search_term` so we'd only extract the weight values for those matched elements that are not `NA`. If there are no matches, the `term_match` vector will be all `NA`, in which case `match_weights` will have a "zero length". When doing an additional check for this case, and if it is encountered, we again return 1. If we *have* matched some weight values, we return the mean of all these weights as our result.
 
 ```{r}
 get_weights <- function(search_term, weight_df, term = TRUE) {
-  if(length(search_term) > 0) {
-        if(term) {
-            term_match <- match(names(search_term), weight_df$Term)
+    if(length(search_term) > 0) {
+      # if we are given a term to search for
+      if(term) {
+        # if given search term is a weighted term, get that those indices
+        term_match <- match(names(search_term), weight_df$Term)
+      } else {
+        # if not, and if given search term is in a weighted term, get those indices
+        term_match <- match(search_term, weight_df$Thread)
+      }
+      # get the Weights of the returned indices in the dataframe from above 
+      match_weights <- weight_df$Weight[which(!is.na(term_match))]
+      
+      # if we have indeed found weights
+      if(length(match_weights) > 1) {
+        return(1)
         } else {
-            term_match <- match(search_term, weight_df$Thread)
-        }
-
-        match_weights <- weight_df$Weight[which(!is_na(term_match))]
-    
-        if(length(match_weights) > 1) {
-            return(1)
-        } else {
-            return(mean(match_weights))
+          return(mean(match_weights))
         }
     } else {
-        return(1)
+      return(1)
     }
 }
 ```
@@ -566,7 +579,7 @@ current email are present in any of the weight data frames being used to rank + 
 
 `from` and`thread_from` use the social interaction features to find weight based on thesender’s email address. Note that, in both cases, if `ifelse` does not match anything in the data weight data frames, a 1 is returned (same strategy implemented in `get_weights`
 
-For thread+ term-based weighting, some internal text parsing is done. For threads, 1st check if the email being ranked is part of a thread (exact same way as during training phase). If so, look up a rank + otherwise assign a 1. For term-based weighting, use `term_counts` to get the terms of interest from the email features + weight accordingly. 
+For thread+ term-based weighting, some internal text parsing is done. For threads, 1st check if the email being ranked is part of a thread (exact same way as during training phase). If so, look up a rank + otherwise assign a 1. For term-based weighting, use `get_terms` to get the terms of interest from the email features + weight accordingly. 
 
 In the final step, generate the rank by passing all weight values just looked up to `prod`. `rank_message` then returns a vector w/ the email’s date/time, sender’s address, subject, + rank.
 
@@ -576,48 +589,102 @@ rank_message <- function(path) {
   msg <- parse_email(path)
     
   ## Weighting based on message author
-  # First Weighting = just on total frequency of 
-  from <- ifelse(length(which(from_weight$From_EMail == msg[2])) > 0,
-        from_weight$Weight[which(from_weight$From_EMail == msg[2])], 1)
-    # Second is based on senders in threads, and threads themselves
-    thread_from <- ifelse(length(which(senders_df$From_EMail == msg[2])) > 0,
-        senders_df$Weight[which(senders_df$From_EMail == msg[2])], 1)
-    subj <- strsplit(tolower(msg[3]), "re: ")
-    is_thread <- ifelse(subj[[1]][1] == "", TRUE, FALSE)
+  # 1st Weighting = just on total frequency of a sender's email address
+  
+  # if we found a match of a sender's email adress, get that sender's weight
+  from <- ifelse(length(which(sender_weight$From_EMail == msg[2])) > 0,
+        sender_weight$Weight[which(sender_weight$From_EMail == msg[2])], 1)
+  
+  # 2nd Weighting = based on senders in threads + threads themselves
+  
+  # if a sender's email if is our activity data frame, get that activity weight
+  thread_from <- ifelse(length(which(sender_activity$From_EMail == msg[2])) > 0,
+        sender_activity$Weight[which(sender_activity$From_EMail == msg[2])], 1)
+  
+  # extract subject from messages 
+  subj <- strsplit(tolower(msg[3]), "re: ")
+  # confirm is subject is part of a a thread
+  is_thread <- ifelse(subj[[1]][1] == "", TRUE, FALSE)
+    # if part of thread, get the weight of the terms in the thread and average them
     if(is_thread) {
         activity <- get_weights(subj[[1]][2], thread_weights, term=FALSE)
     }
     else {
         activity <- 1
     }
-    # Next, weight based on terms    
+  
+    ## Next, weight based on terms    
+    
     # Weight based on terms in threads
-    thread_terms <- term_counts(msg[3], control=list(stopwords=stopwords()))
+    # get the terms from the subject of the message + get the weights of those terms if they're in threads
+    thread_terms <- get_terms(msg[3], control=list(stopwords=stopwords()))
     thread_terms_weights <- get_weights(thread_terms, term_weights)
+    
     # Weight based terms in all messages
-    msg_terms <- term_counts(msg[4], control=list(stopwords=stopwords(),
-        removePunctuation=TRUE, removeNumbers=TRUE))
+    # get terms from the emails body + get their weights
+    msg_terms <- get_terms(msg[4], control=list(stopwords=stopwords(), removePunctuation=TRUE,
+                                                removeNumbers=TRUE))
     msg_weights <- get_weights(msg_terms, msg_weights)
-    # Calculate rank by interacting all weights
-    rank <- prod(from, thread_from, activity, 
-        thread_terms_weights, msg_weights)
+    
+    # Calculate rank by multiplying all weights
+    weights <- as.numeric(c(from, thread_from, activity, thread_terms_weights, msg_weights))
+    rank <- prod(weights)
     return(c(msg[1], msg[2], msg[3], rank))
 }
 ```
 
-train.paths <- priority.df$Path[1:(round(nrow(priority.df) / 2))]
-test.paths <- priority.df$Path[((round(nrow(priority.df) / 2)) + 1):nrow(priority.df)]
-train.ranks <- lapply(train.paths, rank.message)
-train.ranks.matrix <- do.call(rbind, train.ranks)
-train.ranks.matrix <- cbind(train.paths, train.ranks.matrix, "TRAINING")
-train.ranks.df <- data.frame(train.ranks.matrix, stringsAsFactors=FALSE)
-names(train.ranks.df) <- c("Message", "Date", "From", "Subj", "Rank", "Type")
-train.ranks.df$Rank <- as.numeric(train.ranks.df$Rank)
-priority.threshold <- median(train.ranks.df$Rank)
-train.ranks.df$Priority <- ifelse(train.ranks.df$Rank >= priority.threshold, 1, 0)
-We are now ready to fire up our ranker! Before we can proceed, we will split our data
-into two chronologically divided sets. The first will be the training data, which we call
+We are now ready to fire up our ranker by splitting our data into 2 chronologically divided sets
+```{r}
+# split easy ham data frame in half and use 1st half as training and 2nd half as test
+train_paths <- priority_df$Path[1:(round(nrow(priority_df) / 2))]
+test_paths <- priority_df$Path[((round(nrow(priority_df) / 2)) + 1):nrow(priority_df)]
+```
 
+We will use the ranking data generated from here to establish a threshold value for a “priority” message. Once we have this, we can run the ranker over the emails in `test.paths`to determine which ones are priority + to estimate their internal rank ordering. 
+
+```{r}
+# rank each message in training data and convert resulting list to matrix
+train_ranks <- suppressWarnings(lapply(train_paths, rank_message))
+train_ranks_matrix <- do.call(rbind, train_ranks)
+
+# add marker to note this is training data + add its path, then convert to data frame
+train_ranks_matrix <- cbind(train_paths, train_ranks_matrix, "TRAINING")
+train_ranks_df <- data.frame(train_ranks_matrix, stringsAsFactors=FALSE)
+names(train_ranks_df) <- c("Message", "Date", "From", "Subj", "Rank", "Type")
+train_ranks_df$Rank <- as.numeric(train_ranks_df$Rank)
+
+# get median rank to create threshold for prioritizing test data
+priority_threshold <- median(train_ranks_df$Rank)
+train_ranks_df$Priority <- ifelse(train_ranks_df$Rank >= priority_threshold, 1, 0)
+```
+
+Because we are not using pre-existing examples of how emails ought to be ranked to determine this threshold, we are performing a task that is not really a "standard" sort of supervised learning. But we have chosen the median as our threshold for 2 principled reasons. 
+<ul>
+<li> If we have designed a good ranker, the ranks should have a smooth distribution, w/ most emails having low rank + many fewer emails having a high rank. Since we're looking for “important emails,” (those that're most unique or unlike the normal flow of email traffic_, those will be the emails in the right tail of the rank distribution. If this is the case, those values greater than the median will be those that are somewhat greater than the typical rank. Intuitively, this is how we want to think about recommending priority email, those with larger ranks than the typical email. </li>
+<li> We know the test data will contain email messages that have data that does not match anything in our training data. New emails are flowing in constantly, but given our setup, we have no way of updating our ranker. As such, we may want to have a rule about priority that is more inclusive than exclusive. If not, we may miss messages that are only partial matches to our features. As a final step, we add a new binary column
+`Priority` to `train_ranks_df`, indicating whether the email will be recommended as priority by our ranker. </li>
+</ul>
+
+ shows the density estimate for the ranks calculated on our training data. The
+vertical dashed line is the median threshold, which is about 24. As you can see, our
+ranks are very heavy-tailed, so we have created a ranker that performs well on the
+training data. We can also see that the median threshold is very inclusive, with a large
+portion of the downward-sloping density included as priority email. Again, this is done
+intentionally. A much less inclusive threshold would be to use the standard deviation
+of the distributions, which we can calculate with 
+sd(train.ranks.df$Rank)
+. The stan-
+dard deviation is about 90, which would almost exactly exclude any emails outside of
+the tail.
+120
+|
+Chapter 4:
+Ranking: Priority Inbox
+Figure 4-5. Density of the weights in training data, with a priority threshold as one standard deviation
+of weights
+Writing a Priority Inbox
+|
+121
 We will now calculate the rank values for all of the emails in our test set. This process
 proceeds exactly the same way as it did for our training data, so to save space we will
 not reproduce the code here. To see the code, refer to the 
@@ -699,4 +766,5 @@ ground truth
 With the last two chapters behind us, you’ve worked through a relatively simple ex-
 ample of supervised learning used to perform spam classification and a very basic form
 of heuristic-based ranking. You are ready to move on to the workhorse of statistical
-learning: regression
+learning: regression.
+
