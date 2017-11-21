@@ -10,7 +10,7 @@ output:
 
 # Ch. 3 Lab: Linear Regression
 
-```{r setup, include=FALSE}
+```{r setup, message=F, warning=F}
 library(MASS) # data sets + functions
 library(ISLR) # data from book
 library(ggplot2)
@@ -37,20 +37,27 @@ variable         | description
 `medv`           | median value of owner-occupied homes in \$1000s.
 
 ```{r}
-#fix(Boston)
 glimpse(Boston)
 ```
 
 One can see they are all numerical, so this makes the regression a bit easier.
 
-We start with a simple linear regression model predicting `medv` from `lstat`
+Look at the relationship between the median value of owner-occupied homes and lower status of the population.
+```{r}
+ggplot(Boston,aes(lstat,medv)) + geom_point()
+#plot(medv~lstat,Boston)
+```
+
+We see a slightly negative relationship, so as the percentage of lower status in a region decreases, the median housing value does as well.
+
+For the regression, we start with a simple linear regression model predicting `medv` from `lstat`
 
 ```{r}
 model1 <- lm(medv ~ lstat, data = Boston)
 summary(model1)
 ```
 
-According to this regression output, about 54.4% of the variability in median value of occupied homes (in $10,000's) is explained by the variability in percentage of lower status of the population. We can also see that a one-unit increase in `lstats` results in a decrease of about $9,500 in terms of the median value of occupied homes, *on average*. We can see that our t value and F-statistic are quite large, and our p-value is very small, indicating the `lstat` is a significant predictor of `medv` in this simple mode.
+According to this regression output, about 54.4% of the variability in median value of occupied homes (in \$10,000's) is explained by the variability in percentage of lower status of the population. We can also see that a one-unit increase in `lstats` results in a decrease of about \$9,500 in terms of the median value of occupied homes, *on average*. We can see that our t value and F-statistic are quite large, and our p-value is very small, indicating the `lstat` is a significant predictor of `medv` in this simple mode.
 
 We can check the confidence interval for the coefficient estimates as well.
 ```{r}
@@ -75,13 +82,16 @@ The confidence and prediction intervals are centered around the same point (pred
 Now to plot the data points along with the least squares regression line from our model.
 
 ```{r}
-plot( Boston$lstat,Boston$medv, pch = "+")
-abline(model1, lwd = 3, col = "red")
+ggplot(Boston,aes(lstat,medv)) + 
+  geom_point() +
+  geom_abline(intercept=34.55384,slope=-0.95005, color = "red", size = 1.5)
+#plot(medv~lstat,Boston)
+#abline(model1,col=2)
 ```
 
 We can see some non-linearity in the lower values of `lstat` that give higher values of `medv`.
 
-For the diagnostic plots to check:
+Diagnostic plots to check:
 <ol>
 <li> Non-linearity of the Data </li>
 <li> Correlation of Error Terms </li>
@@ -99,17 +109,16 @@ plot(model1)
 
 A linear regression model assumes a straight-line relationship between predictors and a response. If the true relationship is far from linear, conclusions drawn from the model fit are suspect and prediction accuracy of the model can be significantly reduced.
 
-In plotting the residuals vs. the fit (predicted) values in a **residuals plot** (top left), we'd ideally see no discernible pattern, which would indicate a possible problem with some aspect of the linear model. The red, smooth line is fit to the residuals to make it easier to ID any trends. We see a slight U-shape, which provides a mediocre indication of non-linearity in the data and a possibly pattern in the residuals. We could use non-linear transformations of the predictors (log X, √X, and X2) to deal with this issue if needed.
+In plotting the residuals vs. the fit (predicted) values in a **residuals plot** (top left), we'd ideally see no discernible pattern, as a pattern which would indicate a possible problem with some aspect of the linear model. The red, smooth line is fit to the residuals to make it easier to ID any trends. We see a slight U-shape, which provides a mediocre indication of non-linearity in the data and a possible pattern in the residuals. We could use non-linear transformations of the predictors (log X, square root, and X^2) to deal with this issue if needed.
 
-The normal probability, or QQ plot (top-right) also indicated we do not have a linear relationship, as the data points veer off of the line at the tails, especially at the higher tail (right-hand side).
-
-
+The **normal probability plot**, or **QQ plot** (top-right) also indicates that we do not have a linear relationship, as the data points veer off of the line at the tails, especially at the higher tail (right-hand side).
 
 Alternatively, residuals can be computed from a model with `residuals()` or `rstudent()` (**studentized residuals**, which can be used to plot residuals against fitted values.
+
 ```{r}
-plot(predict(model1), residuals (model1)) # residuals vs. fitted/predicted
+plot(predict(model1), residuals (model1), main = "Residuals vs. Fitted Values")
 abline(h = 0, lwd = 2, col = "red")
-plot(predict(model1), rstudent(model1)) # studentized residuals vs. fitted/predicted
+plot(predict(model1), rstudent(model1), main = "Studentized Residuals vs. Fitted Values")
 abline(h = 0, lwd = 2, col = "red")
 ```
 
@@ -123,4 +132,116 @@ plot(hatvalues(model1))
 We can also get the index for the largest leverage statistic
 ```{r}
 which.max(hatvalues(model1))
+```
+
+# Multiple Linear Regression
+
+```{r}
+model2 <- lm(medv ~ lstat + age, Boston)
+summary(model2)
+```
+
+So `age` is significant, but not as much so as `lstat`. Both R squared values have increased, meaning we have a higher percentage of variance in the outcome explained, indicating a better model.
+
+Now use all predictors.
+
+```{r}
+model3 <- lm(medv ~ ., Boston)
+summary(model3)
+```
+
+Most predictors are significant, but this time `age` is not. So, `age` was only meaningful when in the presence of just `lstat`, so we can assume `age` is correlated with some other variable(s) in this third model such that their presence means `age` is no longer required to be in the model.
+
+Check the conditions.
+```{r}
+par(mfrow = c(2,2))
+plot(model3)
+```
+
+We again see the non-linearity on our data in the 1st plot (Residuals vs. Fitted), as the curve in the residuals indicates the model is not quite capturing everything that's going on.
+
+With `update()`, we can re-fit a model by extracting the original function call, updating it, and re-evaluating. We will call all predictors again but then remove `age` and `indus` (the only 2 non-significant variables in `model3`), leaving all others.
+
+```{r}
+model4 <- update(model3, ~.-age - indus)
+summary(model4)
+```
+
+Now we see that every predictor in our model is indeed significant.
+
+# Non-linear Terms and Interactions
+
+Insert an interaction term between the 2 predictors `age` and `lstat`.
+
+```{r}
+model5 <- lm(medv ~ lstat*age, Boston)
+summary(model5)
+```
+
+See the main effects and the interaction term. The main effect for `age` is not significant, but the interaction term is, somewhat.
+
+Since we saw a non-linear relationship between `age` and `lstat`, we can put in a **quadratic term** to capture non-linear effects of predictors to a model.
+
+```{r}
+model6 <- lm(medv ~ lstat + I(lstat^2), Boston)
+summary(model6)
+```
+
+Both the linear and quadratic predictor are significant. Include the quadratic fit into the scatterplot of `lstat` and `medv`.
+
+```{r, message = F, warning=F}
+attach(Boston)
+plot(medv~lstat,Boston)
+points(lstat,fitted(model6),col=2,pch=20) # can't use abline() b/c not linear
+```
+
+Look at a 4-th order polynomial
+
+```{r, message = F, warning=F}
+model7 <- lm(medv ~ poly(lstat,4), Boston)
+plot(medv~lstat,Boston)
+points(lstat,fitted(model6),col=2,pch=20) # can't use abline() b/c not linear
+points(lstat,fitted(model7),col=4,pch=20) 
+```
+
+The 4-th order polynomial is starting to overfit the data a bit too much.
+
+# Qualitative Predictors
+
+```{r}
+fix(CarSeats)
+glimpse(Carseats)
+summary(Carseats)
+```
+
+Create a linear model to predict sales with interaction terms between `Income` and `Advertising` and between `Age` and `Price`
+
+```{r}
+model8 <- lm(Sales ~ . + Income:Advertising + Age:Price, data = Carseats)
+summary(model8)
+```
+
+`Income:Advertising` is signficant, but `Price:Age` is not. 
+
+We can check how R will code qualitative variables in a linear model with `contrasts()`. `Shelveloc` is a 3-level variable so we get 2 **dummy variables*.
+
+```{r}
+contrasts(Carseats$ShelveLoc)
+```
+
+So the level of "Bad" is our **baseline**.
+
+Now let's write a function to fit a linear model and plot it. `...` are unnamed arguments that a user can name themselves that allows them to add extra arguments (in this case into `plot()`)
+
+```{r}
+regression_plot <- function(x,y,...) {
+  model <- lm(y~x)
+  plot(x,y, ...)
+  abline(model,col = 2)
+}
+
+attach(Carseats)
+regression_plot(Price,Sales)
+regression_plot(Price,Sales, xlab = "Price", ylab = "Sales", col = "blue", pch = 20)
+
 ```
