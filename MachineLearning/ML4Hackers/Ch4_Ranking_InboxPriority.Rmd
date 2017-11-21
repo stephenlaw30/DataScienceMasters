@@ -367,7 +367,8 @@ In our rescaling, raising to 0 does not affect results + keeps all weights great
 ```{r}
 # take natural log transform of frequency, adding one to avoid raising values to 0
 # log1p() is another option, but less explicit
-sender_weight_ln <- transform(sender_weight, Weight = log(Freq + 1))
+sender_weight <- transform(sender_weight, Weight = log(Freq + 1), log10Weight = log10(Freq + 1))
+head(sender_weight)
 ```
 
 # Weighting from Email Thread Activity
@@ -640,95 +641,94 @@ train_paths <- priority_df$Path[1:(round(nrow(priority_df) / 2))]
 test_paths <- priority_df$Path[((round(nrow(priority_df) / 2)) + 1):nrow(priority_df)]
 ```
 
-We will use the ranking data generated from here to establish a threshold value for a “priority” message. Once we have this, we can run the ranker over the emails in `test.paths`to determine which ones are priority + to estimate their internal rank ordering. 
+We will use the ranking data generated from here to establish a threshold value for a “priority” message. Once we have this, we can run the ranker over the emails in `test.paths` to determine which ones are priority + to estimate their internal rank ordering. 
 
 ```{r}
 # rank each message in training data and convert resulting list to matrix
 train_ranks <- suppressWarnings(lapply(train_paths, rank_message))
 train_ranks_matrix <- do.call(rbind, train_ranks)
 
-# add marker to note this is training data + add its path, then convert to data frame
+# add marker column to note this is training data + add its path, then convert to data frame
 train_ranks_matrix <- cbind(train_paths, train_ranks_matrix, "TRAINING")
 train_ranks_df <- data.frame(train_ranks_matrix, stringsAsFactors=FALSE)
 names(train_ranks_df) <- c("Message", "Date", "From", "Subj", "Rank", "Type")
 train_ranks_df$Rank <- as.numeric(train_ranks_df$Rank)
 
 # get median rank to create threshold for prioritizing test data
-priority_threshold <- median(train_ranks_df$Rank)
+priority_threshold <- median(train_ranks_df$Rank, na.rm = T)
 train_ranks_df$Priority <- ifelse(train_ranks_df$Rank >= priority_threshold, 1, 0)
 ```
 
 Because we are not using pre-existing examples of how emails ought to be ranked to determine this threshold, we are performing a task that is not really a "standard" sort of supervised learning. But we have chosen the median as our threshold for 2 principled reasons. 
 <ul>
-<li> If we have designed a good ranker, the ranks should have a smooth distribution, w/ most emails having low rank + many fewer emails having a high rank. Since we're looking for “important emails,” (those that're most unique or unlike the normal flow of email traffic_, those will be the emails in the right tail of the rank distribution. If this is the case, those values greater than the median will be those that are somewhat greater than the typical rank. Intuitively, this is how we want to think about recommending priority email, those with larger ranks than the typical email. </li>
-<li> We know the test data will contain email messages that have data that does not match anything in our training data. New emails are flowing in constantly, but given our setup, we have no way of updating our ranker. As such, we may want to have a rule about priority that is more inclusive than exclusive. If not, we may miss messages that are only partial matches to our features. As a final step, we add a new binary column
-`Priority` to `train_ranks_df`, indicating whether the email will be recommended as priority by our ranker. </li>
+<li> If we have designed a good ranker, the ranks should have a smooth distribution, w/ most emails having low rank + many fewer emails having a high rank. Since we're looking for “important emails,” (those that're most unique or unlike the normal flow of email traffic), those will be the emails in the right tail of the rank distribution. If this is the case, those values greater than the median will be those that are somewhat greater than the typical rank. Intuitively, this is how we want to think about recommending priority email, those with larger ranks than the typical email. </li>
+<li> We know the test data will contain email messages that have data that does not match anything in our training data. New emails are flowing in constantly, but given our setup, we have no way of updating our ranker. As such, we may want to have a rule about priority that is more inclusive than exclusive. If not, we may miss messages that are only partial matches to our features. As a final step, we add a new binary column `Priority` to `train_ranks_df`, indicating whether the email will be recommended as priority by our ranker. </li>
 </ul>
 
- shows the density estimate for the ranks calculated on our training data. The
-vertical dashed line is the median threshold, which is about 24. As you can see, our
-ranks are very heavy-tailed, so we have created a ranker that performs well on the
-training data. We can also see that the median threshold is very inclusive, with a large
-portion of the downward-sloping density included as priority email. Again, this is done
-intentionally. A much less inclusive threshold would be to use the standard deviation
-of the distributions, which we can calculate with 
-sd(train.ranks.df$Rank)
-. The stan-
-dard deviation is about 90, which would almost exactly exclude any emails outside of
-the tail.
-120
-|
-Chapter 4:
-Ranking: Priority Inbox
-Figure 4-5. Density of the weights in training data, with a priority threshold as one standard deviation
-of weights
-Writing a Priority Inbox
-|
-121
-We will now calculate the rank values for all of the emails in our test set. This process
-proceeds exactly the same way as it did for our training data, so to save space we will
-not reproduce the code here. To see the code, refer to the 
-code/priority_inbox.R
- file
-included for this chapter, starting at about line 308. Once we have calculated the ranks
-for the test data, we can compare the results and see how well our ranker did on new
-emails.
-Figure 4-6
- overlays the density of ranks from the test data on the densities in 
-Fig-
-ure 4-5
-. This illustration is very informative regarding the quality of our ranker. First,
-we notice that there is much more density in the test data at the very low end of the
-distributions. This means that there are many more emails with a low rank. Addition-
-ally, the test density estimate is much less smooth than the training data. This is evi-
-dence that the test data includes many observations not in our training data. Because
-Figure 4-6. Density of weights for our test data overlaid on training data density
-122
-|
-Chapter 4:
-Ranking: Priority Inbox
-these observations do not match anything in our training data, the ranker effectively
-ignores this information.
-Although this is problematic, we avoid disaster because we used an inclusive threshold
-for priority email. Note that there is still a reasonable amount of density for the test
-data to the right of the threshold line. This means our ranker was still able to find emails
-to recommend as important from the test data. As a final check, let’s actually see which
-emails our ranker pushed to the top (
-Table 4-1
-).
-There is an inherent “unknowable” quality to creating a ranker of this
-type. Throughout this entire exercise, we have posited assumptions
-about each feature we included in our design and attempted to justify
-these intuitively. However, we can never know the “ground truth” as to
-how well our ranker is doing, because we can’t go back and ask the user
-for whom these emails were sent whether the ordering is good or makes
-sense. In the classification exercise, we knew the labels for each email
-in the training and test set, so we could measure explicitly how well the
-classifier was doing using the confusion matrix. In this case we can’t,
-but we can try to infer how well the ranker is doing by looking at the
-results. This is what makes this exercise something distinct from stan-
-dard supervised learning.
-Table 4-1
+```{r}
+# Visualize the results to locate threshold
+(threshold_plot <- ggplot(train_ranks_df, aes(x = Rank)) +
+  stat_density(aes(fill="darkred")) +
+  geom_vline(xintercept = priority_threshold, linetype = 2) +
+  scale_fill_manual(values = c("darkred" = "darkred"), guide = "none") +
+  theme_bw())
+```
+
+This is shows the density estimate for the ranks calculated on our training data. The vertical dashed line is the median threshold, which is about 6.5. Our ranks are very heavy-tailed, so we have created a ranker that performs well on the training data. We can also see that the median threshold is very inclusive, with a large portion of the downward-sloping density included as priority email. Again, this is done intentionally. A much less inclusive threshold would be to use the standard deviation of the distributions, which we can calculate.
+```{r}
+sd(train_ranks_df$Rank, na.rm = T)
+```
+
+The standard deviation is about 17, which would almost exactly exclude any emails outside of the tail.
+
+We will now calculate the rank values for all of the emails in our test set. 
+```{r}
+# rank each message in testing data and convert resulting list to matrix
+test_ranks <- suppressWarnings(lapply(test_paths, rank_message))
+test_ranks_matrix <- do.call(rbind, test_ranks)
+
+# add marker column to note this is testing data + add its path, then convert to data frame
+test_ranks_matrix <- cbind(test_paths, test_ranks_matrix, "TESTING")
+test_ranks_df <- data.frame(test_ranks_matrix, stringsAsFactors=FALSE)
+names(test_ranks_df) <- c("Message", "Date", "From", "Subj", "Rank", "Type")
+test_ranks_df$Rank <- as.numeric(test_ranks_df$Rank)
+test_ranks_df$Priority <- ifelse(test_ranks_df$Rank >= priority_threshold, 1, 0)
+```
+
+Now we can compare the results and see how well our ranker did on new emails.
+
+```{r}
+final_df <- rbind(train_ranks_df, test_ranks_df)
+final_df$Date <- date_converter(final_df$Date, pattern1, pattern2)
+final_df <- final_df[rev(with(final_df, order(Date))), ]
+
+# Save final data set and plot results_
+#write_csv(final_df, file_path("data", "final_df_csv"), row_names = FALSE)
+
+(testing_plot <- ggplot(subset(final_df, Type == "TRAINING"), aes(x = Rank)) +
+  stat_density(aes(fill = Type, alpha = .65)) +
+  stat_density(data = subset(final_df, Type == "TESTING"),
+               aes(fill = Type, alpha = .65)) +
+  geom_vline(xintercept = priority_threshold, linetype = 2) +
+  scale_alpha(guide = "none") +
+  scale_fill_manual(values = c("TRAINING" = "darkred", "TESTING" = "darkblue")) +
+  theme_bw())
+```
+
+Notice there is much more density in the test data at the very low end of the distributions, which means there are many more emails with a low rank. Additionally, the test density estimate is much less smooth than the training data, which is evidence that the test data includes many observations not in our training data. B/c these observations do not match anything in our training data, the ranker effectively ignores this info.
+
+Although this is problematic, we avoid disaster b/c we used an inclusive threshold for priority email. There is still a reasonable amount of density for the test data to the right of the threshold line which means our ranker was still able to find emails to recommend as important from the test data. 
+
+There is an inherent “unknowable” quality to creating a ranker of this type. Throughout this entire exercise, we have posited assumptions
+about each feature we included in our design + attempted to justify these intuitively. However, we can never know the “ground truth” as to how well our ranker is doing, because we can’t go back + ask the user for whom these emails were sent whether the ordering is good or makes sense. In the classification exercise, we knew the labels for each email in the training + test set, so we could measure explicitly how well the classifier was doing using the confusion matrix. In this case we can’t, but we can try to infer how well the ranker is doing by looking at the results. This is what makes this exercise something distinct from standard supervised learning.
+
+As a final check, let’s actually see which emails our ranker pushed to the top 
+```{r}
+test_ranks_df %>%
+  filter(Priority == 1) %>%
+  select(Date, From, Subj, Rank) %>%
+  head(30)
+```
  shows the 40 newest emails in the test data that have been labeled as priority
 by our ranker. The table is meant to mimic what you might see in your email inbox if
 you were using this ranker to perform priority inbox sorting over your emails, with the
