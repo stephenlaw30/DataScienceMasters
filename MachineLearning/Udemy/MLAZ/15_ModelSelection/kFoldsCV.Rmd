@@ -1,0 +1,96 @@
+---
+title: "K-Fold Cross Validation"
+author: "Steve Newns"
+output: html_document
+---
+
+# Kernel SVM
+
+```{r, warning=F,message=F}
+library(tidyverse)
+library(ggplot2)
+library(caTools) # for splitting data
+library(e1071) # most popular SVM libary, other is `kernlab`
+library(caret) # create folds
+```
+
+Everytime we created a ML model, there were 2 kinds of parameters:
+<ul>
+<li> Those the model learned/were changed to find optimal values by running the model </li>
+<li> parameter we decided on (such as the kernel parameter in Kernel SVM) = **hyperparameters** </li>
+</ul>
+
+We can improve models by tuning **hyperparameters**, since the model does not learn them and we have to find the optimal values. One way to do so is with **grid search**. 
+
+But first, we need to optimize some way to evaluate models. Judging model accuracy only on 1 test set is insufficient, as there can be great variance between model fits on different test sets. A technique to deal with this is **K-fold cross validation**, where we split the training set into k folds (typically 10), train the model on 9 of the folds, and "test" on that 10th fold. We then repeat this 10 times, with each fold becoming the "test" or **cross-validation** set one time. 
+
+In the end, we get a much better idea of the model performance, possible by taking an average of the accuracies of the 10 evaluations and looking at their standard deviation to check the variance.
+
+If we had high accuracy but low variance, we'd have a **high bias-low variance** model, and vice versa we'd end up with **low bias-high accuracuy**. 
+
+
+Social network`s automotive business client has launched its brand new luxury SUV and purchased ads for its marketing campaign. The social network collected data on the users and whether or not the bought the SUV after seeing the ad.
+
+We will only use age and salary to predict this, and we will use our **Kernel SVM** model to do the cross-validation, as we predicted this would be the best model to use for this data (best accuracy with not overfitting).
+
+```{r}
+## import data 
+social <- read.csv("../data/Social_Network_Ads.csv")
+
+## Cut down dataset
+social <- social %>%
+  select(Age,EstimatedSalary,Purchased) %>% # cut down cols
+  mutate(Purchased = factor(Purchased, levels = c(0,1)), # encode outcome
+         # scale data (age is in 10s, salary in 10k's)
+         Age = c(scale(Age)), # use c(scale)) to prevent scale from changing class of the column
+         EstimatedSalary = c(scale(EstimatedSalary))) # Encode target/outcome variable as fact
+
+# split data into Training + Test sets
+set.seed(123)
+
+spl <- sample.split(social$Purchased, SplitRatio = 0.75) # tidy does not work here
+
+(training <- social %>%
+  subset(spl == TRUE))
+(test <- social %>%
+  subset(spl == FALSE))
+```
+ 
+Again, make sure we set `type` to be **C-classification** to make sure we're doing a classification machine and `kernel` to be **radial** for the **(Gaussian) Radial Basis Function** kernel.
+
+```{r}
+social.svm <- svm(Purchased ~ ., training, type = 'C-classification', kernel = 'radial')
+```
+
+Now we use `createFolds()` from `caret` to create our folds that are well-distributed according to our outcome variable.
+
+```{r}
+folds <- createFolds(training$Purchased, k = 10)
+
+# to each CV fold, compute the accuracy of the kernel SVM model using 9 folds on the CV fold
+cv <- lapply(folds, function(x) {
+  # get training data minus the "test" fold (CV fold)
+  training_fold <- training[-x,]
+  # get "test"/CV fold
+  test_fold <- training[x,]
+  # train kernel SVM on training fold + test on CV fold
+  social.svm <- svm(Purchased ~ ., training_fold, type = 'C-classification', kernel = 'radial')
+  cv_pred <- predict(social.svm, newdata = test_fold[-3])
+  
+  cm <- table(test_fold$Purchased, cv_pred)
+  
+  # return list of the 10 accuracies from the CV
+  accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+  return(accuracy)
+})
+unlist(cv)
+```
+
+See that when we run the model multiple times on different "test" sets, we get a variance in accuracies and therefore in model quality.
+
+```{r}
+(cv_accuracy <- mean(unlist(cv)))
+(cv_variance <- sd(unlist(cv)))
+```
+
+Now we can saw with more confidence that our model is quite good, with 91% accuracy and a standard deviation of about 5%.
