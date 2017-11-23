@@ -1,0 +1,144 @@
+---
+title: "Ch5_RegressionPredictingPageViews"
+author: "Steve Newns"
+date: "November 23, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(tm)
+library(magrittr)
+library(plyr) # ddply
+```
+
+# Introducing Regression
+
+**Regression** = predict one set of #'s given another set of #'s
+In classification problems, might use #'s as a dummy code for a categorical distinction so 0 = ham and 1 = spam. But these #'s are just symbols; we’re not exploiting the “numberness” of 0 or 1 using dummy variables. 
+
+In regression, b/c predicting numbers, you want to be able to make strong statements about the relationship between the inputs+ the output (when # of packs of cigs a person smokes per day doubles, predicted life span gets cut in half).
+
+Problem = wanting to make precise numerical predictions isn’t the same thing as actually being able to make predictions. To make quantitative predictions, we need to come up w/ some rule that can leverage the info we have access to. The various regression algorithms that statisticians have developed over thelast 200 years all provide different ways to make predictions by turning inputs into outputs. 
+
+#The Baseline Model
+
+Simplest possible way to use the info we have as inputs = ignore inputs entirely + predict future outcomes based only on mean value of the output seen in the past (completely ignore a person’s health records + simply guess that they’ll live as long as the average person lives).
+
+Guessing the mean outcome for every case isn’t as naive as it might seem: if interested in making predictions that are as close to the truth as possible without using any other info, guessing the mean output turns out to be the best guess we can possibly make.
+
+A little bit of work has to go into defining “best” to give this claim a definite meaning. 
+```{r}
+ages <- read.csv('data/longevity.csv')
+ggplot(ages, aes(AgeAtDeath, fill = factor(Smokes))) +
+  geom_density() +
+  facet_grid(Smokes ~ .) + 
+  ggtitle("Density plot of 1,000 people’s life spans, facetted by smokers")
+```
+It seem reasonable to believe smoking matters for longevity b/c the center of the nonsmokers’ life span distribution is shifted to the right of the center of the smokers’ life spans. In other words, the average life span of a non-smoker is longer than the average life span of a smoker. 
+
+But before we describe how you can use info we have about a person’s smoking habits to make predictions about longevity, pretend we didn’t have any of this info --> need to pick a single # as the prediction for every new person, regardless of smoking habits. 
+
+The question of # to pick isn’t a trivial one, b/c it should depend on what you think it means to make good predictions. There are a lot of reasonable ways to define accuracy of predictions, but there is a single measure of quality that’s been dominant for virtually the entire history of statistics = **squared error**. If you’re trying to predict a value y + guess h, squared error of your guess = (y - h)^2
+
+If using squared error to measure quality of predictions, the best guess we can possibly make about a person’s life span (without any additional info about a person’s habits) = the average person’s longevity.
+
+W/ `longevity` data set, the mean `AgeAtDeath` is:
+```{r}
+mean(ages$AgeAtDeath)
+```
+
+Then ask: “How badly would we have predicted the ages of the people in our data set if we’d guessed they all lived to be 73?”
+
+```{r}
+# combine all of squared errors for each person in data set by computing mean of the squared errors (MSE) 
+guess <- 73
+with(ages, mean((AgeAtDeath - guess) ^ 2))
+```
+MSE made by guessing 73 for every person in our data set is 32.991. That, by itself, shouldn’t be enough to convince you that we’d do worse with a guess that’s not 73. Consider how we’d perform if we made some of the other possible guesses
+
+```{r}
+# loop over a sequence of possible guesses ranging from 63 to 83:
+guess.accuracy <- data.frame()
+for (guess in seq(63, 83, by = 1)) {
+  # for each guess in sequence, get MSE
+  prediction.error <- with(ages, mean((AgeAtDeath - guess)**2))
+  
+  # add MSE to data frame of MSE's
+  guess.accuracy <- rbind(guess.accuracy, data.frame(Guess = guess, Error = prediction.error))
+}
+
+ggplot(guess.accuracy, aes(Guess, Error)) +
+  geom_point() +
+  geom_line()
+```
+Using any guess other than 73 gives us worse predictions for our data set. This is actually a general theoretical result that can be proven mathematically: **to minimize squared error, predict the mean value in a data set**. 
+
+1 important implication of this = predictive value of having info about smoking should be measured in terms of the amount of *improvement you get from using this info over just using the mean value as your guess for every person you see*.
+
+# Regression Using Dummy Variables
+
+How can we use info about whether or not people smoke to make better guesses about longevity? 1 simple idea = estimate mean age at death for smokers and nonsmokers separately +use these 2 separate values as guesses for future cases, depending on whether or not a new person smokes. 
+
+This time, instead of using MSE, use **root mean squared error (RMSE)** = more popular in ML literature.
+```{r}
+# get mean Age at death over all observations
+constant.guess <- with(ages, mean(AgeAtDeath))
+# get RMSE for each age in observation
+paste("RMSE without smoking information:",with(ages, sqrt(mean((AgeAtDeath - constant.guess) ^ 2))))
+
+# do same as above but for split data sets on binary  smoking variable
+smokers.guess <- with(subset(ages, Smokes == 1), mean(AgeAtDeath))
+non.smokers.guess <- with(subset(ages, Smokes == 0), mean(AgeAtDeath))
+
+ages <- transform(ages, NewPrediction = ifelse(Smokes == 0, non.smokers.guess, smokers.guess))
+# get new RMSE
+paste("RMSE with smoking information:",with(ages, sqrt(mean((AgeAtDeath - NewPrediction) ^ 2))))
+```
+
+Predictions really do get better after include more info about the people we’re studying = prediction error when estimating people’s life spans becomes 10% smaller when we include info about people’s smoking habits. 
+
+In general, we can do better than using just the mean value whenever we have binary distinctions that separate 2 types of DP's, *assuming those binary distinctions are related to the output we’re trying to predict.* Some simple examples where binary distinctions might help = contrasting men w/ women or Democrats w/ Republicans in American political discourse.
+
+So now we have a mechanism for incorporating dummy variables into predictions. But how can we use "richer" info about the objects in our data? 
+<ul>
+<li> Want to know how we can use inputs that *aren’t* binary distinctions, but instead continuous values such as heights or weights </li>
+<li> Want to know how we can use multiple sources of info all at once to improve estimates. </li>
+</ul>
+
+Intuition = having separate sources of info should tell us more than either variable in isolation. But making use of all of the info we have isn’t an easy task. In practice, need to make some simplifying assumptions to get things to work, assumptions that underlie linear regression.
+
+we’ll describe in this chapter. Using only linear regression is less of a restriction than it
+might seem, as linear regression is used in at least 90% of practical regression applica-
+tions and can be hacked to produce more sophisticated forms of regression with only
+a little bit of work.
+Linear Regression in a Nutshell
+The two biggest assumptions we make when using linear regression to predict outputs
+are the following:
+Separability/additivity
+If there are multiple pieces of information that would affect our guesses, we pro-
+duce our guess by adding up the effects of each piece of information as if each piece
+of information were being used in isolation. For example, if alcoholics live one year
+less than nonalcoholics and smokers live five years less than nonsmokers, then an
+alcoholic who’s also a smoker should live 1 + 5 = 6 years less than a nonalcoholic
+nonsmoker. The assumption that the effects of things in isolation add up when
+they happen together is a very big assumption, but it’s a good starting place for lots
+of applications of regression. Later on we’ll talk about the idea of interactions,
+which is a technique for working around the separability assumption in linear re-
+gression when, for example, you know that the effect of excessive drinking is much
+worse if you also smoke.
+Monotonicity/linearity
+A model is monotonic when changing one of the inputs always makes the predicted
+output go up or go down. For example, if you’re predicting weights using heights
+as an input and your model is monotonic, then you’re assuming that every time
+somebody’s height increases, your prediction of their weight will go up. Monoto-
+nicity is a strong assumption because you can imagine lots of examples where the
+output goes up for a bit with an input and then starts to go down, but the monot-
+onicity assumption is actually much less strong than the full assumption of the
+linear regression algorithm, which is called linearity. Linearity is a technical term
+with a very simple meaning: if you graph the input and the output on a 
+scatterplot,
+you should see a line that relates the inputs to the outputs, and not something with
+a more complicated shape, such as a curve or a wave. For those who think less
+visually, linearity means that changing the input by one unit always adds N units
