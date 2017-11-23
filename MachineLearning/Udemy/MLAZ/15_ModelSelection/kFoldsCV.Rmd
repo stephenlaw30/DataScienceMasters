@@ -26,7 +26,7 @@ But first, we need to optimize some way to evaluate models. Judging model accura
 
 In the end, we get a much better idea of the model performance, possible by taking an average of the accuracies of the 10 evaluations and looking at their standard deviation to check the variance.
 
-If we had high accuracy but low variance, we'd have a **high bias-low variance** model, and vice versa we'd end up with **low bias-high accuracuy**. 
+If we had high accuracy but low variance, we'd have a **high bias-low variance** model, and vice versa we'd end up with **low bias-high accuracy**. 
 
 
 Social network`s automotive business client has launched its brand new luxury SUV and purchased ads for its marketing campaign. The social network collected data on the users and whether or not the bought the SUV after seeing the ad.
@@ -50,10 +50,10 @@ set.seed(123)
 
 spl <- sample.split(social$Purchased, SplitRatio = 0.75) # tidy does not work here
 
-(training <- social %>%
-  subset(spl == TRUE))
-(test <- social %>%
-  subset(spl == FALSE))
+training <- social %>%
+  subset(spl == TRUE)
+test <- social %>%
+  subset(spl == FALSE)
 ```
  
 Again, make sure we set `type` to be **C-classification** to make sure we're doing a classification machine and `kernel` to be **radial** for the **(Gaussian) Radial Basis Function** kernel.

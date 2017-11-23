@@ -1,0 +1,102 @@
+---
+title: "XGBoost"
+author: "Steve Newns"
+output: html_document
+---
+
+# Kernel SVM
+
+```{r, warning=F,message=F}
+library(tidyverse)
+library(ggplot2)
+library(caTools) # for splitting data
+library(e1071) # most popular SVM libary, other is `kernlab`
+library(caret) # create folds
+```
+
+
+**XGBoost** is a very populat ML algorithm that offers high performance with quick computation on large datasets. It's the most powerful implementation of **gradient boosting** for model performance and execution speed.
+
+Everytime we created a ML model, there were 2 kinds of parameters:
+<ul>
+<li> Those the model learned/were changed to find optimal values by running the model </li>
+<li> parameter we decided on (such as the kernel parameter in Kernel SVM) = **hyperparameters** </li>
+</ul>
+
+We can improve models by tuning **hyperparameters**, since the model does not learn them and we have to find the optimal values for these parameters. One way to do so is with **grid search**. 
+
+We will use `caret` package to rebuild the Kernel SVM model by applying grid search to it at the same time.
+
+Social network`s automotive business client has launched its brand new luxury SUV and purchased ads for its marketing campaign. The social network collected data on the users and whether or not the bought the SUV after seeing the ad.
+
+We will only use age and salary to predict this, and we will use our **Kernel SVM** model to do the cross-validation, as we predicted this would be the best model to use for this data (best accuracy with not overfitting).
+
+```{r}
+## import data 
+social <- read.csv("../data/Social_Network_Ads.csv")
+
+## Cut down dataset
+social <- social %>%
+  select(Age,EstimatedSalary,Purchased) %>% # cut down cols
+  mutate(Purchased = factor(Purchased, levels = c(0,1)), # encode outcome
+         # scale data (age is in 10s, salary in 10k's)
+         Age = c(scale(Age)), # use c(scale)) to prevent scale from changing class of the column
+         EstimatedSalary = c(scale(EstimatedSalary))) # Encode target/outcome variable as fact
+
+# split data into Training + Test sets
+set.seed(123)
+
+spl <- sample.split(social$Purchased, SplitRatio = 0.75) # tidy does not work here
+
+(training <- social %>%
+  subset(spl == TRUE))
+(test <- social %>%
+  subset(spl == FALSE))
+```
+ 
+```{r}
+# use grid search w/ SVM w/ radial basis function kernel (Gaussian)
+# method parameter helps train() figure out which model to build + which model to tune
+social.svm <- train(Purchased ~ ., training, method = "svmRadial")
+```
+
+This model is not yet tuned, but let's look at what's in the model
+
+```{r}
+social.svm
+```
+
+We see the conclusions of some parameter tuning done on the model. **Accuracy** was used as the performance metric of the model with optimal parameter values for **sigma** and **C**. We can also see that each of these tuned models had a higher accuracy than our original Kernel SVM, which had an accuracy of 0.9 and of the cross-validated Kernel SVM model of .911.
+
+The accuracies came from 25 repetitions of the model on different subsets of the data and taking the average of those accuracies (see `Resampling: Bootstrapped (25 reps)` in the model output).
+
+We can directly access these optimal hyperparameters
+```{r}
+social.svm$bestTune
+```
+
+We can continue to use this model, or input these optimal parameters into a new classifier model.
+
+```{r}
+social.svm2 <- svm(Purchased ~ ., training, type = "C-classification", kernel = "radial", 
+                  cost = 1, gamma = 1.560428)
+
+# Predict on test set results
+y_pred.svm <- predict(social.svm, test[-3])
+```
+
+Now we will check our prediction results vs. the actual results with a confusion matrix.
+```{r}
+## Making the Confusion Matrix
+(cm <- table(test$Purchased, y_pred.svm))
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or Recall): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nAccuracy: ",accuracy)
+```
