@@ -1,0 +1,63 @@
+---
+title: "Ch6_Regularization_TextRegression"
+author: "Steve Newns"
+date: "November 26, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(tm)
+library(magrittr)
+library(plyr) # ddply
+```
+
+# Nonlinear Relationships Between Columns: Beyond Straight
+
+Lines While 
+we told you the truth in 
+Chapter 5
+ when we said that linear regression assumes
+that the relationship between two variables is a straight line, it turns out you can also
+use linear regression to capture relationships that aren’t well-described by a straight
+line. To show you what we mean, imagine that you have the data shown in panel A of
+Figure 6-1
+.
+It’s obvious from looking at this scatterplot that the relationship between X and Y isn’t
+well-described by a straight line. Indeed, plotting the regression line shows us exactly
+what will go wrong if we try to use a line to capture the pattern in this data; panel B of
+Figure 6-1
+ shows the result.
+We can see that we make systematic errors in our predictions if we use a straight line:
+at small and large values of 
+x
+, we overpredict 
+y
+, and we underpredict 
+y
+ for medium
+values of 
+x
+. This is easiest to see in a residuals plot, as shown in panel C of 
+Figure 6-1
+.
+In this plot, you can see all of the structure of the original data set, as none of the
+structure is captured by the default linear regression model.
+Using 
+ggplot2
+’s 
+geom_smooth
+ function without any 
+method
+ argument, we can fit a more
+complex statistical model called a Generalized Additive Model (or GAM for short) that
+provides a smooth, nonlinear representation of the structure in our data:
+set.seed(1)
+x <- seq(-10, 10, by = 0.01)
+y <- 1 - x 
+⋀
+ 2 + rnorm(length(x), 0, 5)
+ggplot(data.frame(X = x, Y = y), aes(x = X, y = Y)) + 
+  geom_point() +
+  geom_smooth(se = FALSE
