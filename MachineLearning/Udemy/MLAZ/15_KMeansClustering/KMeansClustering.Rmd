@@ -1,0 +1,55 @@
+---
+title: "K-means Clustering"
+author: "Steve Newns"
+output: html_document
+---
+
+# Kernel SVM
+
+```{r, warning=F,message=F}
+library(tidyverse)
+library(ggplot2)
+library(cluster) # cluster viz
+```
+
+Mall has data on clients who have a membership card with info on age, gender, and annual income. It also has purchase history of the clients to calculate their **spending score** based on several criteria such as income, # of times the shop at the mall, and $ spent in a year. (closer score is to 100 = more client spends). You were hired to segment clients into different groups based on annual income and spending score.
+
+We will only use age and salary to predict this
+```{r}
+## import data 
+mall <- read.csv("../data/Mall_Customers.csv")
+
+## Cut down dataset
+x <- mall %>%
+  select(Annual.Income..k..,Spending.Score..1.100.)
+
+# find optimal method of clusters K with elbow method
+set.seed(123)
+
+# vector to hold wcss for different # of clusters K
+wcss <- vector()
+for (i in 1:10) {
+  # compute wcss for each number of clusters from 1 to 10 on our data, x
+  wcss[i] <- sum(kmeans(x, i)$withinss)
+}
+# plot BOTH lines + points of WCSS for each cluster choice
+plot(1:10,wcss, type = "b", main = "Clusters of clients", xlab = "# of clusters", ylab = "WCSS")
+```
+
+Optimal # of clusters = 5
+```{r}
+#Fit kmeans to mall dataset w/ optimal # of clusters for 10 random sets and 300 iterations of algorithm
+kmeans_mall <- kmeans(x, 5, iter.max = 300, nstart = 10)
+```
+
+# Vizualize Clusters
+```{r, warning=F,message=F}
+# plot clusters w/ no distance lines
+# shade + color ellipses w/ respect to their density
+# label points in ellipses + keep same characters for all clusters
+# each cluster is represented by the ellipse with smallest area containing all its points (span = T)
+clusplot(x = x, clus = kmeans_mall$cluster, lines = 0, shade = T, color = T, labels = 2, plotchar = F,
+         span = T, main = "Clusters of Clients", xlab = "Annual Income", ylab = "Spending Score")
+```
+
+Cluster 4 has high income, low score (careful/frugal), cluster 2 has high income + higher score (big rollers/main potential **target** of marketing campaigns = find out what they buy ), cluster 3 = average income + spending (typical/standard), cluster 1 = low income + low score (sensible), cluster 5 = low income, high score (careless)
