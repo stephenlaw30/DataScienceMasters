@@ -8,56 +8,424 @@ output: html_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(ggplot2)
-library(tm)
 library(magrittr)
-library(plyr) # ddply
+library(caTools) #s plit data
+library(glmnet) # regularization
 ```
 
 # Nonlinear Relationships Between Columns: Beyond Straight
 
-Lines While 
-we told you the truth in 
-Chapter 5
- when we said that linear regression assumes
-that the relationship between two variables is a straight line, it turns out you can also
-use linear regression to capture relationships that aren’t well-described by a straight
-line. To show you what we mean, imagine that you have the data shown in panel A of
-Figure 6-1
-.
-It’s obvious from looking at this scatterplot that the relationship between X and Y isn’t
-well-described by a straight line. Indeed, plotting the regression line shows us exactly
-what will go wrong if we try to use a line to capture the pattern in this data; panel B of
-Figure 6-1
- shows the result.
-We can see that we make systematic errors in our predictions if we use a straight line:
-at small and large values of 
-x
-, we overpredict 
-y
-, and we underpredict 
-y
- for medium
-values of 
-x
-. This is easiest to see in a residuals plot, as shown in panel C of 
-Figure 6-1
-.
-In this plot, you can see all of the structure of the original data set, as none of the
-structure is captured by the default linear regression model.
-Using 
-ggplot2
-’s 
-geom_smooth
- function without any 
-method
- argument, we can fit a more
-complex statistical model called a Generalized Additive Model (or GAM for short) that
+Can also use linear regression to capture relationships that aren’t well-described by a straight line.
+
+We make systematic errors in predictions if we use a straight line for these data. This is easiest to see in a residuals plot that shows all the structure of the original data set, as none of the structure is captured by the default linear regression model.
+
+Use `geom_smooth` without any `method` argument to fit a more complex statistical model called a **Generalized Additive Model (GAM)** that
 provides a smooth, nonlinear representation of the structure in our data:
+```{r}
 set.seed(1)
 x <- seq(-10, 10, by = 0.01)
-y <- 1 - x 
-⋀
- 2 + rnorm(length(x), 0, 5)
-ggplot(data.frame(X = x, Y = y), aes(x = X, y = Y)) + 
+y <- 1 - x**2 + rnorm(length(x), 0, 5)
+
+ggplot(data.frame(X = x, Y = y), aes(X, Y)) + 
   geom_point() +
-  geom_smooth(se = FALSE
+  geom_smooth(se = FALSE)
+```
+
+We want to fit a curved line instead of a straight line to this data set. The subtleties of linear regression come up when we fit some sort of curved line to our data?. Linear regression can only fit lines in the input, but you can create *new inputs* that are nonlinear functions of your original inputs. For example,
+you can use the following code in R to 
+```{r}
+# produce a new input based on the raw inputx
+x.squared <- x ^ 2
+# plot y against new polynomial x to see a very different shape
+
+ggplot(data.frame(XSquared = x.squared, Y = y), aes(XSquared, Y)) + 
+  geom_point() +
+  geom_smooth(method = 'lm', se = F)
+```
+
+This gives us a fit that looks exactly like a straight line b/c we’ve transformed our original nonlinear problem into a new problem in which the relationship between the 2 inputs satisfies the linearity assumption of linear regression. Replacing a complicated nonlinear problem w/ a simpler linear one using a transformation of the inputs comes up again + again in ML. This intuition is the essence of the **kernel trick**.
+
+To see how much this simple squaring transformation improves prediction quality, compare R2 values for linear regressions using `x` + `x.squared`
+```{r}
+summary(lm(y ~ x))$r.squared
+summary(lm(y ~ x.squared))$r.squared
+```
+
+We’ve gone from accounting for 0% of the variance to accounting for 97%, a pretty huge jump for such a simple change in our model. In general, we might wonder how much more predictive power we can get from using more expressive models w/ more complicated shapes than lines. 
+It turns out you can capture essentially any type of relationship that might exist between 2 variables using more complex curved shapes, possibly via **polynomial regression**, but the flexibility polynomial regression provides is not a purely good thing, b/c it encourages us to *mimic the noise* in our data w/ our fitted model, rather than just the *true underlying pattern* we want to uncover.
+
+# Introducing Polynomial Regression
+
+Polynomial regression in R = `poly()`. Build up from a simple example + see what happens as we give our model more expressive power to mimic the structure in our data.
+
+Use a sine wave to create a data set in which the relationship between x + y could never be described by a simple line.
+```{r}
+set.seed(1)
+x <- seq(0, 1, by = 0.01) # 100 points from 0 to 1
+y <- sin(2 * pi * x) + rnorm(length(x), 0, 0.1)
+
+df <- data.frame(X = x, Y = y)
+ggplot(df, aes(X,Y)) +
+  geom_point()
+```
+
+Just looking at this data, it’s clear using a simple linear regression model won’t work. But let’s run a simple linear model and see how it performs.
+```{r}
+summary(lm(Y ~ X, data = df))
+```
+Surprisingly, we’re able to explain 60% of the variance in this data set using a linear model despite the fact we know the naive linear regression model is a bad model of wave data. We also know a good model should be able to explain more than 90% of the variance in this data set, but we’d still like to figure out what the linear model did to produce such a good fit to the data by plotting the results of fitting a linear regression by forcing `geom_smooth` to use a linear model w/ `method = 'lm'`
+```{r}
+ggplot(data.frame(X = x, Y = y), aes(x = X, y = Y)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE)
+```
+
+The lm finds a way to capture half of the sine wave’s structure using a downward-sloping line.This is not a great strategy b/c you’re systematically neglecting parts of the data not described by that downward-sloping line. If the sine wave were extended through another period, R2 for this model would suddenly drop closer and closer to 0%.
+
+Conclude the default linear regression model overfits the quirks of our specific data set + fails to find its true underlying wave structure. Give the linear regression algorithm more inputs to work with to see if it find a structure that’s actually a wave.
+
+```{r}
+# add both 2nd + 3rd power of x to data for more wiggle room
+df %<>%
+  mutate(X2 = X**2,
+         X3 = X**3)
+summary(lm(Y ~ X + X2 + X3, df))
+```
+
+By adding 2 more inputs, we went from an R2 = 60% to an R2 = 97%. That’s a huge increase. In principle, there’s no reason why we can’t follow this logic out + keep adding more powers of X. But as we add more powers, we’ll eventually start to have more inputs than DPs. That’s usually worrisome b/c it means we could, in principle, fit our data perfectly. A more subtle problem w/ this strategy will present itself before then = new columns are so similar in value to the original columns `lm` will simply stop working =  a **singularity**
+
+```{r}
+df %<>%
+  mutate(X4 = X**4,
+         X5 = X**5,
+         X6 = X**6,
+         X7 = X**7,
+         X8 = X**8,
+         X9 = X**9,
+         X10 = X**10,
+         X11 = X**11,
+         X12 = X**12,
+         X13 = X**13,
+         X14 = X**14,
+         X15 = X**15)
+summary(lm(Y ~ X + X2 + X3 + X4 + X5 + X6  +X7 + X8 + X9 + X10 + X11 + X12 + X13 + X14 + X15, df))
+```
+
+The problem here = new columns are so correlated W/ the old columns that the linear regression algorithm breaks down + can’t find coefficients for all of the columns separately. Thankfully, there's a solution to this problem that can be found in the mathematical literature: instead of naively adding simple powers of X, add more complicated variants of x that work like successive powers of x *but aren’t correlated with each other in the way x + x^2 are* =  **orthogonal (uncorrelated) polynomials**
+
+Run `lm` w/ the output from `poly` to get proper coefficients for all 14 powers of X
+```{r}
+# generate orthogonal polynomials
+summary(lm(Y ~ poly(X, degree = 14), df))
+```
+
+In general, `poly` gives you a lot of expressive power + captures a huge variety of complicated shapes in data. That isn’t necessarily a good thing. Added power provided can be a source of trouble --> look at the shape of the models `poly` generates as you increase `degree`
+```{r}
+poly.fit <- lm(Y ~ poly(X, degree = 1), data = df)
+df <- transform(df, PredictedY = predict(poly.fit))
+plot1 <- ggplot(df, aes(x = X, y = PredictedY)) +
+  geom_point() +
+  geom_line()
+
+poly.fit <- lm(Y ~ poly(X, degree = 3), data = df)
+df <- transform(df, PredictedY = predict(poly.fit))
+plot3 <- ggplot(df, aes(x = X, y = PredictedY)) +
+  geom_point() +
+  geom_line()
+poly.fit <- lm(Y ~ poly(X, degree = 5), data = df)
+df <- transform(df, PredictedY = predict(poly.fit))
+plot5 <- ggplot(df, aes(x = X, y = PredictedY)) +
+  geom_point() +
+  geom_line()
+poly.fit <- lm(Y ~ poly(X, degree = 25), data = df)
+df <- transform(df, PredictedY = predict(poly.fit))
+plot25 <- ggplot(df, aes(x = X, y = PredictedY)) +
+  geom_point() +
+  geom_line()
+
+gridExtra::grid.arrange(plot1,plot3,plot5,plot25, ncol = 2, nrow = 2)
+```
+
+We can continue this process indefinitely, but looking at the predicted values for our model makes it clear that eventually the shape we’re fitting doesn’t resemble a wave anymore + starts to become distorted by kinks + spikes = a model more powerful than the data can support = **overfitting.** 
+
+As data grows in observations, we can use more powerful models. But for any specific data set, there are always some models that are too powerful. To stop this + get a better sense of what’s going to go wrong if we give ourselves enough rope to hang ourselves with, use a  mixture of **cross-validation** and **regularization**, 2 of the most important tools in the entire ML toolkit.
+
+# Methods for Preventing Overfitting
+
+**Overfit** = model matches part of the noise in a data set rather than the true underlying signal. If we don’t know the truth, how can we tell we’re getting further away from it rather than closer? ==> *Make clear what we mean by truth*. A predictive model is close to the truth when its predictions about future data are accurate, but we only have data from the past. We can simulate what it would be like to have access to future data by splitting up past data into 2 parts.
+
+**Cross-validation** = ability to simulate testing a model on future data by ignoring part of historical data during model-fitting process + arguably, an instantiation of the scientific method: (1) formulate hypothesis, (2) gather data, (3) test it. There’s just a bit of sleight of hand b/c we don’t formulate a hypothesis based on existing data + then go out + gather more data + instea ignore part of our data while formulating our hypotheses so we can magically rediscover that missing data when it comes time to test our predictions.
+
+Toy example to select a degree for polynomial regression for the sine wave data
+```{r}
+set.seed(1)
+x <- seq(0, 1, by = 0.01)
+y <- sin(2 * pi * x) + rnorm(length(x), 0, 0.1)
+df <- data.frame(x = x, y = x)
+```
+
+
+Split the data exactly in half. For some applications, it’s better to use more data for the training set (80%) + less for the test set (20%) b/c the more data you have during model fitting, the better the fitted model will tend to be. As always, YMMV, so experiment when facing any real-world problem. 
+```{r}
+#spl <- sample.split(df$y, SplitRatio = 0.5)
+
+#training <- df %>% subset(spl == TRUE)
+#test <- df %>%  subset(spl == FALSE)
+
+n <- length(x)
+indices <- sort(sample(1:n, round(0.5 * n)))
+training.x <- x[indices]
+training.y <- y[indices]
+test.x <- x[-indices]
+test.y <- y[-indices]
+training.df <- data.frame(X = training.x, Y = training.y)
+test.df <- data.frame(X = test.x, Y = test.y)
+```
+
+Good idea to randomly split data when making a training set/test sets b/c you don’t want the training + tests set to differ systematically
+
+Test various degrees for our polynomial regression to see which works best + use RMSE to measure performance. 
+
+```{r}
+# create a special rmse function:
+rmse <- function(y, h)
+{
+  return(sqrt(mean((y - h)**2)))
+}
+
+# loop over a set of polynomial degrees from 1 - 12:
+performance <- data.frame()
+for (d in 1:12)
+{
+  # fit polynomial linear regression for each degree from 1-12 using training data
+  poly.fit <- lm(Y ~ poly(X, degree = d), data = training.df)
+  
+  # get performance of fitted model on training data
+  performance <- rbind(performance,
+                        data.frame(Degree = d,
+                                   Data = 'Training',
+                                   RMSE = rmse(training.df$Y, predict(poly.fit))))
+  # get performance of fitted model on test data
+  performance <- rbind(performance,
+                        data.frame(Degree = d,
+                                   Data = 'Test',
+                                   RMSE = rmse(test.df$Y, predict(poly.fit, newdata = test.df))))
+}
+```
+
+There are often many ways to accomplish the same data manipulation task above + rarely is a loop of this nature the most efficient. We use it here b/c the data is quite small + it allows the process of the algorithm to be understood most clearly
+
+```{r}
+# plot performance of the polynomial regression models for all the degrees tried:
+ggplot(performance, aes(x = Degree, y = RMSE, linetype = Data)) +
+  geom_point() +
+  geom_line()
+```
+
+It' clear using a degree in the middle of the range gives us best performance on test data, as it **underfits** w/ degrees as low as 1 or 2 where model doesn’t capture the real pattern in the data + very poor predictive performance on both the training + test data. For degrees 11 and 12, predictions for the model start to get worse again on the test data b/c the model is becoming too complex and noisy, + fits quirks in the training data that aren’t present in the test data. Notice our performance on training + test sets start to diverge as degrees increase + training set error rate keeps going down, but test set performance starts going up = model doesn’t generalize to any data beyond the specific points it was trained on = overfit.
+
+Plot lets us know how to set the degree of our regression to get the best performance from our model. This intermediate point would be very hard to discover without using CV. Another approach to preventing overfitting = **regularization** = quite different from CV in spirit, even though we’ll end up using CV to provide a demonstration that regularization is able to prevent overfitting. We’ll also have to use CV to calibrate our regularization algorithm, so the 2 ideas will ultimately become intimately connected.
+
+# Preventing Overfitting with Regularization
+
+1 approach when working W/ polynomial regression  = saying models are more complex when the degree is larger, but that doesn’t help us for linear regression in general
+
+An alternative measure of complexit = a model is complicated when coefficients are large 9 (1y ~ 5x + 21 = more complicated than 1y ~ 3x + 21). Fit a model using `lm` + measure its complexity by summing over the values returned by `coef`
+```{r}
+lm.fit <- lm(y ~ x)
+(model.complexity <- sum(coef(lm.fit) ^ 2))
+```
+We’ve squared the coefficients before summing so they don’t cancel (**L2 norm**). An alternative approach to squaring the coefficients is to tak absolute value of the coefficients instead (**L1 norm**)
+
+```{r}
+lm.fit <- lm(y ~ x)
+(l2.model.complexity <- sum(coef(lm.fit) ^ 2))
+(l1.model.complexity <- sum(abs(coef(lm.fit))))
+```
+
+Use this measure of complexity to force a model to be simpler during model fitting (Chapter 7), but the big idea for the time being is we trade off making the model fit the training data as well as possible against a measure of the model’s complexity. B/c we make a trade-off between fitting the data + model complexity, we’ll end up selecting a simpler model that fits worse over a more complex model that fits better. This ultimately prevents overfitting by restraining our model from matching noise in the training data we use to fit it.
+
+`glmnet` packag provides `glmnet()` that fits linear models using regularization.
+```{r}
+set.seed(1)
+x <- seq(0, 1, by = 0.01)
+y <- sin(2 * pi * x) + rnorm(length(x), 0, 0.1)
+
+# convert vector copy of x to a matrix
+x <- as.matrix(cbind(x, x))
+
+# call glmnet in reverse order than w/ lm to create GLM w/ lasso or elasticnet regularization
+glmnet(x, y)
+```
+
+We get back an entire set of possible regularizations of the regression you’ve asked it to perform. At the top of the list = strongest regularization `glmnet` performed/calculated., + at the bottom = weakest. Each row contains 3 columns. The 1st, `Df` tells you how many coefficients in the model ended up being nonzero (does not include the intercept term which we don’t penalize for its size). Knowing the # of nonzero coefficients is useful b/c many people would like to be able to assert that only a few inputs really matter + we can assert this more confidently if the model performs well even when assigning zero weight to many inputs. When the majority of the inputs to a statistical model are assigned "0"" coefficients, the model is **sparse**. Developing tools for promoting **sparsity** in statistical models is a major topic in contemporary ML research.
+
+The 2nd column, `%Dev`, is essentially the R2 for each model. For the top row, it’s 0% b/c you have a 0 coefficient for the 1 predictor + therefore can’t get better performance than just using a constant intercept. For the bottom row, `Dev` = 59%, the value you’d get from using `lm` b/c `lm` doesn’t do any regularization . In between the 2 extremes of regularizing are values from 9% to 58%.
+
+`Lambda` = most important piece of info for regularization = parameter of the regularization algorithm that controls how complex the model fit is allowed to be. B/c it controls the values you’ll eventually get for the main parameters of the model, **Lambda** = a hyperparameter (Ch 7). When Lambda is very large, you penalize your model very heavily for being complex + this penalization pushes all coefficients toward zero. When Lambda is very small, you do NOT penalize your model much at all. At the farthest end of this spectrum toward weaker regularization, set Lambda = 0 + get results like those from an unregularized linear regression like from `lm`.
+
+To find optimal value for Lambda that gives the best possible model, employ CV as part of the process of working w/ regularization. Instead of playing w/ the degree of a polynomial regression, set the degree to a high value right at the start + then we would fit the model w/ different values for Lambda on a training set and see how it performs on a held-out/out-of-sample test set. After doing this for many values of Lambda, we would be able to see which value gives us best performance on the test data.
+
+MUST assess quality of a regularization on held-out test data b/c increasing the strength of regularization can only worsen performance on the training data, so there is literally 0 info you can learn from looking at performance on the training data.
+
+```{r}
+set.seed(1)
+x <- seq(0, 1, by = 0.01)
+y <- sin(2 * pi * x) + rnorm(length(x), 0, 0.1)
+n <- length(x)
+indices <- sort(sample(1:n, round(0.5 * n)))
+training.x <- x[indices]
+training.y <- y[indices]
+test.x <- x[-indices]
+test.y <- y[-indices]
+df <- data.frame(X = x, Y = y)
+training.df <- data.frame(X = training.x, Y = training.y)
+test.df <- data.frame(X = test.x, Y = test.y)
+
+rmse <- function(y, h)
+{
+  return(sqrt(mean((y - h) ^ 2)))
+}
+
+# loop over values of Lambda instead of degrees
+# don’t have to refit model each time b/c glmnet stores fitted model for many values of Lambda after a single fitting step.
+glmnet.fit <- with(training.df, glmnet(poly(X, degree = 10), Y))
+lambdas <- glmnet.fit$lambda
+
+performance <- data.frame()
+for (lambda in lambdas)
+{
+  performance <- rbind(performance, 
+                       data.frame(Lambda = lambda, 
+                                  RMSE = rmse(test.y, with(test.df, predict(glmnet.fit, poly(X, degree = 10), s = lambda)))))
+}
+```
+
+Having computed model’s performance for different values of Lambda, plot to see where in range of testd lambdas we can get the best performance on new data:
+```{r}
+ggplot(performance, aes(x = Lambda, y = RMSE)) +
+  geom_point() +
+  geom_line()
+```
+
+Seems like we get best possible performance (lowest RMSE) w/ Lambda = ~.05. So to fit a model to the full data, we can select that calculated. + train our model on the entire data set.
+```{r}
+best_lambda <- with(performance, Lambda[which(RMSE == min(RMSE))])
+
+# fitting final model to the whole data set
+glmnet.fit <- with(df, glmnet(poly(X, degree = 10), Y))
+
+# examine structure of our regularized model:
+coef(glmnet.fit, s = best_lambda)
+```
+
+We end up using only 3 nonzero coefficients, even though the model has the ability to use 10. Selecting a simpler model like this one,
+even when more complicated models are possible, is the major strategy behind regularization. W/ regularization in our toolkit, we can employ polynomial regression w/ a large degree + still keep ourselves from overfitting the data.
+
+# Text Regression
+CV +  regularization = both powerful tools that allow us to use complex models that can mimic very intricate patterns in data w/out overfitting. Can employ regularization to use text to predict some continuous output (how volatile a stock will be based on IPO filings). When using text as an input for a regression problem, almost always have far more inputs (words) than observations (documents). If we have more observations than **1-grams** (single words), simply consider **2-grams** (pairs of words) or **3-grams** (triplets of words) until we have more **n-grams** than documents. 
+
+B/c our data set has more columns than rows, unregularized linear regression will *always* produce an overfit model. Must use some form of regularization to get any meaningful results.
+
+Predict relative popularity of top-100-selling books O’Reilly has ever published using only descriptions of those books from their back covers as input. To transform these text descriptions into a useful set of inputs, we’ll convert
+each book’s description into a vector of word counts so that we can see how often words
+such as “the” and “Perl” occur in each description. The results of our analysis will be,
+in theory, a list of the words in a book’s description that predict high sales.
+Of course, it’s always possible that the prediction task simply can’t be
+achieved. This may be the result of the model assigning high coefficients
+to words that are essentially arbitrary. That is, it may be that there are
+very few common words in the descriptions of popular O’Reilly books,
+but because the model does not know this it will still attempt to fit the
+data and assign value to some words. In this case, however, the results
+would provide little to no new information about what makes these
+words useful. This problem will not come up explicitly in this example,
+but it is very important to keep this in mind when performing text re-
+gression.
+To get started, let’s load in our raw data set and transform it into a document term
+matrix using the 
+tm
+ package that we introduced in 
+Chapter 3
+:
+ranks <- read.csv('data/oreilly.csv', stringsAsFactors = FALSE)
+library('tm')
+documents <- data.frame(Text = ranks$Long.Desc.)
+row.names(documents) <- 1:nrow(documents)
+corpus <- Corpus(DataframeSource(documents))
+corpus <- tm_map(corpus, tolower)
+corpus <- tm_map(corpus, stripWhitespace)
+corpus <- tm_map(corpus, removeWords, stopwords('english'))
+dtm <- DocumentTermMatrix(corpus)
+Here we’ve loaded in the 
+ranks
+ data set from a CSV file, created a data frame that
+contains the descriptions of the books in a format that 
+tm
+ understands, created a corpus
+from this data frame, standardized the case of the text, stripped whitespace, removed
+the most common words in English, and built our document term matrix. With that
+work done, we’ve finished all of the substantive transformations we need to make to
+our data. With those finished, we can manipulate our variables a little bit to make it
+easier to describe our regression problem to 
+glmnet
+:
+x <- as.matrix(dtm)
+y <- rev(1:100)
+Text Regression
+|
+175
+Here we’ve converted the document term matrix into a simple numeric matrix that’s
+easier to work with. And we’ve encoded the ranks in a reverse encoding so that the
+highest-ranked book has a 
+y
+-value of 100 and the lowest-ranked book has a 
+y
+-value of
+1. We do this so that the coefficients that predict the popularity of a book are positive
+when they signal an increase in popularity; if we used the raw ranks instead, the coef-
+ficients for those same words would have to be negative. We find that less intuitive,
+even though there’s no substantive difference between the two coding systems.
+Finally, before running our regression analysis, we need to initialize our random seed
+and load the 
+glmnet
+ package:
+set.seed(1)
+library('glmnet')
+Having
+ done that setup work, we can loop over several possible values for 
+Lambda
+ to
+see which gives the best results on held-out data. Because we don’t have a lot of data,
+we do this split 50 times for each value of 
+Lambda
+ to get a better sense of the accuracy
+we get from different levels of regularization. In the following code, we set a value for
+Lambda
+, split the data into a training set and test set 50 times, and then assess our model’s
+performance on each split.
+performance <- data.frame()
+for (lambda in c(0.1, 0.25, 0.5, 1, 2, 5))
+{
+  for (i in 1:50)
+  {
+    indices <- sample(1:100, 80)
+    training.x <- x[indices, ]
+    training.y <- y[indices]
+    test.x <- x[-indices, ]
+    test.y <- y[-indices]
+    glm.fit <- glmnet(training.x, training.y)
+    predicted.y <- predict(glm.fit, test.x, s = lambda)
+    rmse <- sqrt(mean((predicted.y - test.y) ^ 2))
+    performance <- rbind(performance,
+                         data.frame(Lambda = lambda,
+                                    Iteration = i,
+                                    RMSE = rmse))
+  }
+}
+After computing the performance of the model for these different values of 
+Lambda
+, we
+can compare them to see where the model does best:
+ggplot(performance, aes(x = Lambda, y = RMSE)) +
+  stat_summary(fun.data = 'mean_cl_boot', geom = 'errorbar') +
+  stat_summary(fun.data = 'mean_cl_boot', geom
