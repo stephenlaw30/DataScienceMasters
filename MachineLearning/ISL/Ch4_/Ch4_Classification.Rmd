@@ -1,0 +1,37 @@
+---
+title: "Ch4_Classification"
+author: "Steve Newns"
+date: "November 4, 2017"
+output:
+  html_document: default
+  github_document: default
+  word_document: default
+---
+
+# Ch. 3 Lab: Linear Regression
+
+```{r setup, message=F, warning=F}
+library(MASS) # data sets + functions
+library(ISLR) # data from book
+library(ggplot2)
+library(tidyverse)
+```
+```{r}
+# chance of 50% from slide 8
+#logit_50 <- -10.6513 + .0055*x
+#balance <- (logit_50 + -10.6513) / .0055
+(balance <- abs((log(.5/(1-.5)) + -10.6513) / .0055))
+exp(1)^(-10.6513 + .0055*balance)/(1 + exp(1)^(-10.6513 + .0055*balance))
+```
+
+```{r}
+# Estimate the probability that a student who studies for 40h and has an undergrad GPA of 3.5 gets an A in the class
+hrs <- 40
+gpa <- 3.5
+exp(1)^(-6 + .05*hrs + 1*gpa)/(1 + exp(1)^(-6 + .05*hrs + 1*gpa))
+
+# How many hours would that student need to study to have a 50% chance of getting an A in the class?
+hrs <- 50
+exp(1)^(-6 + .05*hrs + 1*gpa)/(1 + exp(1)^(-6 + .05*hrs + 1*gpa))
+```
+
