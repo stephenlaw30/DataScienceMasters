@@ -1,0 +1,62 @@
+---
+title: "Hierarchical Clustering"
+author: "Steve Newns"
+output: html_document
+---
+
+# Kernel SVM
+
+```{r, warning=F,message=F}
+library(tidyverse)
+library(ggplot2)
+library(cluster) # cluster viz
+```
+
+Mall has data on clients who have a membership card with info on age, gender, and annual income. It also has purchase history of the clients to calculate their **spending score** based on several criteria such as income, # of times the shop at the mall, and $ spent in a year. (closer score is to 100 = more client spends). You were hired to segment clients into different groups based on annual income and spending score.
+
+We will only use age and salary to predict this.
+```{r}
+## import data 
+mall <- read.csv("../data/Mall_Customers.csv")
+
+## Cut down dataset
+x <- mall %>%
+  select(Annual.Income..k..,Spending.Score..1.100.)
+
+distance <- dist(x, method = "euclidean")
+
+# use dendogram to find optimal # of clusters
+set.seed(123)
+# 1st arg = vectors of euclidean distances between each pair of customers via 2 features
+# ward.D method tries to minimize the variance in each cluster (like minimizing WCSS in K means)
+dendrogram <- hclust(distance, method = "ward.D")
+
+# plot dendrogram
+plot(dendrogram, main = "Dendrogram", 
+     xlab = "Customers (DP's)", ylab = "Euclidean Distance/Similarity")
+```
+
+It looks like that largest vertical distance that does not cross a horizontal line is the far left line between 500 and 1000 for y-values. A horizontal line through this vertical line will cross 5 total vertical lines, giving us an "optimal" K value of 5.
+
+Now we must fit the hierarchicl clustering algorithm to the data.By building the dendrogram, we've actually already done all the steps of hierarchicl clustering
+```{r}
+hc <- hclust(distance, method = "ward.D")
+
+# cut the tree to make 5 clusters to make vector of which cluster a client belongs to
+y_hc <- cutree(tree = hc, k = 5)
+```
+
+Now to visualize the clusters
+
+```{r, warning=F,message=F}
+# plot clusters w/ no distance lines
+# shade + color ellipses w/ respect to their density
+# label points in ellipses + keep same characters for all clusters
+# each cluster is represented by the ellipse with smallest area containing all its points (span = T)
+clusplot(x = x, clus = y_hc, lines = 0, shade = T, color = T, labels = 2, plotchar = F,
+         span = T, main = "Clusters of Clients", xlab = "Annual Income", ylab = "Spending Score")
+```
+
+These clusters look very similar to the K-means clusters, with only Cluster 5 having a different shape as it lost 2 DP's. 
+
+Cluster 4 has high income, low score (careful/frugal), cluster 2 has high income + higher score (big rollers/main potential **target** of marketing campaigns = find out what they buy ), cluster 3 = average income + spending (typical/standard), cluster 1 = low income + low score (sensible), cluster 5 = low income, high score (careless).
