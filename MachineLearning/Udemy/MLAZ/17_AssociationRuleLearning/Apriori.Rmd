@@ -1,0 +1,47 @@
+---
+title: "Apriori algorithm "
+author: "Steve Newns"
+output: html_document
+---
+
+```{r, warning=F,message=F}
+library(tidyverse)
+library(ggplot2)
+library(arules) # sparse matrix
+```
+
+We are optimizing a grocery store in the south of France.
+
+```{r}
+## import data 
+supermarket <- read.csv("Market_Basket_Optimisation.csv", header = F)
+glimpse(supermarket)
+```
+
+This dataset contains 7.5K customer transactions of the customers of the store for a certain week, with the max number of items in 1 basket being 20. The manager noticed his loyal customers come to the store and buy something at least once a week, on average. Therefore, the transactions over 1 week are representative of what customers want to buy.
+
+We want to learn associations in these data. The **apriori** algorithm must take in a **sparse matrix** (contains a large number of 0's and few non-zero values), *NOT* the CSV we loaded in.
+
+```{r}
+# transform dataset to sparse matrix by attributing each unique item to a column
+# each row = still an observation corresponding to the 7.5k transactions w/ a 0/1 for each product
+# there are some duplicates in the dataset
+supermarkets_mtx <- read.transactions("Market_Basket_Optimisation.csv", sep = ",", 
+                                      rm.duplicates = T)
+```
+
+See that we have 5 transactions containing 1 duplicate item.
+
+```{r}
+summary(supermarkets_mtx)
+```
+
+See that we 119 items + our original 7.5k transactions, with a **density** of .032, which means we have 3.2% non-zero values in the matrix. We can also see we have 1754 basked w/ only 1 item, 1358 with only 2 items, and so on. The average # of items in a basket is 3.914 = ~4.
+
+Now we will create a frequency plot of the different products bought by differnt customers throughout the week.
+```{r}
+# get top 20 items in store
+itemFrequencyPlot(x = supermarkets_mtx, topN = 20)
+```
+
+Now we will have to use this to choose **support** levels and find the minimum support value.
