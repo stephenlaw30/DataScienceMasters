@@ -1,0 +1,16 @@
+---
+title: "Ch7_Optimization_BreakingCodes""
+author: "Steve Newns"
+date: "November 28, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(magrittr)
+library(caTools) #s plit data
+library(glmnet) # regularization
+library(tm)
+library(Hmisc) # plotting final errors
+```

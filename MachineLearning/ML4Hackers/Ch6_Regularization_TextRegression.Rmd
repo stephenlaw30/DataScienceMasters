@@ -11,6 +11,8 @@ library(ggplot2)
 library(magrittr)
 library(caTools) #s plit data
 library(glmnet) # regularization
+library(tm)
+library(Hmisc) # plotting final errors
 ```
 
 # Nonlinear Relationships Between Columns: Beyond Straight
@@ -258,17 +260,18 @@ x <- as.matrix(cbind(x, x))
 glmnet(x, y)
 ```
 
-We get back an entire set of possible regularizations of the regression you’ve asked it to perform. At the top of the list = strongest regularization `glmnet` performed/calculated., + at the bottom = weakest. Each row contains 3 columns. The 1st, `Df` tells you how many coefficients in the model ended up being nonzero (does not include the intercept term which we don’t penalize for its size). Knowing the # of nonzero coefficients is useful b/c many people would like to be able to assert that only a few inputs really matter + we can assert this more confidently if the model performs well even when assigning zero weight to many inputs. When the majority of the inputs to a statistical model are assigned "0"" coefficients, the model is **sparse**. Developing tools for promoting **sparsity** in statistical models is a major topic in contemporary ML research.
+We get back an entire set of possible regularizations of the regression you’ve asked it to perform. At the top of the list = strongest regularization `glmnet` performed/calculated, + at the bottom = weakest. Each row contains 3 columns. The 1st, `Df` tells you how many coefficients in the model ended up being nonzero (does not include intercept term b/c we don’t penalize for its size). Knowing the # of nonzero coefficients is useful b/c many people would like to be able to assert that only **a few inputs really matter** + we can assert this more confidently if the model performs well even when assigning zero weight to many inputs. When the majority of the inputs to a statistical model are assigned "0"" coefficients, the model is **sparse**. Developing tools for promoting **sparsity** in statistical models is a major topic in contemporary ML research.
 
-The 2nd column, `%Dev`, is essentially the R2 for each model. For the top row, it’s 0% b/c you have a 0 coefficient for the 1 predictor + therefore can’t get better performance than just using a constant intercept. For the bottom row, `Dev` = 59%, the value you’d get from using `lm` b/c `lm` doesn’t do any regularization . In between the 2 extremes of regularizing are values from 9% to 58%.
+The 2nd column, `%Dev`, is essentially the R2 for each model. For the top row, it’s 0% b/c you have a 0 coefficient for the 1 predictor + therefore can’t get better performance than just using a constant intercept. For the bottom row, `Dev` = 59%, the value you’d get from using `lm` b/c `lm` doesn’t do any regularization. In between the 2 extremes of regularizing are values from 9% to 58%.
 
-`Lambda` = most important piece of info for regularization = parameter of the regularization algorithm that controls how complex the model fit is allowed to be. B/c it controls the values you’ll eventually get for the main parameters of the model, **Lambda** = a hyperparameter (Ch 7). When Lambda is very large, you penalize your model very heavily for being complex + this penalization pushes all coefficients toward zero. When Lambda is very small, you do NOT penalize your model much at all. At the farthest end of this spectrum toward weaker regularization, set Lambda = 0 + get results like those from an unregularized linear regression like from `lm`.
+`Lambda` = most important piece of info for regularization = parameter of the regularization algorithm that controls how complex the model fit is allowed to be. B/c it controls the values you’ll eventually get for the main parameters of the model, **Lambda** = a **hyperparameter** (Ch 7). When Lambda is very large, you penalize your model very heavily for being complex + this penalization pushes all coefficients toward zero. When Lambda is very small, you do NOT penalize your model much at all. At the farthest end of this spectrum toward weaker regularization, set Lambda = 0 + get results like those from an unregularized linear regression like from `lm`.
 
-To find optimal value for Lambda that gives the best possible model, employ CV as part of the process of working w/ regularization. Instead of playing w/ the degree of a polynomial regression, set the degree to a high value right at the start + then we would fit the model w/ different values for Lambda on a training set and see how it performs on a held-out/out-of-sample test set. After doing this for many values of Lambda, we would be able to see which value gives us best performance on the test data.
+To find optimal value for Lambda that gives the best possible model, employ CV as part of the process of working w/ regularization. Instead of playing w/ the degree of a polynomial regression, set the degree to a high value right at the start + then fit the model w/ different values for Lambda on a training set and see how it performs on a held-out/out-of-sample test set. After doing this for many values of Lambda, we would be able to see which value gives us best performance on the test data.
 
 MUST assess quality of a regularization on held-out test data b/c increasing the strength of regularization can only worsen performance on the training data, so there is literally 0 info you can learn from looking at performance on the training data.
 
 ```{r}
+# create training + test data
 set.seed(1)
 x <- seq(0, 1, by = 0.01)
 y <- sin(2 * pi * x) + rnorm(length(x), 0, 0.1)
@@ -282,12 +285,13 @@ df <- data.frame(X = x, Y = y)
 training.df <- data.frame(X = training.x, Y = training.y)
 test.df <- data.frame(X = test.x, Y = test.y)
 
+# function to calculate RMSE
 rmse <- function(y, h)
 {
   return(sqrt(mean((y - h) ^ 2)))
 }
 
-# loop over values of Lambda instead of degrees
+# loop over values of Lambda instead of degrees + calculate RMSE for 10th-degree polynomial with different lambdas
 # don’t have to refit model each time b/c glmnet stores fitted model for many values of Lambda after a single fitting step.
 glmnet.fit <- with(training.df, glmnet(poly(X, degree = 10), Y))
 lambdas <- glmnet.fit$lambda
@@ -308,7 +312,7 @@ ggplot(performance, aes(x = Lambda, y = RMSE)) +
   geom_line()
 ```
 
-Seems like we get best possible performance (lowest RMSE) w/ Lambda = ~.05. So to fit a model to the full data, we can select that calculated. + train our model on the entire data set.
+Seems like we get best possible performance (lowest RMSE) w/ Lambda = ~.05. So to fit a model to the full data, we can select that calculated lambda + train our model on the entire data set.
 ```{r}
 best_lambda <- with(performance, Lambda[which(RMSE == min(RMSE))])
 
@@ -319,93 +323,55 @@ glmnet.fit <- with(df, glmnet(poly(X, degree = 10), Y))
 coef(glmnet.fit, s = best_lambda)
 ```
 
-We end up using only 3 nonzero coefficients, even though the model has the ability to use 10. Selecting a simpler model like this one,
-even when more complicated models are possible, is the major strategy behind regularization. W/ regularization in our toolkit, we can employ polynomial regression w/ a large degree + still keep ourselves from overfitting the data.
+We end up with a best lamdba of ~.25 and using only 3 nonzero coefficients, even though the model has the ability to use 10. Selecting a simpler model like this one, even when more complicated models are possible, is the major strategy behind regularization. W/ regularization in our toolkit, we can employ polynomial regression w/ a large degree + still keep ourselves from overfitting the data.
 
 # Text Regression
-CV +  regularization = both powerful tools that allow us to use complex models that can mimic very intricate patterns in data w/out overfitting. Can employ regularization to use text to predict some continuous output (how volatile a stock will be based on IPO filings). When using text as an input for a regression problem, almost always have far more inputs (words) than observations (documents). If we have more observations than **1-grams** (single words), simply consider **2-grams** (pairs of words) or **3-grams** (triplets of words) until we have more **n-grams** than documents. 
+
+CV +  regularization = both powerful tools that allow us to use complex models that can mimic very intricate patterns in data w/out overfitting. Can employ regularization to use text to predict some continuous output (how volatile a stock will be based on IPO filings). When using text as an input for a regression problem, almost always have far more inputs (words or cols) than observations (documents or rows). If we have more observations than **1-grams** (single words), simply consider **2-grams** (pairs of words) or **3-grams** (triplets of words) until we have more **n-grams** than documents. 
 
 B/c our data set has more columns than rows, unregularized linear regression will *always* produce an overfit model. Must use some form of regularization to get any meaningful results.
 
-Predict relative popularity of top-100-selling books O’Reilly has ever published using only descriptions of those books from their back covers as input. To transform these text descriptions into a useful set of inputs, we’ll convert
-each book’s description into a vector of word counts so that we can see how often words
-such as “the” and “Perl” occur in each description. The results of our analysis will be,
-in theory, a list of the words in a book’s description that predict high sales.
-Of course, it’s always possible that the prediction task simply can’t be
-achieved. This may be the result of the model assigning high coefficients
-to words that are essentially arbitrary. That is, it may be that there are
-very few common words in the descriptions of popular O’Reilly books,
-but because the model does not know this it will still attempt to fit the
-data and assign value to some words. In this case, however, the results
-would provide little to no new information about what makes these
-words useful. This problem will not come up explicitly in this example,
-but it is very important to keep this in mind when performing text re-
-gression.
-To get started, let’s load in our raw data set and transform it into a document term
-matrix using the 
-tm
- package that we introduced in 
-Chapter 3
-:
-ranks <- read.csv('data/oreilly.csv', stringsAsFactors = FALSE)
-library('tm')
+Predict relative popularity of top-100-selling books O’Reilly has ever published using only descriptions of those books from their back covers as input. To transform these text descriptions into a useful set of inputs, convert each book’s description into a vector of word counts to see how often words such as “the” and “Perl” occur in each description. The results of our analysis will be, in theory, a list of the words in a book’s description that predict high sales.
+
+Of course, it’s always possible that a prediction task simply can’t be achieved. This may be the result of the model assigning high coefficients to words that are essentially arbitrary. For example, there may be very few common words in the descriptions of popular O’Reilly books but b/c the model does not know this, it will still attempt to fit the data + assign value to some words. In this case, however, the results would provide little to no new info about what makes these words useful. It is very important to keep this in mind when performing text regression.
+
+To get started, load in raw data set and transform it into a document term matrix using the 
+```{r}
+ranks <- read.csv('./data/oreilly.csv', stringsAsFactors = FALSE)
+
+# get book description + put as text of document
 documents <- data.frame(Text = ranks$Long.Desc.)
 row.names(documents) <- 1:nrow(documents)
+
+# end up with 100 rows (for each book) with 1 column of book description text
+# convert to Corpus + to lowercase, remove whitespace + stopwords, convert to DTM
 corpus <- Corpus(DataframeSource(documents))
-corpus <- tm_map(corpus, tolower)
+corpus <- tm_map(corpus, content_transformer(tolower))
 corpus <- tm_map(corpus, stripWhitespace)
 corpus <- tm_map(corpus, removeWords, stopwords('english'))
 dtm <- DocumentTermMatrix(corpus)
-Here we’ve loaded in the 
-ranks
- data set from a CSV file, created a data frame that
-contains the descriptions of the books in a format that 
-tm
- understands, created a corpus
-from this data frame, standardized the case of the text, stripped whitespace, removed
-the most common words in English, and built our document term matrix. With that
-work done, we’ve finished all of the substantive transformations we need to make to
-our data. With those finished, we can manipulate our variables a little bit to make it
-easier to describe our regression problem to 
-glmnet
-:
+```
+
+Now to manipulate our variables a little bit to make it easier to describe our regression problem to `glmnet`
+```{r}
+# convert dtm to numeric matrix b/c easier to work with
 x <- as.matrix(dtm)
+# reverse the encoding so highest ranked book has y = 100 and lowest has y = 1
 y <- rev(1:100)
-Text Regression
-|
-175
-Here we’ve converted the document term matrix into a simple numeric matrix that’s
-easier to work with. And we’ve encoded the ranks in a reverse encoding so that the
-highest-ranked book has a 
-y
--value of 100 and the lowest-ranked book has a 
-y
--value of
-1. We do this so that the coefficients that predict the popularity of a book are positive
-when they signal an increase in popularity; if we used the raw ranks instead, the coef-
-ficients for those same words would have to be negative. We find that less intuitive,
-even though there’s no substantive difference between the two coding systems.
-Finally, before running our regression analysis, we need to initialize our random seed
-and load the 
-glmnet
- package:
+```
+
+With a reversed ranking, the coefficients that predict the popularity of a book will be positive when they signal an increase in popularity. If we used raw ranks, coefficients for those same words would have to be negative, which is less intuitive, even though there’s no substantive difference between the two coding systems.
+
+```{r}
 set.seed(1)
-library('glmnet')
-Having
- done that setup work, we can loop over several possible values for 
-Lambda
- to
-see which gives the best results on held-out data. Because we don’t have a lot of data,
-we do this split 50 times for each value of 
-Lambda
- to get a better sense of the accuracy
-we get from different levels of regularization. In the following code, we set a value for
-Lambda
-, split the data into a training set and test set 50 times, and then assess our model’s
-performance on each split.
+# loop over several possible values for Lambda to see which gives best results on test data. 
+# we don’t have a lot of data so do this split 50 times for each value of Lambda 
+# this gets a better sense of accuracy from the different levels of regularization. 
 performance <- data.frame()
-for (lambda in c(0.1, 0.25, 0.5, 1, 2, 5))
-{
+
+# set a values for Lambda to loop through
+for (lambda in c(0.1, 0.25, 0.5, 1, 2, 5)) {
+  # split data into training + test sets 50 times 
   for (i in 1:50)
   {
     indices <- sample(1:100, 80)
@@ -413,19 +379,124 @@ for (lambda in c(0.1, 0.25, 0.5, 1, 2, 5))
     training.y <- y[indices]
     test.x <- x[-indices, ]
     test.y <- y[-indices]
+    # fit model
     glm.fit <- glmnet(training.x, training.y)
+    # make predictions
     predicted.y <- predict(glm.fit, test.x, s = lambda)
+    # calculate error
     rmse <- sqrt(mean((predicted.y - test.y) ^ 2))
+    # store error, lambda value, + iteration # in data frame
     performance <- rbind(performance,
                          data.frame(Lambda = lambda,
                                     Iteration = i,
                                     RMSE = rmse))
   }
 }
-After computing the performance of the model for these different values of 
-Lambda
-, we
-can compare them to see where the model does best:
+```
+
+After computing the performance of the model for these different values of Lambda, compare them to see where the model does best:
+```{r}
 ggplot(performance, aes(x = Lambda, y = RMSE)) +
   stat_summary(fun.data = 'mean_cl_boot', geom = 'errorbar') +
-  stat_summary(fun.data = 'mean_cl_boot', geom
+  stat_summary(fun.data = 'mean_cl_boot', geom = 'point')
+```
+
+Unfortunately, this looks like a failed attempt to apply a statistical method to data. It’s clear the model gets better + better w/ higher values of Lambda, but that case occurs exactly when a model reduces to nothing more than an intercept. At that point, we’re not using any text data at all. 
+
+In short, there’s no signal here our text regression model can find. Everything we see turns out to be noise when you test the model against held-out data. Although that means we don’t have a better idea of how to write a back cover description for a book to make sure it sells well, it’s a valuable lesson for anyone working in ML to absorb: sometimes there’s just no signal to be found in the data you’re working w/ 
+
+"The data may not contain the answer. The combination of some data and an aching desire for an answer does not ensure that a reasonable answer can be extracted from a given body of data." — John Tukey
+
+# Logistic Regression to the Rescue
+
+But we don’t have to give up on this data set completely yet. Although we haven’t succeeded at building a tool that predicts ranks from texts, we might try to do something simpler + see if we can predict whether a book appears in the top 50 or not = classification. Because this distinction is so much broader + simpler, it should be easier to extract a signal from our small data set. 
+
+```{r}
+# add class labels to data set for 1 = in top 50 and 0 = not in top 50
+y <- rep(c(1, 0), each = 50)
+```
+
+Logistic regression is, deep down, essentially a form of regression to predict probability an item belongs to 1 of 2 categories. B/c probabilities are always between 0-1, we can threshold them at 0.5 to construct a classification algorithm. Other than the fact the outputs are between 0-1, logistic regression behaves essentially identically to linear regression + the only difference = need to threshold outputs to produce class predictions. 
+
+```{r}
+# fit logistic regression to the entire data set
+x <- as.matrix(cbind(x, x))
+
+regularized.fit <- glmnet(x, y, family = 'binomial')
+```
+
+Linear regression assumes the errors you see have a **Gaussian distribution**, whereas logistic regression assumes errors are **binomially distributed**, so we use `family = "binomial"`. The binomial distribution produces errors that are all 0s or 1s, which is what we need for 
+```{r}
+# linear regression
+regularized.fit <- glmnet(x, y)
+regularized.fit <- glmnet(x, y, family = 'gaussian')
+# logistic regression
+regularized.fit <- glmnet(x, y, family = 'binomial')
+
+# see what the predictions from our model look like
+y_pred <- predict(regularized.fit, newx = x, s = 0.001)
+head(y_pred)
+tail(y_pred)
+```
+
+Output contains both positive + negative values, even though we’re hoping to get predictions that are 0 or 1. There are 2 things we can do w/ raw predictions.
+
+1) threshold them at 0 and make 0/1 predictions
+```{r}
+ifelse(head(y_pred) > 0, 1, 0)
+ifelse(tail(y_pred) > 0, 1, 0)
+```
+2) Convert into probabilitie = more easily interpretalbe but we’d have to do the thresholding again at 0.5
+```{r}
+# convert raw logistic regression predictions into probabilities, we’
+head(boot::inv.logit(y_pred))
+tail(boot::inv.logit(y_pred))
+```
+
+Logistic regression expects its outputs to be transformed through the **inverse logit function** before you can produce probabilities as outputs. For that reason, logistic regression is often called the **logit model**.
+
+Whichever way you decide to transform the raw logistic regression outputs, what really matters is logistic regression provides you with a tool that does classification just as readily as we performed linear regression in 
+
+Code to use logistic regression to see how well we can classify books into the top 50 or below is essentially identical to the code to fit our rank prediction model using linear regression:
+```{r}
+set.seed(1)
+performance <- data.frame()
+# split data 250 times to get a better sense of mean error rate for each setting of lambda
+for (i in 1:250) {
+  indices <- sample(1:100, 80)
+  training.x <- x[indices, ]
+  training.y <- y[indices]
+  test.x <- x[-indices, ]
+  test.y <- y[-indices]
+  # for each split, loop through different lambda values + calculate error + store it
+  for (lambda in c(0.0001, 0.001, 0.0025, 0.005, 0.01, 0.025, 0.5, 0.1)) {
+    # fit model, make predictions, compute error/rmse, store in data frame 
+    glm.fit <- glmnet(training.x, training.y, family = 'binomial')
+    predicted.y <- ifelse(predict(glm.fit, test.x, s = lambda) > 0, 1, 0)
+    error.rate <- mean(predicted.y != test.y)
+    performance <- rbind(performance,
+                         data.frame(Lambda = lambda,
+                                    Iteration = i,
+                                    ErrorRate = error.rate))
+  }
+}
+```
+
+We’ve split the data so many times b/c done the error rates end up being very close to 50% + we want to confirm we’re truly doing better than chance when making predictions. 
+
+To make this increased splitting more efficient, reverse the order of the splitting + lambda loops so we don’t
+redo the split for every single value of lambda = saves time + serves as a reminder that writing effective ML code requires you behave like a good programmer who cares about writing efficient code.
+
+```{r}
+# graph error rate as we sweep through values of lambda
+ggplot(performance, aes(x = Lambda, y = ErrorRate)) +
+  stat_summary(fun.data = 'mean_cl_boot', geom = 'errorbar') +
+  stat_summary(fun.data = 'mean_cl_boot', geom = 'point') +
+  scale_x_log10()
+```
+
+The results tell us that we’ve had real success replacing regression with classification. For low values of 
+lambda, we’re able to get better than chance performance when predicting whether a book will be among the top 50, which is a relief. Although this data was not sufficient to fit a sophisticated rank prediction regression, it turns out to be large enough to fit a much simpler binary distinction that splits books into the top 50 and below.
+
+Sometimes simpler things are better. Regularization forces us to use simpler models so we get higher performance
+on test data + switching from a regression model to a classification model can give you much better performance because the requirements for a binary distinction are generally much weaker than the requirements for predicting ranks directly.
