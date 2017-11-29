@@ -44,4 +44,41 @@ Now we will create a frequency plot of the different products bought by differnt
 itemFrequencyPlot(x = supermarkets_mtx, topN = 20)
 ```
 
-Now we will have to use this to choose **support** levels and find the minimum support value.
+Now we will have to use this to choose **support** levels and find the minimum support value, which depends on the business goals and the dataset for each problem (no general rule to calculate it).
+
+Remember **support = (total # of transactions containing item i) / total # of transactions**. We want to put the *minimum* support in the `parameter` argument such that items that appear in our rules will have a higher support that this minimum value (same for confidence). So we have to pick a minimum level such that our rules are relevant.
+
+```{r}
+itemFrequencyPlot(x = supermarkets_mtx, topN = 100)
+```
+Looking at the top 100 items, we can see there are a lot of items that are not purchased frequently, so these products have small supports (low # of transactions with these items). Therefore, these items are not very relevant for our optimization problem. While we'd like to optimize *sales*, we're mainly concerned with optimizing *revenue*, a linear combination of a different # of products where the coefficients = prices' products. So we want to optimize sales of most purchases items. So we want support values that only include values to the left of this chart.
+
+Let's look for products that are purchased at least 3 or 4 times per day (for this specific problem). Then, by associating them + placing these frequent items together, customers would be more likely to place *both* items in their basket so more of these items will be purchased and then sales, and therefore revenue, should increase.
+
+If this optimization isn't satisfactory, we can look at the rules + change the value of the support + confidence until satisfied with the rules + believe that they make sense. We can also try a set of rules over a certain period of time and compare sales with prior periods. With no significant positive change in sales + revenue, we can revisit the rules + edit the support + confidence levels until we find the optimal rules to optimize sales.
+
+So, a product purchased 3 times a day over our dataset's time period of a week would be purchased 21 times. This value, divided by the total number of transactions, 7500, gives a minimum support level of:
+```{r}
+(min_support <- 21/7500)
+min_confidence <- .8
+```
+
+We will also start with the default confidence value of .8 + decrease step-by-step until we get logical rules. We don't want to start with too high of a confidence for pairings b/c then we'd get very obvious rules that we didn't need a ML algorithm to find out for us, and too low of a confidence would lead to nonsense rules.
+
+# Train Apriori model on dataste
+```{r}
+# parameter = minimum support + minimum confidence
+rules <- apriori(data = supermarkets_mtx, 
+                 parameter = list(support = min_support, confidence = min_confidence))
+```
+
+Looking at our result, we see `minlen` is 1 which is the minimum # of products in a basket that the rules will consider in our basket of rules is 1, and the `maxlen` is 10. But we also see that have have `[0 rule(s)] done`. So, our trained Apriori algorithm found 0 rules, meaning all the rules it found/made have a confidence > .8. This means each rule should be "correct" for at least 80% of the transactions. Therefore, no rule found was correct 4 out of 5 times. Since we have a lot of customers and a lot of items to purchase, we need to lower this confidence.
+
+```{r}
+# parameter = minimum support + minimum confidence
+min_confidence <- .4
+rules <- apriori(data = supermarkets_mtx, 
+                 parameter = list(support = min_support, confidence = min_confidence))
+```
+
+Now we ended up with over 300 rules, which we can visualize to see the strongest associations.
