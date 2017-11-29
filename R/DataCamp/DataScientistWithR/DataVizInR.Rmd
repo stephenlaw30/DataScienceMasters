@@ -1,0 +1,81 @@
+---
+title: "DataVizInR"
+author: "Steve Newns"
+date: "November 29, 2017"
+output: html_document
+---
+
+```{r}
+library(MASS)
+library(wordcloud)
+```
+`matplot()` can be used to easily generate a plot w/ several scatterplots on the same set of axes. By default, the points in these scatterplots are represented by the numbers 1 through n, where n = the total number of scatterplots included, but most of options available w/ `plot()` are also possible by specifying the appropriate arguments.
+
+Set up a plot array w/ 4 of these multiple scatterplot displays, each including 1 more scatterplot than the previous one + judge for yourself how many scatterplots is too many.
+
+    Use the par() function to set up the mfrow parameter to generate a two-by-two plot array.
+    Use the matplot() function to construct a two-scatterplot display of
+    protein and fat versus calories. Give this plot the title "Two scatterplots" using the title() function. Label the x-axis "calories" and the y-axis "" to get rid of the default y-axis label.
+    protein, fat and fibre versus calories. Give this plot the title "Three scatterplots". Similarly, label the x-axis "calories" and the y-axis "".
+    protein, fat, fibre and carbo versus calories. Give this plot the title "Four scatterplots". Again, label the x-axis "calories" and the y-axis "".
+    protein, fat, fibre, carbo, and sugars versus calories. Give this plot the title "Five scatterplots". Be sure to label the x-axis "calories" and the y-axis "" again.
+
+
+```{r}
+# Construct the vector keep_vars +  extract the desired subset of UScereal
+keep_vars <- c("calories", "protein", "fat",
+               "fibre", "carbo", "sugars")
+df <- UScereal[, keep_vars]
+
+# Set up a two-by-two plot array
+par(mfrow = c(2,2))
+
+# Use matplot() to generate an array of 2, 3, 4, then 5 scatterplots
+matplot(df$calories, df[,c("protein","fat")], xlab = "calories", ylab = "")
+title("Two scatterplots")
+
+matplot(df$calories, df[,c("protein","fat","fibre")], xlab = "calories", ylab = "")
+title("Three scatterplots")
+
+matplot(df$calories, df[,c("protein","fat","fibre","carbo")], xlab = "calories", ylab = "")
+title("Four scatterplots")
+
+matplot(df$calories, df[,c("protein","fat","fibre","carbo","sugars")], xlab = "calories", ylab = "")
+title("Five scatterplots")
+```
+
+# How many words is too many?
+
+Scatterplot arrays lose their utility if allowed to become too complex, either including too many plots, or attempting to include too many scatterplots on 1 set of axes. More generally, any data viz loses its utility if it becomes too complex.
+
+**Wordclouds** presents words in varying sizes depending on frequency via `wordcloud()` called w/ a character vector of words + a 2nd numerical vector giving the # of times each word appears in the collection used to generate the wordcloud.
+
+2 other useful arguments = `scale` = a 2-component numerical vector giving relative size of the largest + smallest words in the display + `min.freq` = only display words that occur at least this # of times in the collection w/ a default value = 3.
+
+The wordcloud package is already loaded in your workspace.
+
+    Use the table() function to create the variable mfr_table that tabulates the number of times each level of the Manufacturer variable appears in the Cars93 data frame.
+    Use the wordcloud() function to display this manufacturer data, setting the scale argument to c(2, 0.25) to make the wordcloud fit in the display window.
+    By default, the wordcloud() function shows only those words that appear 3 or more times. Use the min.freq argument to obtain a display with all Manufacturer values in the wordcloud.
+    Use the table() function to create the variable model_table that tabulates the number of times each level of the Model variable appears in the Cars93 data frame.
+    Use the wordcloud() function with the scale argument set to c(0.75, 0.25) and the min.freq argument set to display all Model values. Use the zoom feature in the 'Plots' window to see this wordcloud more clearly. Does it convey useful information?
+
+```{r}
+# Create table of manufacturer frequencies
+mfr_table <- table(Cars93$Manufacturer)
+
+# create word cloud to show all manufacturers
+wordcloud(words = names(mfr_table), 
+          freq = as.numeric(mfr_table), 
+          scale = c(2,.25), 
+          min.freq = 1)
+
+# Create model_table of model frequencies
+model_table <- table(Cars93$Model)
+
+# Create the wordcloud of all model names with smaller scaling
+wordcloud(words = names(model_table), 
+          freq = as.numeric(model_table), 
+          scale = c(0.75, 0.25), 
+          min.freq = 1)
+```
