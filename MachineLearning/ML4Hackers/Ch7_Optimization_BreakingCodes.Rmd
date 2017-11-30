@@ -8,9 +8,124 @@ output: html_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(ggplot2)
-library(magrittr)
-library(caTools) #s plit data
-library(glmnet) # regularization
-library(tm)
-library(Hmisc) # plotting final errors
 ```
+
+# Introduction to Optimization
+
+Now to examine some of the techniques used to implement the most basic ML algorithms such as putting together a function for fitting simple linear regression models w/ only ` predictor to motivate the idea of viewing the act of fitting a model to data as an **optimization problem** = one in which we have a machine w/ some knobs we can turn to change the machine’s settings + a way to measure how well the machine is performing w/ the current settings.
+
+We want to find the best possible settings, which will be those that maximize some simple measure of how well the machine is performing, + that point = the **optimum** + reaching it = **optimization**
+
+Once we have a basic understanding of optimization, we’ll build a very simple code-breaking system that treats deciphering an encrypted text as an optimization problem by building our own linear regression function
+
+Back to standard example data set, assume we can predict weights by computing a linear function of their heights.
+```{r}
+height.to.weight <- function(height, a, b)
+{
+  # a = line slope parameter, b = intercept parameter (weight of person w/ height = 0)
+  return(a + b * height)
+}
+```
+
+Optimization helps decide which values of parameters a + b are best by 1st defining a measure of how well the function predicts weights from heights + then changing values of a + b until we predict as well as we possibly can
+
+`lm` already does all of this for us via a simple error function it tries to optimize + finds the best values for parameters using a very specific algorithm that works only for ordinary linear regression.
+
+```{r}
+heights.weights <- read.csv('data/01_heights_weights_genders.csv')
+coef(lm(Weight ~ Height, data = heights.weights))
+```
+Why are these reasonable choices for a + b? To answer that, we need to know that the **error function** `lm` is using is based on an error measure = **squared error** which works in the following way:
+<ol>
+<li> Fix values for a + b </li>
+<li> Given a value for height, make a guess at the associated weight. </li>
+<li> Take true weight + subtract predicted weight. + call this the error. </li>
+<li> Square the error </li>
+<li> Sum the squared errors over all of your examples to get your sum of squared errors. </li>
+</ol>
+
+For *interpretation*, we usually take the mean rather than sum + compute square roots (**RMSE**), but for *optimization*, none of that is truly necessary, so we can save some small amount of computational time by just calculating the sum of squared errors.
+
+NOTE: If we weren’t summing the errors for each DP together, squaring wouldn’t be helpful. Squaring is essential b/c summing all raw errors together would give 0 total error.
+
+Implements this approach:
+```{r}
+squared.error <- function(heights.weights, a, b)
+{
+  # use helper function height.to.weight from above to predict weight
+  predictions <- with(heights.weights, height.to.weight(Height, a, b))
+  
+  # calculate error + sum its squares
+  errors <- with(heights.weights, Weight - predictions)
+  return(sum(errors ^ 2))
+}
+
+# evaluate squared.error() at some specific values of a + b
+for (a in seq(-1, 1, by = 1))
+{
+  for (b in seq(-1, 1, by = 1))
+  {
+    print(squared.error(heights.weights, a, b))
+  }
+}
+```
+
+Some values of a + b give much lower values for `squared.error` than others. We want to find the best values for a + b now that we have a meaningful error function that tells us something about our ability to make predictions, which is the 1st part of an optimization problem = set up a metric to try to minimize/maximize, the **objective function**
+
+1 obvious approach = **grid search**: compute a table for a large enough range of values of a + b + pick the row w/ lowest/highest metric value (lowest `squared.error` for this example). This approach always gives the best value *in the grid searched*, so it’s not an unreasonable approach. But there are some serious problems with it:
+<ul>
+<li> How close should the values you use to define the grid be to each other? Should a be values 0, 1, 2, 3 or 0, 0.001, 0.002, 0.003? In other words, *what is the right resolution at which we should perform our search?* Answering this requires you evaluate *both* grids + see which is more informative, an computationally costly evaluation + effectively introduces another a *2nd* optimization problem of optimizing the size of the grid to use. Down that road lies infinite loop madness .<li>
+<li> To evaluate this grid at 10 points per parameter for 2 parameters, you need to build a table w/ 100 entries. But if you want this evaluate this grid at 10 points per parameter for 100 parameters, you need to build a table w/ 10^100 entries. This problem of exponential growth is so widespread in ML that it’s called the **Curse of Dimensionality**. B/c we want to be able to use linear regression w/ hundreds or even thousands of inputs, *grid search is out for good as an optimization algorithm*. <li>
+<Ul>
+
+Thankfully for us, CPU scientists + mathematicians have been thinking about the problem of optimization for a long time and have built a large set of off-the-shelf optimization algorithms. In R, usually make a 1st pass at an optimization problem w/ `optim()`, a black box that implements many of the most popular optimization algorithms.
+
+Use it to fit our linear regression model + hope that it produces values for a + b similar to those produced by `lm`
+```{r}
+# give initial parameter values of a = 0 and b = 0 for parameters to optimize
+optim(par = c(0, 0),
+      # pass vector of all parameters to optimize into anonymous function to partition into `squared.error`
+      function (x) {
+        squared.error(heights.weights, x[1], x[2])
+      })
+# compare with lm
+coef(lm(Weight ~ Height, data = heights.weights))
+```
+
+The `optim` values are very close to those produced by `lm`, suggesting that `optim` is working, or at least is doing the same wrong thing as `lm`.
+
+In practice, `lm` uses an algorithm much more specific to linear regression than our call to `optim` + this makes `lm` results more precise than those produced by `optim`. If working through your own problems, though, `optim` is much better to work with b/c it can be used w/ models other than linear regression.
+
+Other `optim` are sometimes less interesting. `$value` = value of squared error evaluated at the parameters `optim` claims are best. `$counts` tells us how many times `optim` evaluated  the  main  function  (`function`) + the gradient (`gradient`), an optional argument that can be passed if you know enough calculus to compute the gradient of the main function. We dislike calculating gradients by hand, so we usually let `optim` do its magic without specifying any value for the optional `gradient` argument.
+
+`$convergence` tells us whether or not `optim` found a set of parameters it’s confident are the best possible. If everything went well, you’ll see a 0 (Check `optim` documentation for interpretations of different error codes for when your result isn’t 0). Finally, `$message` tells us whether anything happened that we need to know about.
+
+In general, `optim` is based on a lot of clever ideas from calculus that help perform optimization. B/c it’s quite mathematically complex, we won’t get into the inner workings of `optim`. But the general spirit of what `optim` is doing is very simple to express graphically. 
+
+Imagine you only wanted to find the best value of a after you decided b had to be 0. You could calculate the squared error when you *vary only a* using:
+```{r}
+a.error <- function(a) {
+  return(squared.error(heights.weights, a, 0))
+}
+```
+
+To get a sense of where the best value of a, graph the squared error as a function of a using `curve()` which evaluates a function or expressio at a set of many values of a variable, x, + plots the output of that function or the value of the expression.
+```{r}
+# Evaluated `a.error` at many values of x via `sapply`
+curve(sapply(x, function (a) {a.error(a)}), from = -1000, to = 1000)
+```
+
+T seems to be a single value for a + every value that moves further away is worse = there’s a **global optimum**. In cases like that, `optim` can use the shape of the squared error function to figure out in which direction to head after evaluating the error function at a single value of a. Using this *local* info to learn something about the *global* structure of your problem lets `optim` hit the optimum very quickly.
+
+To get a better sense of the full regression problem, we also need to look at how the error function responds when we change b while keeping a constant at 0
+```{r}
+b.error <- function(b) {
+  return(squared.error(heights.weights, 0, b))
+}
+curve(sapply(x, function (b) {b.error(b)}), from = -1000, to = 1000)
+```
+
+The error function looks like it also has a global optimum for b. Taken together w/ evidence there’s a global optimum for a, this suggests it should be possible for `optim` to find a single best value for *both* a + b that minimize our error function.
+
+More generally, we can say `optim` works b/c it can search for the troughs of these graphs in all of the parameters at once using calculus + works faster than grid search b/c it can use info about the point it’s currently considering to infer something about nearby points (**gradient descent**). That lets it decide which direction it should move in
+to improve its performance. This adaptive behavior makes it much more efficient than grid search.
