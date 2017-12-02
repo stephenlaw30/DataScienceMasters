@@ -178,3 +178,107 @@ plot(density(geyser$duration), main = "Density")
 qqPlot(geyser$duration, main = "QQ-plot")
 ```
 
+# Constructing and displaying layout matrices
+
+Can set up a **layout matrix** to be used w/ `layout()` in creating a plot array. Think of the layout matrix as the plot pane, where 0 = empty space + other #'s represent the plot #, which is determined by the sequence of visualization function calls. For example, a 1 in the layout matrix = the viz that was called 1st, a 2 = plot of 2nd viz call, etc. Create your own 3 x 2 layout matrix w/ `c()` to concatenate numbers into vectors that will form the rows of the matrix.
+
+Then use `matrix()` to convert these rows into a matrix + apply `layout()` to set up the desired plot array. The **convenience function** `layout.show()` can then be used to verify the plot array has the shape you want.
+
+
+    Using the matrix() function, create a matrix called layoutMatrix with three rows and two columns:
+        the first row designates an empty plot to the left and plot 1 to the right.
+        the second row designates plot 2 to the left and an empty plot to the right.
+        the third row designates an empty plot to the left and plot 3 to the right.
+    Use the layout() function to set up the desired plot array.
+    Use the layout.show() function to show the arrangement of all three plots.
+
+```{r}
+# Use the matrix function to create a matrix with three rows and two columns
+layoutMatrix <- matrix(
+  c(0, 1,
+    2, 0,
+    0, 3), byrow = T, nrow = 3)
+
+# Call the layout() function to set up the plot array
+layout(layoutMatrix)
+
+# Show where the three plots will go 
+layout.show(n=3)
+```
+
+`layout()` is a little harder than setting up plot arrays w/ `mfrow` parameter, but it is a lot more flexible.
+
+# Creating a triangular array of plots
+
+Use layoutMatrix to give 3 different views of `whiteside` w/ 1st plot on upper right of plot array = the relationship of `Gas` + `Temp` using data where `Insul = "Before"`, 2nd plot in center left of plot array = relationship of same 2 variables using all data, + 3rd plot on lower left of plot array = relationship using data where `Insul = "After"`.
+
+The primary motivation for this exercise is that it is not possible to construct a plot array in this format using the mfrow parameter, since the array is not rectangular.
+
+The layout matrix you set up in the previous is available in your workspace as layoutMatrix. The whiteside data frame is already available in your workspace as well.
+
+    Call the layout() function on layoutMatrix to set up the plot array.
+    Construct a vector indexB that points to only those records with the Insul value "Before" and a vector indexA that points to only those records with the Insul value "After".
+    Plot the Gas versus Temp values from the indexB data in the upper right plot in your array, using the y-axis limits c(0, 8). Give this plot the title "Before data only".
+    Plot the Gas versus Temp values from the complete dataset in the center left plot, using the same y-axis limits as the first plot. Give this plot the title "Complete dataset".
+    Plot the Gas versus Temp values from the indexA data in the lower right plot, again using the same y-axis limits. Give this plot the title "After data only".
+
+```{r}
+# Set up the plot array via layout(layoutMatrix) call to set up the plot array.
+layout(layoutMatrix)
+
+# Construct vectors indexB and indexA
+indexB <- which(whiteside$Insul == "Before")
+indexA <- which(whiteside$Insul == "After")
+
+# Create plot 1 and add title
+plot(whiteside$Temp[indexB], whiteside$Gas[indexB],
+     ylim = c(0,8))
+title("Before data only")
+
+# Create plot 2 and add title
+plot(whiteside$Temp, whiteside$Gas,
+     ylim = c(0,8))
+title("Complete dataset")
+
+# Create plot 3 and add title
+plot(whiteside$Temp[indexA], whiteside$Gas[indexA],
+     ylim = c(0,8))
+title("After data only")
+```
+
+# Creating arrays with different sized plots
+
+Besides creating non-rectangular arrays, `layout()` can be used to create plot arrays w/ different sized component plots, something else not possible via `par()`'s `mfrow` parameter.
+
+Create standard scatterplot of `zn` vs. `rad` from `Boston` as a smaller plot in the upper left, w/ a larger sunflower plot of the same data in the lower right.
+
+The Boston data frame in the MASS package is already available in your workspace.
+
+    Using the c() function:
+    Create the three-element vector row1 with values (1, 0, 0).
+    Create the three-element vector row2 with values (0, 2, 2).
+    Combine the first vector with two copies of the second vector into layoutVector, a vector of length 9.
+    Using the matrix() function, convert layoutVector into the 3-by-3 matrix layoutMatrix whose first row is row1 and whose second and third rows are row2.
+    Use the layout() function with layoutMatrix to configure a two-element plot array.
+    In the first (smaller) plot, create a standard scatterplot of the zn variable versus the rad variable from the Boston data frame.
+    In the second (larger) plot, create a sunflower plot using the sunflowerplot() function and the same variables.
+
+```{r}
+# Create row1, row2, and layoutVector
+row1 <- c(1,0,0)
+row2 <- c(0,2,2)
+layoutVector <- c(row1,row2,row2)
+
+# Convert layoutVector into layoutMatrix
+layoutMatrix <- matrix(layoutVector, byrow = T, nrow = 3)
+
+# Set up the plot array
+layout(layoutMatrix)
+
+# Plot scatterplot
+plot(Boston$rad, Boston$zn)
+
+# Plot sunflower plot
+sunflowerplot(Boston$rad, Boston$zn)
+```
+
