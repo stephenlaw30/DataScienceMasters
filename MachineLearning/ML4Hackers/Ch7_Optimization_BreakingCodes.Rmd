@@ -1,5 +1,5 @@
 ---
-title: "Ch7_Optimization_BreakingCodes""
+title: "Ch7_Optimization_BreakingCodes"
 author: "Steve Newns"
 date: "November 28, 2017"
 output: html_document
@@ -212,3 +212,249 @@ The absolute error curve is much sharper than the squared error or the ridge err
 `optim` doesn’t get as much info about the direction in which it should go from a single point + won’t necessarily reach the global optimum, even though we can clearly see one exists from simple visual inspection.
 
 B/c some types of error metrics break otherwise powerful algorithms, part of the art of doing ML well is learning when simple tools like `optim` will work vs. when you’ll need something more powerful. There are algorithms that work for absolute error optimization, but they’re beyond the scope of this book (**convex optimization**).
+
+
+# Code Breaking as Optimization
+
+Moving beyond regression models, almost every algorithm in ML can be viewed as an optimization problem trying to minimize some measure of prediction error, but sometimes parameters aren’t simple #'s, so evaluating an error function at a single point doesn’t give enough info about nearby DP's to use `optim`. For these problems, we could use grid search, but there are other approaches that work better than grid search. 
+
+1 approach that’s fairly intuitive + very powerful has a big idea behind it = **stochastic optimization** = to move through the range of possible parameters slightly randomly, but making sure to head in directions where the error function tends to go down rather than up. This approach is related to a lot of popular optimization algorithms, including **simulated annealing**, **genetic algorithms**, + **Markov chain Monte Carlo (MCMC)**. The specific algorithm we’ll use is called the
+**Metropolis method**, as versions of the Metropolis method power a lot of modern ML algorithms.
+
+# Case study: Breaking secret codes. 
+
+The algorithm we’re going to define isn’t a very efficient decryption system + would never be seriously used for PROD systems, but it’s a very clear example of how to use the Metropolis method. Importantly, it’s also an example where most out-of-the-box optimization algorithms such as `optim` could never work.
+
+Given a string of letters you know are encrypted using a **substitution cipher**, but how do we decide on a decryption rule that gives us the original text? Substitution ciphers = the simplest possible encryption system = replace every letter in an unencrypted message w/ a fixed letter in the encrypted message. **ROT13** is probably the most famous example (replace every letter w/ the letter 13 positions further in the alphabet, so “a” = “n,” “b’” = “o,” + so on), though the **Caesar cipher** might also be known to you = a very simple substitution cipher = replace every letter w/ its neighbor in the alphabet: “a” = “b,” “b” = “c,”, “z” = “a.”)
+
+```{r}
+# create the Caesar cipher
+english.letters <- c('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',
+                     'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v',
+                     'w', 'x', 'y', 'z')
+caesar.cipher <- list()
+inverse.caesar.cipher <- list()
+
+# for each letter, 
+for (index in 1:length(english.letters)) {
+  # get letter 1 position further in alphabet (use modulus to get z = a) + place into original index
+  caesar.cipher[[english.letters[index]]] <- english.letters[index %% 26 + 1]
+  # get new index + replace with original index to get back original alphabet
+  inverse.caesar.cipher[[english.letters[index %% 26 + 1]]] <- english.letters[index]
+}
+head(caesar.cipher)
+tail(caesar.cipher)
+```
+
+W/ the cipher implemented, build some functions so we can translate a string using a cipher:
+```{r}
+# function to apply cipher to single string
+apply.cipher.to.string <- function(string, cipher) {
+  output <- ""
+  for (i in 1:nchar(string)) {
+    # get current letter index in string via substr, paste with other chars with no spaces
+    output <- paste(output, cipher[[substr(string,i,i)]], sep = "")
+  }
+  return(output)
+}
+#apply.cipher.to.string("hi", caesar.cipher)
+
+# cipher to apply to multiple strings in a text vector
+apply.cipher.to.text <- function(text, cipher) {
+  output <- c()
+  for (string in text) {
+    # apply single-string cipher to each string in the text
+    output <- c(output, apply.cipher.to.string(string, cipher))
+  }
+  return(output)
+}
+
+apply.cipher.to.text(c('sample', 'text'), caesar.cipher)
+```
+
+Now we have some basic tools for working w/ ciphers, start thinking about the problem of breaking codes we might come across. Just as w/ linear regression, break the substitution ciphers in several parts:
+<ol>
+<li> Define a measure of the **quality** of a proposed decryption rule. </li>
+<li> Define an algorithm for proposing **new potential decryption rules** that randomly modifies versions of our current best rule. </li>
+<li> Define an algorithm for moving progressively toward better decryption rules. </li>
+</ol>
+
+To start thinking about how to measure quality of decryption rule, suppose you were given a piece of text you knew had been encrypted using a substitution cipher. Now imagine you only had a *piece* of encrypted text + a guarantee the original message was in standard English. How would you go about decoding it?
+
+The approach to solving that problem = to say a rule is "good" if it turns the encrypted message into normal English. Given a proposed decryption rule, run it on the encrypted text + see whether the output is realistic English. Imagine we had 2 proposed decryption rules, A + B, whose results are:
+<ul>
+<li> decrypt(T, A) = xgpk xkfk xkek </li>
+<li> decrypt(T, B) = veni vidi vici </li>
+</ul>
+
+It’s pretty clear rule B is better as it looks like real language rather than nonsense. To transform that human intuition into something automatic we can program a CPU to do, use a **lexical database** that provides the probability for any word we see. Real language will then be equivalent to text built out of words that have high probability, whereas fake language will be equivalent to text w/ words w/ low probability. The only complexity w/ this approach = dealing w/ words that don’t exist at all as their probability = 0 + we’re going to estimate the probability of a entire piece of text as a whole by multiplying the probability of individual words together. So we need to replace 0 w/ something really small = our machine’s smallest distinguishable floating-point difference, **epsilon**, to be able to use our algorithm. 
+
+Once we’ve handled that **edge case**, we can use a lexical database to rank the quality of 2 pieces of translated text by finding the probability of each word + multiplying them together to find an estimate of the probability of the text as a whole. Using a lexical database to calculate probability of decrypted text gives us our error metric for evaluating a proposed decryption rule. 
+
+Now that we have an error function, our code-breaking problem has turned entirely into a optimization problem, so we just need to find decryption rules that produce text w/ high probability. Unfortunately, the problem of finding the rule w/ the highest text probability isn’t close to being the sort of problem where `optim` would work. Decryption rules can’t be graphed + don’t have the smoothness `optim` needs when trying to figure how to head toward better rules. So we need a totally new optimization algorithm for solving our decryption problem = the Metropolis method, though it’s very, very slow for any reasonable length of text.
+
+The basic idea for the Metropolis method = start w/ an arbitrary decryption rule + iteratively improve it many times so that it becomes a rule that could feasibly be the right one. This may seem like magic at first, but it often works in practice. Once we have a potential decryption rule in hand, we can use human intuition based on semantic coherence + grammar to decide whether we’ve correctly decrypted the text (slowness is considerably exacerbated by R’s slow text-processing tools)
+
+To generate a good rule, start w/ a completely arbitrary rule + repeat a single operation that improves our rule a large # of times, say, 50k. B/c each step tends to head in the direction of better rules, repeating this operation over + over will get us somewhere reasonable in the end, though there’s no guarantee we won’t need 50M steps to get where we’d like to be. That’s the reason this algorithm won’t work well for a serious code-breaking system = you have no guarantee the algorithm will you a solution in a reasonable amount of time + it’s very hard to tell if you’re even moving in the right direction while waiting. This case study is just a toy example that shows off how to use optimization algorithms to solve complex problems that might otherwise seem impossible to solve.
+
+Let’s be specific about how we’re going to propose a new decryption rule. We’ll do it by *randomly disturbing the current rule in just 1 place* = disturb our current rule by changing the rule’s effect on a *single* letter of the input alphabet. If “a” currently translates to “b” under our rule, we’ll propose a modification that has “a” translate to “q.” B/c of the way substitution ciphers works, this will actually require another modification to the part of the rule that originally sent another letter (like say "c") to “q.” To keep our cipher working, “c” now has to translate to “b.” So our algorithm for proposing new rules boils down to making 2 swaps in our existing rule, 1 randomly selected + another forced by the definition of a substitution cipher.
+
+<ol>
+<li> If probability of the text decrypted w/ rule B > probability of the text decrypted w/ rule A, replace A w/ B.
+<li> If not, we’ll still replace A w/ B sometimes, just not every time. To be specific, if probability of the text decrypted w/ rule B = **P(T, B)** + probability of the text decrypted w/ rule A = **P(T, A)**, we’ll switch over to rule B P(T, B) / P(T, A) % of the time.
+
+If this ratio seems to have come out of left field, don’t worry. For intuition’s sake, what really matters isn’t the specific ratio, but the fact that we accept rule B > 0% of the time. That’s what helps us to avoid the traps **greedy optimization**
+
+Before we can use the Metropolis method to sort through different ciphers, we need some tools for creating the perturbed ciphers
+```{r}
+generate.random.cipher <- function() {
+  cipher <- list()
+  inputs <- english.letters
+  # get 26 random samples of letter indices from the #'s 1-26 + get the letters w/ these indices
+  outputs <- english.letters[sample(1:length(english.letters),length(english.letters))]
+  
+  for (index in 1:length(english.letters)) {
+    # replace the letter of the current index in the original letters w/ new letter having same index
+    cipher[[inputs[index]]] <- outputs[index]
+  }
+  # return list of letters that have been perturbed
+  return(cipher)
+}
+#generate.random.cipher()
+
+modify.cipher <- function(cipher, input, output) {
+  # get a copy list of the letters + their replacements from the given cipher
+  new.cipher <- cipher
+  
+  # sample a random letter from current cipher + replace its current replacement w/ new random letter
+  new.cipher[[input]] <- output
+  
+  # create copy of the old cipher w/ the letters' old replacements 
+  old.output <- cipher[[input]]
+  
+  # turn current cipher list into a vector, get current index of the letter that the random letter 
+  # is replacing from this vector, then return the name of this index (the letter being replaced)
+  collateral.input <- names(which(sapply(names(cipher), function(key) { cipher[[key]]}) == output))
+  
+  # in thew new cipher, replace the collateral's value with the old value to replace
+  new.cipher[[collateral.input]] <- old.output
+  return(new.cipher)
+}
+
+propose.modified.cipher <- function(cipher) {
+  input <- sample(names(cipher), 1)
+  output <- sample(english.letters, 1)
+  return(modify.cipher(cipher, input, output))
+}
+```
+Combining this tool for proposing new rules + the rule-swapping procedure specified softens the greediness of our optimization approach w/out making us waste too much time on obviously bad rules w/ much lower probability than our current rule. To do this softening algorithmically, compute P(T, B) / P(T , A) + compare it w/ a random # between 0-1. If the resulting random # is higher than P(T, B) / P(T , A), replace the current rule. If not, stick w/ the current rule.
+
+In order to compute these probabilities, use a lexical database that tells you how often each of the words in `/usr/share/dic/words` occurs in text on Wikipedia.
+```{r}
+load("data/lexical_database.Rdata")
+```
+
+You can get a feel for the database by querying some simple words + seeing their frequencies in our sample text
+```{r}
+head(lexical.database,3)
+lexical.database[["the"]]
+lexical.database[["was"]]
+```
+
+Now that we have our lexical database, we need some methods to calculate the probability of text. 1st, write a function to wrap pulling the probability from the database (Writing a function makes it easier to handle fake words that need to be assigned the lowest possible probability, which = you machine’s floating-point epsilon retrieved via:
+```{r}
+.Machine$double.eps
+```
+```{r}
+one.gram.probability <- function(one.gram, lexical.database = list()) {
+  # get probability of given single word (one.gram) from db
+  lexical.probability <- lexical.database[[one.gram]]
+  
+  # if word does not have a probability, return machine's base min #
+  if ( is.null(lexical.probability) || is.na(lexical.probability)) {
+    return(.Machine$double.eps)
+  } else {
+    return(lexical.probability)
+  }
+}
+```
+
+Now that we have this method for finding the probability of isolated words, create a method for calculating probability of a *piece* of text by pulling the text apart into separate words, calculating probabilities in isolation, + putting them back together by multiplying together. It turns out using raw probabilities is numerically unstable b/c of the finite precision arithmetic floating-point #'s provide when you do multiplicatio, so instead compute the **log probability** of the text = sum of the log probabilities of each word in the text. That value turns out to be numerically stable.
+```{r}
+log.probability.text <- function(text, cipher, lexical.database = list()) {
+  # set base log prob
+  log.probability <- 0.0
+  for (string in text) {
+    decypted.string <- apply.cipher.to.string(string, cipher)
+    # get log prob of current string in text from string's prob in lexical db + add to sum
+    log.probability <- log.probability + log(one.gram.probability(decypted.string,lexical.database))
+  }
+  return(log.probability)
+}
+```
+
+Now w/ all administrative components we need, we can write a single step of the Metropolis method:
+```{r}
+metropolis.single.step <- function(text, cipher, lexical.database = list()) {
+  proposed.cipher <- propose.modified.cipher(cipher)
+  # get probability of the text decrypted correclty via rule 1 and rule 2
+  lp1 <- log.probability.text(text, cipher, lexical.database)
+  lp2 <- log.probability.text(text, proposed.cipher, lexical.database)
+  
+  # if new rule's prob > current rule's prob, return the new cipher as our cipher (update rule)
+  if(lp2 > lp1) {
+    return(proposed.cipher)
+  } else {
+    # raise e to difference in probabilites + compare with a random # from uniform distribion
+    a <- exp(lp2 - lp1)
+    x <- runif(1)
+    if (x < a) {
+      return(proposed.cipher)
+    } else {
+      return(cipher)
+    }
+  }
+}
+```
+
+Now that we have the individual steps of our optimization algorithm working, put them together in a single example program. 1st, set up some raw text as a character vector + encrypt it w/ our Caesar cipher:
+```{r}
+decrypted.text <- c('here', 'is', 'some', 'sample', 'text')
+encrypted.text <- apply.cipher.to.text(decrypted.text, caesar.cipher)
+```
+
+Create a random decryption cipher, run 50k Metropolis steps, + store the results in a data frame. And, for each step, keep a record of the log probability of the decrypted text, the current decryption of the sample text, + a dummy variable indicating whether we’ve correctly decrypted the input text (Of course, if you were really trying to break a secret code, you wouldn’t be able to tell when you’d correctly decrypted the text, but it’s useful to keep a record for demo purposes).
+
+```{r}
+set.seed(1)
+cipher <- generate.random.cipher()
+results <- data.frame()
+number.of.iterations <- 50000
+
+for (i in 1:number.of.iterations) { 
+  # get log prob of our current encrypted text with the random cipher
+  log.probability <- log.probability.text(encrypted.text, cipher, lexical.database)
+  
+  # apply our random cipher to the encrypted text and combine strings into single text
+  current.decrypted.text <- paste(apply.cipher.to.text(encrypted.text, cipher), collapse = " ")
+
+  # check how many letters in attempted decryption match real decypted text
+  correct.text <- as.numeric(current.decrypted.text == paste(decrypted.text, collapse = " "))
+
+  results <- rbind(results, data.frame(Iteration = i,
+                                       LogProbability = log.probability,
+                                       AttemptedDecryption = current.decrypted.text,
+                                       CorrectText = correct.text))
+  
+  # check if we need to update cipher rules w/ Metropolis method 
+  cipher <- metropolis.single.step(encrypted.text, cipher, lexical.database)
+}
+
+write.table(results, file = 'data/decryption_results.csv', row.names = F, sep = '\t')
+```
+
+Checking the CSV, we end up with "were as some simple text", so we’re close to the correct decryption after the step 45k, but not quite there. If you drill down into the results w/ greater detail, we *hit the correct text at row 45,609, but then moved past the correct rule to a different rule. This is actually a problem with our objective function: it’s not really assessing whether the *translation* itself is English, but only whether the individual words are all normal English words. If changing the rule gives you a more probable word, you’ll tend to move in that direction, even if the result is grammatically broken or semantically incoherent. You could use more info about English, such as probability of sequences of 2 words, to work around this. For now, it highlights the complexities of using optimization approaches w/ ad-hoc objective functions: sometimes the solution you want isn’t the solution your rule will decide is best. Humans need to be kept in the loop when using optimization algorithms to solve problems.
+
+In truth, things are even more complicated than problems w/ our objective function not containing enough knowledge about how English works. 1st, the Metropolis method is *always* a *random* optimization method. Luckily we started off w/ a good seed value of 1, but a bad seed value could mean it would take trillions of steps before hitting the right decryption rule (check by playing w/ the seed + running only 1k iterations for each seed). 2nd, the Metropolis method is always going to be willing to move on from good translations. That’s what makes it a **nongreedy algorithm**, so you can often watch it abandon the solution you want it to find if you follow the trace of its progress long enough. The log probability of the decrypted text at every step along the way is very erratic + there are popular ways to deal w/ this random movement. 
+
+1 = Make the method progressively more greedy over time by accepting nongreedy proposed rules less often = **simulated annealing**, a very powerful approach to optimization (use in the example simply by changing the way you accept new decryption rules). Another way to deal w/ this randomness is to embrace it + use it to produce a distribution of possible answers rather than a single right answer. In this problem that’s not very helpful, but in problems where the right answer is a #, it can be very helpful to produce of variety of possible answers. In closing, we hope that you’ve gained some insight into how optimization works in general and how you can use it to solve complicated problems in ML + we’ll use some of those ideas again, especially when talking about recommendation systems.
