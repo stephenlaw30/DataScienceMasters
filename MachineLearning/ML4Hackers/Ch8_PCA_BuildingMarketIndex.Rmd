@@ -1,0 +1,27 @@
+---
+title: "Ch8_PCA_BuildingMarketIndex"
+author: "Steve Newns"
+date: "December 3, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+```
+
+# Unsupervised Learning
+
+Often we want to find structure w/out having any answers available to us about how well we’re doing  = unsupervised learning. Might want to perform **dimensionality reduction** = shrink a table w/ a huge # of cols into a table w/ a small # of cols. If you have too many cols to deal w//, this dimensionality reduction goes a long way toward making a data set comprehensible. Although you clearly lose info when you replace many columns w/ a single column, the gains in understanding are often valuable, especially when exploring a new data set. 
+
+1 place where this type of dimensionality reduction is particularly helpful: dealing w/ stock market data. Might have data that looks like the real historical prices for 25 stocks from January 2, 2002 until May 25, 2011. There are 25, cols far too many to deal w/ in a thoughtful way. We want to create a single column that tells us how the market is doing on each day by combining info in the 25 cols we DO have + calling it an **index** of the market.
+
+The simplest approach to this = **principal components analysis (PCA)** w/ the main idea = to create a new set of 25 cols that're ordered based on how much of the raw info in our data set they contain. The 1st new col/the 1st **principal component** will often contain the vast majority of the structure in the entire data set. PCA is particularly effective when cols in a data set are all strongly correlated. In that case, you can replace correlated columns w/ a single column that matches an underlying pattern that accounts for the correlation between both columns.
+
+Test whether or not PCA will work by seeing how correlated the columns in our data set are.
+```{r}
+prices <- read.csv('data/stock_prices.csv')
+# check 1st row
+prices[1,]
+```

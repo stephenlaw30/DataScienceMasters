@@ -33,8 +33,7 @@ ggplot(data.frame(X = x, Y = y), aes(X, Y)) +
   geom_smooth(se = FALSE)
 ```
 
-We want to fit a curved line instead of a straight line to this data set. The subtleties of linear regression come up when we fit some sort of curved line to our data?. Linear regression can only fit lines in the input, but you can create *new inputs* that are nonlinear functions of your original inputs. For example,
-you can use the following code in R to 
+We want to fit a curved line instead of a straight line to this data set. The subtleties of linear regression come up when we fit some sort of curved line to our data?. Linear regression can only fit lines in the input, but you can create *new inputs* that are nonlinear functions of your original inputs. For example, you can use the following code in R to 
 ```{r}
 # produce a new input based on the raw inputx
 x.squared <- x ^ 2
@@ -53,8 +52,7 @@ summary(lm(y ~ x))$r.squared
 summary(lm(y ~ x.squared))$r.squared
 ```
 
-We’ve gone from accounting for 0% of the variance to accounting for 97%, a pretty huge jump for such a simple change in our model. In general, we might wonder how much more predictive power we can get from using more expressive models w/ more complicated shapes than lines. 
-It turns out you can capture essentially any type of relationship that might exist between 2 variables using more complex curved shapes, possibly via **polynomial regression**, but the flexibility polynomial regression provides is not a purely good thing, b/c it encourages us to *mimic the noise* in our data w/ our fitted model, rather than just the *true underlying pattern* we want to uncover.
+We’ve gone from accounting for 0% of the variance to accounting for 97%, a pretty huge jump for such a simple change in our model. In general, we might wonder how much more predictive power we can get from using more expressive models w/ more complicated shapes than lines. It turns out you can capture essentially any type of relationship that might exist between 2 variables using more complex curved shapes, possibly via **polynomial regression**, but the flexibility polynomial regression provides is not a purely good thing, b/c it encourages us to *mimic the noise* in our data w/ our fitted model, rather than just the *true underlying pattern* we want to uncover.
 
 # Introducing Polynomial Regression
 
