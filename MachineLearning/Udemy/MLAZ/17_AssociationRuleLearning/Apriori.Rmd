@@ -5,9 +5,9 @@ output: html_document
 ---
 
 ```{r, warning=F,message=F}
-library(tidyverse)
-library(ggplot2)
-library(arules) # sparse matrix
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressMessages(library(arules)) # sparse matrix
 ```
 
 We are optimizing a grocery store in the south of France.
@@ -18,13 +18,13 @@ supermarket <- read.csv("Market_Basket_Optimisation.csv", header = F)
 glimpse(supermarket)
 ```
 
-This dataset contains 7.5K customer transactions of the customers of the store for a certain week, with the max number of items in 1 basket being 20. The manager noticed his loyal customers come to the store and buy something at least once a week, on average. Therefore, the transactions over 1 week are representative of what customers want to buy.
+This dataset contains 7.5K customer transactions of the customers of the store for a certain week, with the max number of items in 1 basket being 20. The manager noticed his loyal customers come to the store and buy something at least once a week, on average. Therefore, we assume the transactions over 1 week are representative of what customers want to buy.
 
 We want to learn associations in these data. The **apriori** algorithm must take in a **sparse matrix** (contains a large number of 0's and few non-zero values), *NOT* the CSV we loaded in.
 
 ```{r}
 # transform dataset to sparse matrix by attributing each unique item to a column
-# each row = still an observation corresponding to the 7.5k transactions w/ a 0/1 for each product
+# each row = still an observation corresponding to the 7.5k transactions w cel values of 0/1 for each product
 # there are some duplicates in the dataset
 supermarkets_mtx <- read.transactions("Market_Basket_Optimisation.csv", sep = ",", 
                                       rm.duplicates = T)
@@ -36,9 +36,9 @@ See that we have 5 transactions containing 1 duplicate item.
 summary(supermarkets_mtx)
 ```
 
-See that we 119 items + our original 7.5k transactions, with a **density** of .032, which means we have 3.2% non-zero values in the matrix. We can also see we have 1754 basked w/ only 1 item, 1358 with only 2 items, and so on. The average # of items in a basket is 3.914 = ~4.
+See that we have 119 items + our original 7.5k transactions, with a **density** of .032, which means we have 3.2% non-zero values in the matrix. We can also see we have 1754 baskets w/ only 1 item, 1358 with only 2 items, and so on. The average # of items in a basket is 3.914 = ~4.
 
-Now we will create a frequency plot of the different products bought by differnt customers throughout the week.
+Now we will create a frequency plot of the different products bought by different customers throughout the week.
 ```{r}
 # get top 20 items in store
 itemFrequencyPlot(x = supermarkets_mtx, topN = 20)
@@ -46,18 +46,19 @@ itemFrequencyPlot(x = supermarkets_mtx, topN = 20)
 
 Now we will have to use this to choose **support** levels and find the minimum support value, which depends on the business goals and the dataset for each problem (no general rule to calculate it).
 
-Remember **support = (total # of transactions containing item i) / total # of transactions**. We want to put the *minimum* support in the `parameter` argument such that items that appear in our rules will have a higher support that this minimum value (same for confidence). So we have to pick a minimum level such that our rules are relevant.
+Remember **support = (total # of transactions containing item i) / total # of transactions**. We want to put the *minimum* support in the `parameter` argument such that items that appear in our rules will have a higher support than this minimum value (same for confidence). So we have to pick a minimum level such that our rules are relevant.
 
 ```{r}
 itemFrequencyPlot(x = supermarkets_mtx, topN = 100)
 ```
-Looking at the top 100 items, we can see there are a lot of items that are not purchased frequently, so these products have small supports (low # of transactions with these items). Therefore, these items are not very relevant for our optimization problem. While we'd like to optimize *sales*, we're mainly concerned with optimizing *revenue*, a linear combination of a different # of products where the coefficients = prices' products. So we want to optimize sales of most purchases items. So we want support values that only include values to the left of this chart.
 
-Let's look for products that are purchased at least 3 or 4 times per day (for this specific problem). Then, by associating them + placing these frequent items together, customers would be more likely to place *both* items in their basket so more of these items will be purchased and then sales, and therefore revenue, should increase.
+Looking at the top 100 items, we can see there are a lot of items that are not purchased frequently, so these products have small supports (low # of transactions with these items). Therefore, these items are not very relevant for our optimization problem. While we'd like to optimize *sales*, we're mainly concerned with optimizing *revenue*, a linear combination of a different # of products where the coefficients = prices' products. We want to optimize sales the of most purchased items to optimize revenue, so we want support values that only include values to the left of this chart.
+
+Let's look for products that are purchased at least 3 or 4 times per day (for this specific problem). Then, by associating them + placing these frequent items together, customers would be more likely to place *both* items in their basket and therefore more of these items will be purchased and sales, and therefore revenue, should increase.
 
 If this optimization isn't satisfactory, we can look at the rules + change the value of the support + confidence until satisfied with the rules + believe that they make sense. We can also try a set of rules over a certain period of time and compare sales with prior periods. With no significant positive change in sales + revenue, we can revisit the rules + edit the support + confidence levels until we find the optimal rules to optimize sales.
 
-So, a product purchased 3 times a day over our dataset's time period of a week would be purchased 21 times. This value, divided by the total number of transactions, 7500, gives a minimum support level of:
+So, a product purchased 3 times a day over our dataset's time period of 1 week would be purchased 21 times. This value, divided by the total number of transactions, 7500, gives a minimum support level of:
 ```{r}
 (min_support <- 21/7500)
 min_confidence <- .8
@@ -72,13 +73,48 @@ rules <- apriori(data = supermarkets_mtx,
                  parameter = list(support = min_support, confidence = min_confidence))
 ```
 
-Looking at our result, we see `minlen` is 1 which is the minimum # of products in a basket that the rules will consider in our basket of rules is 1, and the `maxlen` is 10. But we also see that have have `[0 rule(s)] done`. So, our trained Apriori algorithm found 0 rules, meaning all the rules it found/made have a confidence > .8. This means each rule should be "correct" for at least 80% of the transactions. Therefore, no rule found was correct 4 out of 5 times. Since we have a lot of customers and a lot of items to purchase, we need to lower this confidence.
+Looking at our result, we see `minlen` is 1 which means the minimum # of products in a basket that the rules will consider in our basket of rules is 1, and the `maxlen` is 10. But we also see that have have `[0 rule(s)] done`. So, our trained Apriori algorithm found 0 rules, meaning all the rules it found/made did NOT have a confidence > .8. This would have meant each rule should be "correct" for at least 80% of the transactions. Therefore, no rule found was correct 4 out of 5 times. Since we have a lot of customers and a lot of items to purchase, we need to lower this confidence.
 
 ```{r}
-# parameter = minimum support + minimum confidence
+# set minimum support + minimum confidence --> subset transactions w/ better suport + rules w/ better confidence
 min_confidence <- .4
 rules <- apriori(data = supermarkets_mtx, 
                  parameter = list(support = min_support, confidence = min_confidence))
 ```
 
 Now we ended up with over 300 rules, which we can visualize to see the strongest associations.
+
+# Visualizing the results
+
+Now, we have to sort rules by decreasing **lift** (confidence / support = improvement in prediction/likelihood).
+
+```{r}
+#inspect 1st 10 rules w/ highest lift
+inspect(sort(rules, by = "lift", desc = T)[1:10])
+```
+
+Our rules are saying, for example, that in 40% of cases, those bying mineral water and whole wheat pasta will also be buying olive oil, and those buying french fries and herbs and pepper would be buying ground beef in 46% of cases.
+
+But, notice that some items are in baskets not because they're associated, but because they have high suppor, like rule 6: chocolate and herb & pepper = buying ground beef. Chocolate has high support (5th most purchased item) but it does not mean having chocolate in the basket means a customer will also buy ground beef. Having higher support means items will show up in more baskets + more rules, like mineral water. We don't have to to get the most relevant rules instead of rules focusing on the most purchased products + not on associations.
+
+```{r}
+# set minimum support + minimum confidence --> subset transactions w/ better support + rules w/ better confidence
+min_confidence <- .2
+rules <- apriori(data = supermarkets_mtx, 
+                 parameter = list(support = min_support, confidence = min_confidence))
+inspect(sort(rules, by = "lift", desc = T)[1:10])
+```
+
+Now we have a *lot* more rules, which was expected because we decreased our confidence in our rules. But we're still only looking at the top 10 here. We still see the same top rule concerning mineral water, whole wheat pasta, and olive oil (maybe a healthy customer). For rule 2 we can see that if we buy fromage blanc, we're probably going to buy honey (28% of the time) to make a dessert, but we can extrapolate this to say that just because we're buying honey doesn't mean we're going to buy fromage blanc. These are 1-way rules. Most of these rules are quite obvious, with maybe the exception of chicken being bought with light cream. Perhaps the store owner would not have thought to place these items near each other (maybe eating a "healthier" meat to counteract the cream). Rule 9 is a bit odd, and maybe this is again due to the fact that these just happen to be items that are purchased a lot (cereal is not necessarily associated with ground beef). We can see that rule 10 is an example of a 2-way rule, as it is an alternate version of rule 8 (this isn't always the case).
+
+Now we can check this support for items bought 4 times a day.
+```{r}
+(min_support <- round((7*4)/7500,3))
+rules <- apriori(data = supermarkets_mtx, 
+                 parameter = list(support = min_support, confidence = min_confidence))
+inspect(sort(rules, by = "lift", desc = T)[1:10])
+```
+
+Now we have a less rules, which was expected because we increased support meaning we're only dealing with transactions that meet this higher support, which should make a smaller subset. We see our new top rule concerns the chicken with light cream. Rule 2 is also carried over from the previous rules, but rule 3 is new. This rule makes sense thought because pasta and shrimp is common in the south of France. Most other rules are similar to previous rules, except our new rule 9, buying escalope with mushroom cream sauce. The manager of the store can utilize these rules to change up his store's layout/display and compare the revenue of the next couple of weeks with prior time periods to see if these rules are indeed increasing sales + revenue. If this is the case, we can try to strengthen the rules or try to get new rules if we do not increase sales.
+
+Most stores use and update the association rules in combination with other recommendation system techniques like collaborative filtering, using user profiles to get more relavent info, and more advanced techniques such as neighborhood models and latent-factor models which combine a lot of models.
