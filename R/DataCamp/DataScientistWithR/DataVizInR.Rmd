@@ -9,6 +9,7 @@ output: html_document
 library(MASS)
 library(car)
 library(wordcloud)
+library(ggplot2)
 ```
 `matplot()` can be used to easily generate a plot w/ several scatterplots on the same set of axes. By default, the points in these scatterplots are represented by the numbers 1 through n, where n = the total number of scatterplots included, but most of options available w/ `plot()` are also possible by specifying the appropriate arguments.
 
@@ -342,15 +343,162 @@ B/c PNG files can be easily shared + viewed as e-mail attachments + incorporated
 
 ```{r}
 # Call png() w/ name of file to create to direct all subsequent plot results to the external file
-png("bubbleplot.png")
+#png("bubbleplot.png")
 
 # Re-create plot from the last exercise
-symbols(Cars93$Horsepower, Cars93$MPG.city, circles = sqrt(Cars93$Price), inches = 0.1)
+#symbols(Cars93$Horsepower, Cars93$MPG.city, circles = sqrt(Cars93$Price), inches = 0.1)
 
 # Save + file + return to interactive session
-dev.off()
+#dev.off()
 
 # Verify that we have created the file
 list.files(pattern = "png")
+```
+
+
+# Iliinsky and Steele's 12 recommended colors
+
+Create a horizontal barplot that shows Iliinsky + Steele's set of recommended 12 colors, in descending order of desirability w/ the 1st 6 "more preferred" colors displayed w/ longer bars to visually emphasize their preferred status over the other 6
+
+    Notice how the barWidths vector of length 12 contains the length of each bar shown.
+        The 6 longer bars have a value of 2.
+        The 6 shorter ones have a value of 1.
+    Recreate the horizontal barplot you see on the right, using the horiz, col, axes, names.arg, and las arguments to barplot(). Note that since the horizontal barplot is constructed from the bottom up, it is necessary to reverse the IScolors and barWidths vectors in the barplot() function call, using the rev() function.
+```{r}
+# Iliinsky and Steele color name vector
+IScolors <- c("red", "green", "yellow", "blue","black", "white", "pink", "cyan", "gray", "orange", "brown", "purple")
+
+# Make more preferred colors bars twice as long
+barWidths <- c(rep(2, 6), rep(1, 6))
+
+# Recreate the horizontal barplot with colored bars w/ no horizontal axis
+barplot(rev(barWidths), horiz = T, col = rev(IScolors), axes = F, names.arg = rev(IScolors), las = 1)
+```
+
+# Using color to enhance a bubbleplot
+
+`symbols()` could be used to generate a bubbleplot showing the relationship between 3 variables (like Horsepower, MPG.city, + Price from `Cars93`). There, the basic format was a scatterplot of MPG.city vs. Horsepower, w/ points represented as bubbles, sized by Price.
+
+Create a variation on this plot, using the factor variable `Cylinders` to determine both size + color of the bubbles. `as.numeric(Cars93$Cylinders)` generates a sequence of numerical values from 1 to 6 that specify the 6 unique levels of the `Cylinders` factor.
+
+In cases where color is an option, the clarity of this bubbleplot can be improved substantially through the use of color in addition to symbol size. Since `Cylinders` exhibits 6 unique values, 6 colors are required to make this enhancement, so the top 6 colors recommended by Iliinsky + Steele are used here.
+
+    Create the vector cylinderLevels giving numerical labels to the unique values of the Cylinders variable.
+    Using the symbols() function, recreate the bubbleplot shown on the right of MPG.city vs. Horsepower with the bubbles sized by the cylinderLevels variable.
+        Specify a maximum circle radius of 0.2 inches.
+        Use the bg parameter to color each bubble according to the numerical level of the Cylinders factor variable (i.e., the cylinderLevels values), using the first six recommended colors from Iliinsky and Steele (e.g. the first Cylinder level should be colored "red", the second level colored "green", etc.)
+
+```{r}
+# Iliinsky and Steele color name vector
+IScolors <- c("red", "green", "yellow", "blue", "black", "white", "pink", "cyan", "gray", "orange", "brown", "purple")
+
+# Create the `cylinderLevel` variable
+cylinderLevel <- as.numeric(Cars93$Cylinders)
+
+# Create the colored bubbleplot
+symbols(Cars93$Horsepower, Cars93$MPG.city, circles = cylinderLevel, inches = .2, bg = IScolors[cylinderLevel])
+```
+
+See how the number of cylinders influences the relationship between horsepower and gas mileage
+
+# Using color to enhance stacked barplots
+
+The most common barplot consists = a collection of vertical bars, each representing some characteristic of 1 of a finite # of datasets or data subsets. We used a somewhat less common horizontal barplot, useful in part b/c it allows text to be displayed horizontally across the bars.
+
+Another useful variant of the standard bar plot = the **stacked bar plot**, where each bar in the plot = partitioned into segments characterizing portions of the data characterized by the bar. Stacked bar plots can also be generated using barplot()` where each bar is specified by a *matrix* whose columns = the heights of the segments in each bar.
+
+By default, `barplot()` generates stacked bar plots using different shades of gray for different segments of each bar in the plot. Color can be a more effective alternative.
+
+    Create the table tbl giving the record counts for each Cylinders value at each Origin value (this table should have 6 rows and 2 columns).
+    Using the barplot() function, create a stacked barplot that summarizes this information using shades of gray.
+    Recreate this first plot, but using the first six Iliinsky and Steele colors for the six Cylinders levels.
+```{r}
+# Create a table of Cylinders by Origin
+tbl <- table(Cars93$Cylinders,Cars93$Origin)
+
+# Create the default stacked barplot
+barplot(tbl)
+
+# Enhance this plot with color
+barplot(tbl, col = IScolors)
+```
+
+# The tabplot package and grid graphics
+
+`tabplot` allows you to tap into the power of **grid graphics** without explicit knowledge of how the system works under the hood. The main function in `tabplot` = `tableplot()`, developed to visualize data distributions + relationships between variables in large datasets.
+
+Specifically, `tableplot()` constructs a set of side-by-side horizontal barplots, 1 for each variable, + works best when viewing up to about 10 variables at a time, for datasets w/ arbitrarily many records. Apply this function to a dataset w/ just under 68k records + 11 variables.
+
+`tableplot()` is called w/ a data frame +, if no optional arguments are specified, it selects the 1st data col as the reference variable (can be of any type, but the display is easiest to explain it's numeric).
+
+    Load the insuranceData package.
+    Use the data() function to load the dataCar data frame.
+    Load the tabplot package the normal way, but surround your call to library() with the suppressPackageStartupMessages() function to avoid a bunch of unncessary output from printing to the console.
+    Apply the tableplot() function to the dataCar data frame.
+
+```{r}
+# Load the insuranceData package + load the dataCar data frame
+library(insuranceData)
+data(dataCar)
+
+# Load tabplot package
+suppressPackageStartupMessages(library(tabplot))
+
+# Generate the default tableplot() display
+tableplot(dataCar)
+```
+
+Note how much color enhances the displays of categorical variables like `veh_body` and `area`. 
+
+# A lattice graphics example
+
+Another package built on grid graphics = `lattice`, which unlike `tabplot`, is a general-purpose graphics package that provides alternative implementations of many of the plotting functions available in `base` graphics. Specific examples = scatterplots w/ `xyplot()`, bar charts w/ `barchart()`, + boxplots w/ `bwplot()`.
+
+1 important difference between lattice graphics + base graphics = similar functions available in both graphics systems often produce very different results when applied to the same data. `bwplot()` creates horizontal boxplots, while the default result of `boxplot()` = a vertical boxplot display.
+
+Another more important difference between lattice + base graphics = lattice graphics supports conditional plots that show the separate relationships between variables w/in different groups = construct a plot showing the relationship between `calories` + `sugars` from `UScereal`, conditional on the value of `shelf`
+
+
+    Load the lattice package to make the function xyplot() available.
+    Using the conditional formula format "y ~ x | z" (scatterplot of y vs. x, conditioned on z), construct a conditional scatterplot of calories vs. sugars conditional on shelf from the UScereal data frame in the MASS package. Make sure to convert shelf to a factor.
+```{r}
+# Load the lattice package
+library(lattice)
+
+# Use xyplot() to construct the conditional scatterplot
+xyplot(calories ~ sugars| as.factor(shelf), data = UScereal)
+```
+
+# A ggplot2 graphics example
+
+Like `lattice`, `ggplot2` is also based on grid graphics + also represents a general purpose graphics package.
+
+`ggplot2` = based on grammar of graphics, a systematic approach to building + modifying graphical displays, starting w/ a basic graphics element + refining it through the addition of successive modifiers.
+
+1st create a simple scatterplot of `MPG.city` vs. `Horsepower` from `Cars93` data frame then add a simple modifier that adds color based on the value of `Cylinders` + convert this result into a colored bubble plot, w/ both bubble sizes + colors determined by `Cylinders`.
+
+The character vector IScolors from the previous exercises is still available in your workspace.
+
+    Load the ggplot2 package.
+    Create basePlot as the ggplot object based on the Cars93 data frame from the MASS package and the scatterplot aesthetic with x as the Horsepower variable and y as the MPG.city variable. When passing the variable names to x and y, they should be unquoted (e.g. x = var_name). (Note that this definition does not render the scatterplot.)
+    Make a simple rendering of basePlot with the geom_point() function.
+    Make a second rendering using the colour parameter of geom_point() to specify the first six Iliinsky-Steele colors for the six Cylinders levels.
+    Make a third rendering with the same coloring as the second one, but with the point sizes corresponding to the levels of the Cylinders factor variable.
+```{r}
+# Create the basic plot (not displayed): basePlot
+basePlot <- ggplot(Cars93, aes(x = Horsepower, y = MPG.city))
+
+# Display the basic scatterplot
+basePlot + 
+  geom_point()
+
+# Color the points by Cylinders value
+basePlot + 
+  geom_point(col = IScolors[Cars93$Cylinders])
+
+# Make the point sizes also vary with Cylinders value
+basePlot + 
+  geom_point(col = IScolors[Cars93$Cylinders], 
+             size = as.numeric(Cars93$Cylinders))
 ```
 
