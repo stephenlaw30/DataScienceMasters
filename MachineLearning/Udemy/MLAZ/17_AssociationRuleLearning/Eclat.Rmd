@@ -1,0 +1,84 @@
+---
+title: "Eclat algorithm "
+author: "Steve Newns"
+output: html_document
+---
+
+```{r, warning=F,message=F}
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressMessages(library(arules)) # sparse matrix
+```
+
+We are optimizing a grocery store in the south of France.
+
+```{r}
+## import data 
+supermarket <- read.csv("Market_Basket_Optimisation.csv", header = F)
+glimpse(supermarket)
+```
+
+This dataset contains 7.5K customer transactions of the customers of the store for a certain week, with the max number of items in 1 basket being 20. The manager noticed his loyal customers come to the store and buy something at least once a week, on average. Therefore, we assume the transactions over 1 week are representative of what customers want to buy.
+
+We want to learn associations in these data via the **eclat** algorithm, a simplified version of the **apriori** algorithm used to get the most-frequently purchased **set** of products. This is useful if we want a quick-and-dirty answer or we don't want to deal with setting and testing different parameters.
+
+```{r}
+# transform dataset to sparse matrix by attributing each unique item to a column
+# each row = still an observation corresponding to the 7.5k transactions w cel values of 0/1 for each product
+# there are some duplicates in the dataset
+supermarkets_mtx <- read.transactions("Market_Basket_Optimisation.csv", sep = ",", rm.duplicates = T)
+```
+
+See that we have 5 transactions containing 1 duplicate item.
+
+```{r}
+summary(supermarkets_mtx)
+```
+
+See that we have 119 items + our original 7.5k transactions, with a **density** of .032, which means we have 3.2% non-zero values in the matrix. We can also see we have 1754 baskets w/ only 1 item, 1358 with only 2 items, and so on. The average # of items in a basket is 3.914 = ~4.
+
+Now we will create a frequency plot of the different products bought by different customers throughout the week.
+```{r}
+# get top 20 items in store
+itemFrequencyPlot(x = supermarkets_mtx, topN = 20)
+```
+
+Now we will have to use this to choose **support** levels and find the minimum support value, which depends on the business goals and the dataset for each problem (no general rule to calculate it).
+
+Remember **support = (total # of transactions containing item i) / total # of transactions**. We want to put the *minimum* support in the `parameter` argument such that items that appear in our rules will have a higher support than this minimum value (same for confidence). So we have to pick a minimum level such that our rules are relevant.
+
+```{r}
+itemFrequencyPlot(x = supermarkets_mtx, topN = 100)
+```
+
+Looking at the top 100 items, we can see there are a lot of items that are not purchased frequently, so these products have small supports (low # of transactions with these items). Therefore, these items are not very relevant for our optimization problem. While we'd like to optimize *sales*, we're mainly concerned with optimizing *revenue*, a linear combination of a different # of products where the coefficients = prices' products. We want to optimize sales the of most purchased items to optimize revenue, so we want support values that only include values to the left of this chart.
+
+Let's look for products that are purchased at least 3 or 4 times per day (for this specific problem). Then, by associating them + placing these frequent items together, customers would be more likely to place *both* items in their basket and therefore more of these items will be purchased and sales, and therefore revenue, should increase.
+
+If this optimization isn't satisfactory, we can look at the rules + change the value of the support until satisfied with the rules + believe that they make sense. We can also try a set of rules over a certain period of time and compare sales with prior periods. With no significant positive change in sales + revenue, we can revisit the rules + edit the support level until we find the optimal rules to optimize sales.
+
+So, a product purchased 4 times a day over our dataset's time period of 1 week would be purchased 21 times. This value, divided by the total number of transactions, 7500, gives a minimum support level of:
+```{r}
+(min_support <- round((7*4)/7500,3))
+```
+
+We also want to see sets that are > 1, so we will set the minimum basket length to 2.
+
+# Train Eclat model on dataset
+```{r}
+# parameter = minimum support + min basket length (no single items)
+rules <- eclat(data = supermarkets_mtx, parameter = list(support = min_support, minlen = 2))
+```
+
+Looking at our result, we see `minlen` is still 2, and the `maxlen` is 10. But we also see that have 845 ***sets***, and not *rules*. This is because we're not making rules, but just finding those set of items that are pruchased 4 times a day. 
+
+# Visualizing the results
+
+Now, we have to sort rules by decreasing **support**.
+
+```{r}
+#inspect 1st 10 rules w/ highest support
+inspect(sort(rules, by = "support", desc = T)[1:10])
+```
+ 
+ Here we see the most common sets of items purchased in the store over the week-long period. These are quite closely related to the most purchased single products.
