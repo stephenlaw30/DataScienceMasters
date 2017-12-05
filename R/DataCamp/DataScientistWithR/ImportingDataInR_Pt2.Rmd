@@ -1,0 +1,170 @@
+---
+title: "ImportingDataInR_Pt2"
+author: "Steve Newns"
+date: "December 5, 2017"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+```
+# Establish a connection
+
+1st step to import data from a SQL db = creating a connection to it via different packages depending on db 
+
+`dbConnect()` creates a connection between an R session + a SQL db  w/ 1st arg = a **DBIdriver object** that specifies how connections are made + how data is mapped between R + the db. For MySQL db's, you can build such a driver w/ ``RMySQL::MySQL()``. If the MySQL db is a remote db hosted on a server, you'll also have to specify the following arguments: `dbname`, `host`, `port`, `user` + `password.` Most of these details have already been provided.
+
+
+    Load the DBI library, which is already installed on DataCamp's servers.
+    Edit the dbConnect() call to connect to the MySQL database. Change the port argument (3306) and user argument ("student").
+```{r}
+# Load the DBI package
+library(DBI)
+
+# Edit dbConnect() call to connect to tweater db
+con <- dbConnect(RMySQL::MySQL(), 
+                 dbname = "tweater", 
+                 host = "courses.csrrinzqubik.us-east-1.rds.amazonaws.com", 
+                 port = 3306,
+                 user = "student",
+                 password = "datacamp")
+class(con)
+```
+
+# List the database tables
+
+Next step = see what tables db contains w/ `dbListTables()` which requires the connection object as an input + outputs a character vector w/ table names.
+```{r}
+tables <- dbListTables(con)
+str(tables)
+```
+
+# Import users
+
+DB contains data on a more tasty version of Twitter, **Tweater** where users can post tweats w/ short recipes for delicious snacks + comment on other tweats. There are 3 tables that have relations among
+
+Importing the data on the users into the R session w/ `dbReadTable()` by passing the connection objec + the table to import. The resulting object is a standard R data frame.
+
+```{r}
+users <- dbReadTable(con,"users")
+users
+```
+
+# Import all tables
+
+Separate `dbReadTable()` calls for each + every table in a db = a lot of code duplication. Use `lapply()` to load in all tables in the database.
+
+```{r}
+(table_names <- dbListTables(con))
+# apply read table to each table name + specify connection
+tables <- lapply(table_names,dbReadTable, conn = con)
+tables
+```
+
+Now w/ an R version of all data contained in the db, you can dive a little deeper into relations between the different data frames.
+
+# How do the tables relate?
+
+`tweats` table contains a column `user_id` = users that have posted the tweat. Similarly, `comments` contain both a `user_id` + a `tweat_id` col = which user posted a comment on which tweat.
+
+Who posted the tweat on which somebody commented "awesome! thanks!" (comment 1012)?
+```{r}
+comments <- tables[[1]]
+tweats <- tables[[2]]
+users <- tables[[3]]
+
+users[tweats[which(tweats$id == comments[which(comments$message == "awesome! thanks!"),"tweat_id"]),"user_id"],"name"]
+```
+
+# Query tweater (1)
+
+Often be working w/ huge db's w/ tables w/ millions of rows. To do some analyses on this data, it's possible you only need a fraction of this data = good idea to send SQL queries to your db + only import data you actually need into R.
+
+`dbGetQuery()` = pass connection object + a SQL query in the form of a character string
+
+    Use dbGetQuery() to create a data frame, elisabeth, that selects the tweat_id column from the comments table where elisabeth is the commenter, her user_id is 1
+    Print out elisabeth so you can see if you queried the database correctly.
+```{r}
+elisabeth <- dbGetQuery(con,"SELECT tweat_ID FROM comments WHERE user_id = 1")
+elisabeth
+
+elisabeth2 <- dbGetQuery(con,"SELECT a.tweat_ID FROM comments a 
+                         LEFT JOIN users b
+                          ON a.user_id = b.id
+                         WHERE b.name = 'elisabeth'")
+elisabeth2
+```
+
+
+
+    Create a data frame, latest, that selects the post column from the tweats table observations where the date is higher than '2015-09-21'.
+    Print out latest.
+```{r}
+latest <- dbGetQuery(con, "SELECT post FROM tweats WHERE date > '2015-09-21'")
+latest
+```
+
+
+    Create an R data frame, specific, that selects the message column from the comments table where the tweat_id is 77 and the user_id is greater than 4.
+    Print specific.
+```{r}
+specific <- dbGetQuery(con, "SELECT message FROM comments WHERE tweat_id = 77 AND user_id > 4")
+specific
+```
+
+
+    Create a data frame, short, that selects the id and name columns from the users table where the number of characters in the name is strictly less than 5.
+    Print short.
+```{r}
+short <- dbGetQuery(con, "SELECT id, name FROM users WHERE CHAR_LENGTH(name) < 5")
+short
+```
+
+```{r}
+dbGetQuery(con, "SELECT post, message
+  FROM tweats INNER JOIN comments on tweats.id = tweat_id
+    WHERE tweat_id = 77")
+```
+
+# Send - Fetch - Clear
+
+`dbGetQuery()` = a virtual function from the `DBI` package, but is actually implemented by the `RMySQL` package. Behind the scenes, the following steps are performed:
+<ul>
+<li> Sending the specified query with `dbSendQuery()`; </li>
+<li> Fetching the result of executing the query on the database with `dbFetch()`; </li>
+<li> Clearing the result with `dbClearResult()`. </li>
+</ul>
+
+Implement the steps above, tedious but gives the ability to fetch the query's result in chunks rather than all at once. (by specifying the `n` argument inside `dbFetch()`.
+
+
+    Inspect the dbSendQuery() call that has already been coded for you. It selects the comments for the users with an id above 4.
+    Use dbFetch() twice. In the first call, import only two records of the query result by setting the n argument to 2. In the second call, import all remaining queries (don't specify n). In both calls, simply print the resulting data frames.
+    Clear res with dbClearResult().
+```{r}
+# Send query to the database + get back a MySQLResult object
+res <- dbSendQuery(con, "SELECT * FROM comments WHERE user_id > 4")
+
+# Use dbFetch() twice
+dbFetch(res, n = 2) # get 2 records
+dbFetch(res) # get all records
+
+# Clear res
+dbClearResult(res)
+```
+
+In our toy example, chopping up the fetches doesn't make a lot of sense, but make sure to remember this technique when you're struggling with huge databases!
+
+Every time you connect to a db using `dbConnect()`, you're creating a *new* connection to the db you're referencing. `RMySQL` automatically specifies a max # of open connections + closes some connections for you, but still: it's always polite to manually disconnect from the db afterwards via `dbDisconnect()`.
+
+    Using the technique you prefer, build a data frame long_tweats. It selects the post and date columns from the observations in tweats where the character length of the post variable exceeds 40.
+    Print long_tweats.
+    Disconnect from the database by using dbDisconnect().
+```{r}
+(long_tweats <- dbGetQuery(con, "SELECT post, date FROM tweats WHERE CHAR_LENGTH(post) > 40"))
+dbDisconnect(con)
+```
+
+
+
+
