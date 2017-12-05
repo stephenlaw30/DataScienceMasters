@@ -93,3 +93,129 @@ text(test.mds, c('A','B','C','D'))
 See customers A + D cluster together in the center-right of the plot while Customers B + C do not cluster at all. From our data, we can see that customers A + D have somewhat similar tastes, but we'd need to acquire much more data and/or customers before we could hope to understand how customers B + C cluster. It is also important to note that although we can see how A + D cluster, + likewise how B + C do not, we cannot say anything substantive about how to interpret these distances. We know A + D are more similar b/c of their proximity in the coordinate plane, but we cannot use the numeric distance between them to interpret how similar or dissimilar they are from B or C. The exact numeric distance produced by MDS is an artifact of the MDS algorithm + allows only a very limited substantive interpretation.
 
 Case study = real data from roll call votes from the US Senate to show how members of the US Senate cluster over chronological Congresses using records of roll call votes in the Senate to generate our distance metric + using MDS to cluster senators in 2 dimensions.
+
+# How Do US Senators Cluster?
+
+"The current Congress —the 111th— is the most ideologically polarized in modern history. In both the House + the Senate, the most conservative Democrat is more liberal than the most liberal Republican. If one defines the congressional “center” as the overlap between the 2 parties, the center has disappeared." — William A. Galston, The Brookings Institute (2010)
+
+Often hear claims that polarization in the US Congress is at an all-time high + it is easy to understand why. Such portraits are often made in the popular press + mainstream media outlets in the US often work to amplify these differences. If we think of legislative morass as a by-product of this polarization, we could look to legislative outcomes as a rough measure of polarization. In the 110th Congress, nearly 14k pieces of legislation were introduced,
+but only 449 bills, or 3.3%, actually became law + of those 449 bills, 144 simply changed the name of a federal building.
+
+But is the US Congress actually more polarized now than ever before? We'd prefer a more principled means of answering this question w/ MDS to visualize clustering of senators across party lines to see whether any mixing exists between members of the 2 parties. Before we can do this, however, we need a metric for measuring distance among senators. Fortunately, the US Congress is 1 of the most open legislative bodies in the world + we can use the public records of legislators to construct a reasonable distance metric.
+
+We will use legislator voting records + use roll call voting records as a means of measuring legislators’ approval/disapproval of a proposed bill. Legislators vote w/ Yeas (approve) or Nays (disapprove) for bills. A **roll call vote** is one of the most basic parliamentary procedures in either chamber of the US Congress + it is the process by which members of the House of Representatives + Senate vote for any proposal brought before the floor. Each house has a different mechanism by which a roll call vote can be initiated, but the results are basically equivalent. 
+
+**A roll call vote** = the record of each legislator’s action on a given proposal which typically takes the form of a Yea or Nay, but the results are slightly more complicated than that. Roll call data is a great resource for measuring similarities + differences among legislators + is an invaluable resource for political scientists who study Congress. The data is so valuable that 2 political scientists created a unified resource for downloading it. Keith Poole (University of Georgia) and Howard Rosenthal (NYU) maintain http://www.voteview.com/, a repository for all US roll call data from the very 1st Congress to the most recent at the time of this writing (i.e. the 111th). We will examine the roll call voting data from the US Senate for the 101st through 111th Congresses. 
+
+# Analyzing US Senator Roll Call Data (101st–111th Congresses)
+
+Use `list.files` to generate a character vector `data.files` w/ all of the data filenames in it.
+```{r}
+library(foreign)
+library(ggplot2)
+data.dir <- "data/roll_call/"
+data.files <- list.files(data.dir)
+head(data.files)
+```
+
+See that the extension for the datafiles = **.dta** for a Stata datafile, a commercial statistical computing program that happens to be very popular among academics, particularly political scientists. B/c Poole + Rosenthal decided to disseminate the data in this format, we need a way of loading this data into R. `foreign` is designed to read a large number of exotic datafiles into R data frames, including S, SAS, SPSS, Systat, dBase, + many others. `read.dta` is designed to read Stata files. We want to analyze the data for 10 Congresses, from the 101st to the 111th in a single object that can be manipulated at once. These data sets are relatively small, so we do not have any concern about
+memory in this case. 
+```{r}
+# read in each .dta file from data.files character vector
+rollcall_data <- lapply(data.files, function(x) { read.dta(paste(data.dir, x, sep = ""), convert.factors = F) })
+head(rollcall_data,3)
+```
+
+We now have all 10 data frames of roll call votes stored in `rollcall.data`
+
+When we check the dims of the `st DF, the 101st Congress, see it has 103 rows + 647 columns. When we further check the head of this data frame, ther're 2 important things to notew
+<ol>
+<li> each row corresponds to a voter in the US Senate. </li>
+<li> 1st 9 columns include identification info for those voters + remaining columns are the actual votes. </li>
+</ol>
+
+Before we can proceed, we need to make sense of this identification info
+```{r}
+dim(rollcall.data[[1]])
+head(rollcall.data[[1]])
+```
+
+Some of the column are quite obvious, such as 
+lstate
+ and 
+name
+, but what about 
+eh1
+and 
+eh2
+? Thankfully, Poole and Rosenthal provide a codebook for all of the roll call
+data. The
+ codebook for the 101st Congress is located at 
+http://www.voteview.com/sen
+ate101.htm
+ and is replicated in 
+Example 9-1
+. This codebook is particularly helpful
+because it not only explains what is contained in each of the first nine columns, but
+also how each of the votes are coded, which we will need to pay attention to shortly.
+1. There
+ is also a specific R function for reading the 
+.ord
+ data types provided by Poole and Rosenthal called
+readKH
+. For more information, see 
+http://rss.acs.unt.edu/Rdoc/library/pscl/html/readKH.html
+.
+224
+|
+Chapter 9:
+MDS: Visually Exploring US Senator Similarity
+Example 9-1. Codebook for roll call data from Poole and Rosenthal
+1.  Congress Number
+2.  ICPSR ID Number:  5 digit code assigned by the ICPSR as 
+                   corrected by Howard Rosenthal and myself.
+3.  State Code:  2 digit ICPSR State Code. 
+4.  Congressional District Number (0 if Senate)
+5.  State Name
+6.  Party Code:  100 = Dem., 200 = Repub. (See PARTY3.DAT)
+7.  Occupancy:  ICPSR Occupancy Code -- 0=only occupant; 1=1st occupant; 2=2nd occupant; etc.
+8.  Last Means of Attaining Office:  ICPSR Attain-Office Code -- 1=general election;
+            2=special election; 3=elected by state legislature; 5=appointed
+9.  Name
+10 - to the number of roll calls + 10:  Roll Call Data --
+                         0=not a member, 1=Yea, 2=Paired Yea, 3=Announced Yea,
+                                         4=Announced Nay, 5=Paired Nay, 6=Nay,
+                         7=Present (some Congresses, also not used some Congresses),
+                         8=Present (some Congresses, also not used some Congresses),
+                         9=Not Voting
+For our purposes we are only interested in the names of the voters, their party affilia-
+tions, and their actual votes. For that reason, our first step is to get the roll call vote
+data in a form from which we can create a reasonable distance metric from the votes.
+As we can see in 
+Example 9-1
+, roll call votes in the Senate are not simply Yeas or Nays;
+there are Announced and Paired forms of Yea and Nay votes, as well as Present votes,
+that is, votes in which a senator abstained from voting on a specific bill but was present
+at the time of the vote. There are also times when the senators were simply not present
+to cast a vote or had not yet even been elected to the Senate. Given the variety of possible
+votes, how do we take this data and transform it into something we can easily use to
+measure distance between the senators?
+One approach is to simplify the data coding by aggregating like vote types. For example,
+Paired voting is a procedure whereby members of Congress know they will not be
+present for a given roll call can have their vote “paired” with another member who is
+going to vote the opposite. This, along with Announced votes, are Parliamentary means
+for the Senate or House to a establish a quorum for a vote to be held. For our purposes,
+however, we are less concerned with the mechanism by which the vote occurred, but
+rather the intended outcome of the vote, i.e., for or against. As such, one method for
+aggregating would be to group all Yea and Nay types together. By the same logic, we
+could group all of the non-vote-casting types together.
+rollcall.simplified <- function(df) {
+    no.pres <- subset(df, state < 99)    
+    for(i in 10:ncol(no.pres)) {
+        no.pres[,i] <- ifelse(no.pres[,i] > 6, 0, no.pres[,i])
+        no.pres[,i] <- ifelse(no.pres[,i] > 0 & no.pres[,i] < 4, 1, no.pres[,i])
+        no.pres[,i] <- ifelse(no.pres[,i] > 1, -1, no.pres[,i])
+    }
+    return(as.matrix(no.pres[,10:ncol(no.pres)]))
+}
+rollcall.simple <- lapply(rollcall.data, rollcall.
