@@ -8,7 +8,9 @@ output: html_document
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(ggplot2)
-library(lubridate)
+library(magrittr)
+library(lubridate) # ymd()
+library(reshape) # cast()
 ```
 
 # Unsupervised Learning
@@ -17,7 +19,7 @@ Often we want to find structure w/out having any answers available to us about h
 
 1 place where this type of dimensionality reduction is particularly helpful: dealing w/ stock market data. Might have data that looks like the real historical prices for 25 stocks from January 2, 2002 until May 25, 2011. There are 25, cols far too many to deal w/ in a thoughtful way. We want to create a single column that tells us how the market is doing on each day by combining info in the 25 cols we DO have + calling it an **index** of the market.
 
-The simplest approach to this = **principal components analysis (PCA)** w/ the main idea = to create a new set of 25 cols that're ordered based on how much of the raw info in our data set they contain. The 1st new col/the 1st **principal component** will often contain the vast majority of the structure in the entire data set. PCA is particularly effective when cols in a data set are all strongly correlated. In that case, you can replace correlated columns w/ a single column that matches an underlying pattern that accounts for the correlation between both columns.
+The simplest approach to this = **principal components analysis (PCA)** w/ the main idea = to create a *new* set of 25 cols that're ordered based on how much of the raw info in our data set they contain. The 1st new col/the 1st **principal component** will often contain the vast majority of the structure in the entire data set. PCA is particularly effective when cols in a data set are all strongly correlated. In that case, you can replace correlated columns w/ a single column that matches an underlying pattern that accounts for the correlation between both columns.
 
 Test whether or not PCA will work by seeing how correlated the columns in our data set are.
 ```{r}
@@ -25,3 +27,113 @@ prices <- read.csv('data/stock_prices.csv')
 # check 1st row
 prices[1,]
 ```
+
+Our raw data set isn’t in the format we’d like to work w/
+
+# Preprocessing.
+
+1) Translate all aw datestamps into properly encoded date variables via `ymd()` from `lubridate`/
+```{r}
+prices %<>% mutate(Date = ymd(Date))
+```
+Once we’ve done this, use `cast` to create a data matrix w/ rows = days + columns = separate stocks. 
+```{r}
+# convert date column into rows by stocks as cols with cells values = close value
+date.stock.mtx <- cast(prices, Date ~ Stock, value = "Close")
+head(date.stock.mtx)
+summary(date.stock.mtx)
+```
+
+Notice there are some missing entries --> go back to `prices`, remove missing entries, + rerun cast.
+```{r}
+prices <- read.csv('data/stock_prices.csv')
+prices <- na.omit(prices)
+prices %<>% mutate(Date = ymd(Date))
+date.stock.mtx <- cast(prices, Date ~ Stock, value = "Close")
+date.stock.mtx <- na.omit(date.stock.mtx)
+table(is.na(date.stock.mtx))
+```
+
+Now find the correlations between all numeric columns in the matrix using `cor`, turn the correlation matrix into
+a single numeric vector, + create a density plot of the correlations to get a sense of both the mean correlation + the frequency w/ which low correlations occur:
+```{r}
+cor.mtx <- cor(date.stock.mtx[,2:ncol(date.stock.mtx)])
+correlations <- as.numeric(cor.mtx)
+ggplot(data.frame(Correlation = correlations), aes(Correlation, fill = 1)) +
+  geom_density() + 
+  guides(fill = F)
+```
+
+Vast majority of correlations are positive, so PCA will probably work well on this data set.
+
+Having convinced ourselves we can use PCA, the entirety of PCA can be done in 1 line of code via `princomp`
+```{r}
+pca.stock <- princomp(date.stock.mtx[,2:ncol(date.stock.mtx)])
+pca.stock
+```
+
+The SD's tell us how much of the variance in the data set is accounted for by the different principal components. The 1st component, `Comp.1`, accounts for 32% of the variance, while the next component accounts for 22%. By the end, the last component, `Comp.25`, accounts for less than 1% of the variance. This suggests that we can learn a lot about our data by just looking at the 1st principal component.
+
+We can examine the 1st principal component in more detail by looking at its **loadings**, which tell us how much weight it gives to each of the columns. Extracting loadings gives us a big matrix that tells us how much each of the 25 columns gets puts into each of the principal components. We’re really only interested in the 1st principal
+component, so we pull out the 1st column of the `pca` loadings:
+```{r}
+# extract loadings element of princomp object in pca object
+principal.component <- pca.stock$loadings[,1]
+```
+
+Now examine a density plot of the loadings to get a sense of how the 1st principal component is formed:
+```{r}
+loadings <- as.numeric(principal.component)
+ggplot(data.frame(Loading = loadings), aes(Loading, fill = 1)) + 
+  geom_density() + 
+  guides(fill = F)
+```
+
+The results are a little b/c because there’s a nice distribution of loadings, but they’re overwhelmingly negative. This is actually a trivial nuisance that a single line of code will fix.
+
+Now that we have our principal component, we might want to generate our 1-col summary of our data set w/ `predict`
+```{r}
+market.index <- predict(pca.stock)[,1]
+```
+
+To tell whether these predictions are any good, we compare against famous market indices, such as the Dow Jones Index
+```{r}
+dji.prices <- read.csv('data/DJI.csv')
+dji.prices <- transform(dji.prices, Date = ymd(Date))
+```
+Because the DJI runs for so much longer than we want, we need to do some subsetting
+to get only the dates we’re interested in:
+dji.prices <- subset(dji.prices, Date > ymd('2001-12-31'))
+dji.prices <- subset(dji.prices, Date != ymd('2002-02-01'))
+After doing that, we extract the parts of the DJI we’re interested in, which are the daily
+closing prices and the dates on which they were recorded. Because they’re in the op-
+posite order of our current data set, we use the 
+rev
+ function to reverse them:
+dji <- with(dji.prices, rev(Close))
+dates <- with(dji.prices, rev(Date))
+Now we can make some simple graphical plots to compare our market index generated
+using PCA with the DJI:
+comparison <- data.frame(Date = dates, MarketIndex = market.index, DJI = dji)
+ggplot(comparison, aes(x = MarketIndex, y = DJI)) + 
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE)
+This first plot is shown in 
+Figure 8-3
+. As you can see, those negative loadings that
+seemed suspicious before turn out to be a real source of trouble for our data set: our
+index is negatively correlated with the DJI.
+But that’s something we can easily fix. We just multiply our index by 
+-1
+ to produce an
+index that’s correlated in the right direction with the DJI:
+comparison <- transform(comparison, MarketIndex = -1 * MarketIndex)
+Now we can try out our comparison again:
+ggplot(comparison, aes(x = MarketIndex, y = DJI)) + 
+  geom_point() +
+  geom_smooth(method = 'lm', se = FALSE)
+As you can see in 
+Figure 8-4
+, we’ve fixed the direction of our index, and it looks like it
+matches the DJI really well. The only thing that’s missing is to get a sense of how well
+our index tracks the DJI over time
