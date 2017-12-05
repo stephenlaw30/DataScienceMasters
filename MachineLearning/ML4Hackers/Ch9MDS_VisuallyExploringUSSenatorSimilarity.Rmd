@@ -1,0 +1,95 @@
+---
+title: "Ch9MDS_VisuallyExploringUSSenatorSimilarity"
+author: "Steve Newns"
+date: "December 5, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggplot2)
+library(magrittr)
+#library(lubridate) # ymd()
+#library(reshape) # cast()
+```
+
+# Clustering Based on Similarity
+
+There are many situations where we might want to know how similar members of a group of people are to one another, like a brand marketing company that had just completed a research survey on a potential new brand that showed a group of people several features of the brand + asked them to rank the brand on each of these features using a 5-pt scale. We also collected a bunch of socioeconomic data from the  (age, gender, race, zip, approximate annual income). From this survey, we want to understand how the brand appeals across all of these socioeconomic variables. Most importantly, we want to know whether the brand has broad appeal. 
+
+An alternative way of thinking about this problem is we want to see whether individuals who like most of the brand features have diverse socioeconomic features. A useful means of doing this = visualize how survey respondents **cluster**. We could then use various visual cues to indicate their memberships in different socioeconomic categories (would want to see a large amount of mixing between gender, + among races + economic stratification). Likewise, we could use this knowledge to see how the close groups are clustered based on the brand’s appeal. We could also see how many people were in 1 cluster compared to others, or how far away other clusters were. This might tell us what features of the brand to target at different socioeconomic categories. 
+
+When phrasing these questions, we use words such as “close” + “far,” which have an inherent notion of distance. To
+visualize distance among clusters, we need some spatial concept of how individuals congregate. We can use notions of
+distance among a set of observations to illustrate similarities + dissimilarities, which requires the definition of some metric for distance relevant to the type of data being analyzed. For brand marketing, we could use the ordinal nature of the survey’s scale to find the distances among respondents in a very straightforward way = simply calculate the absolute differences. It is not enough, however, to only calculate these distances. 
+
+**Multidimensional scaling (MDS)** is for clustering observations based on a measure of distance among the observations. Applying MDS allows us to visualize data using *only a measure of the distance between all of the DPs*. 
+
+# A Brief Introduction to Distance Metrics and Multidirectional Scaling
+
+Suppose we have a very simple data set w/ 4 customers who have rated 6 products w/ each customer asked to give each product a thumbs up or down, but could skip a product if they had no opinion about it. There are many rating systems that work this way, like Pandora’s + YouTube’s. Using ratings data, we'd like to measure how similar customers are to one another. We will set up a 4×6 matrix where rows = customers + columns = product filled w/ simulated ratings by randomly selecting thumbs up (1), down (–1), or skip (0) for each customer/product pair. 
+```{r}
+set.seed(851982)
+# sample from thumbs up/down or skip with replacement for all 24 cells in matrix
+test_mtx <- matrix(sample(c(-1,0,1), size = 24, replace = T), nrow = 4, ncol = 6)
+
+row.names(test_mtx) <- c('A','B','C','D')
+colnames(test_mtx) <- c('P1','P2','P3','P4','P5','P6')
+test_mtx
+```
+
+Now we need to use these differences to generate a distance metric among all customers first by summarizing the customer ratings for each product as they relate to all other customers (rather than only to the products in the current form). Another way to think about this is that we need to convert the N-by-M matrix into an N-by-N matrix, wherein elements of the new matrix provide summaries of the relation *among users based on product rating*. 1 way to do this = multiply our matrix by its **transpose** w/ the effect being a computation of the *correlation between every pair of columns in the original matrix*.
+
+**Matrix transposition** *inverts* a matrix so rows become cols + cols become rows. Visually, it turns a matrix 90 degrees clockwise + then flips it vertically (over y-axis)
+```{r}
+# customer-by-review matrix
+test_mtx
+# review-by-customer matrix:
+t(test_mtx)
+```
+
+**Matrix multiplication** is slightly more complicated, but involves only basic arithmetic. To multiply 2 matrices, loop over the rows of the 1st matrix + the columns of the 2nd matrix. For each row-column pair, multiply each pair of entries + sum them together. There are a few important things to keep in mind when performing matrix multiplication. 
+
+B/c we're multiplying the row elements of the 1st matrix by the column elements of the 2ND, these dimensions *MUST* conform across the 2 matrices. In our case, we could not simply multiply `test.matrix` by a 2×2 matrix as the arithmetic would not work out. As such, the result of a matrix multiplication will *always* have the same # of rows as the 1st matrix + the same # of columns as the 2nd matrix. An immediate consequence of this is that order matters in matrix multiplication. In our case, we want a matrix that summarizes differences among customers, so we multiply
+our customer-by-review matrix by its transpose to get a **customer-by-customer matrix** as the product. If we did the inverse, we'd get the differences among the reviews, which might be interesting in another situation, but it is not useful right now.
+
+Matrix multiplication is as simple as taking a row element of the 1st matrix + multiplying it by the corresponding column element from the 2nd matrix, taking all those products, + summing them.
+```{r}
+(test.mult <- test_mtx %*% t(test_mtx))
+```
+
+`%*%` performs matrix multiplication. The interpretation of the new matrix is fairly straightforward. B/c we've used the 1, –1, 0 coding scheme, the *off-diagonal values* summarize their overall agreement (positive value) or disagreement (negative value) on product reviews, given those products they have *both* reviewed (i.e. nonzero entries). The more positive the off-diagonal element, the more agreement, + the more negative, the less agreement. B/c the entries are random, there is very little divergence among the customers, w/ no value > 1 or < –1. The *diagonal values* simply represent the # of products each user reviewed.
+
+We now have a somewhat useful summary of the differences among users. Customers A + D both gave product 4 a thumbs down, but customer D liked products 1 + 3, whereas customer A did not review them. So, for the products for which we have info, we might say they are similar, + thus have a 1 corresponding to their relationship. Unfortunately, this is very limiting b/c we can only say something about the *overlap* + we'd rather have a method for extrapolating these differences into a richer representation.
+
+To do this, we will use the concept of **Euclidean distance** in a multidimensional space. In 1, 2, or 3D, Euclidean distance = a formalization of our intuitions about distance. Euclidean distance between 2 points in space = measure the shortest direct path between them. We want to calculate Euclidean distance among all customers based on the measures of overall similarities + differences defined by the matrix multiplication.
+
+To do this, treat each customer’s ratings as a vector. To compare customer A w/ customer B, subtract the vectors, square the differences, sum them, + take the square root = Euclidean distance between customer A’s ratings + customer B’s ratings. Do this “by hand” in R using the base functions for Customers A + D
+```{r}
+sqrt(sum((test.mult[1,]-test.mult[4,])^2))
+```
+
+Thankfully, calculating all pairwise distances between rows of a matrix is done w/ the base function `dist` which returns a matrix of the distances = **a distance matrix** + where Euclidean distance is the default distance metric
+```{r}
+(test.dist <- dist(test.mult))
+```
+
+This matrix is actually only the lower triangle of the entire distance matrix. It's very common to show only the lower triangle for a distance matrix b/c the distance matrix must be symmetric, as the distance between row X + row Y = distance between row Y + row X. Showing the upper triangle of the distance matrix = redundant (can override this by setting `upper=TRUE` in `dist`)
+
+Customers A + D are the closest, and customers D + B are the farthest. We now have a clearer sense of similarities among the users based on product reviews; however, it would be better if we could get a *visual* sense of these dissimilarities, which is where MDS can be used: to produce a spatial layout of customers based on these distances.
+
+**MDS** = a set of statistical techniques used to visually depict similarities + differences from set of distances. For classical MDS: take a distance matrix that specifies the distance between every pair of points in a data set + return a set of coordinates for those 2 points that approximates those distances. We need to create an *approximation* b/c it may not be possible to find points in 2 dimensions that are all separated by a specific set of distances. For example, it isn’t possible to find 4 points in 2 dimensions that are all at a distance of 1 from each other. (To convince yourself of this, note that 3 points all at a distance of 1 from each other = tips of a triangle. Convince
+yourself there isn’t any way to find another point that’s at a distance of 1 from all 3 points on this triangle.)
+
+Classical MDS uses a specific approximation to the distance matrix + is therefore another example of an optimization algorithm being used for ML. Of course, the approximation algorithm behind classical MDS can be used in 3 dimensions or 4, but our goal is to obtain a representation of our data that’s easy to visualize, so we'll be using MDS to scale data in 2 dimensions. This is the most common way of using MDS because it allows for very simple visualizations of the data on a coordinate plot. It is perfectly reasonable, however, to use MDS to scale data into higher-order dimensions. A 3D visualization might reveal different levels of clustering among observations as points move into the 3rd dimension.
+
+The classical MDS procedure is part of R’s base functions as `cmdscale` w/ required input = a distance matrix. By default, `cmdscale` computes an MDS in 2 dimensions, but you can set this using the `k` parameter
+```{r}
+test.mds <- cmdscale(test.dist)
+plot(test.mds, type = "n")
+text(test.mds, c('A','B','C','D'))
+```
+
+See customers A + D cluster together in the center-right of the plot while Customers B + C do not cluster at all. From our data, we can see that customers A + D have somewhat similar tastes, but we'd need to acquire much more data and/or customers before we could hope to understand how customers B + C cluster. It is also important to note that although we can see how A + D cluster, + likewise how B + C do not, we cannot say anything substantive about how to interpret these distances. We know A + D are more similar b/c of their proximity in the coordinate plane, but we cannot use the numeric distance between them to interpret how similar or dissimilar they are from B or C. The exact numeric distance produced by MDS is an artifact of the MDS algorithm + allows only a very limited substantive interpretation.
+
+Case study = real data from roll call votes from the US Senate to show how members of the US Senate cluster over chronological Congresses using records of roll call votes in the Senate to generate our distance metric + using MDS to cluster senators in 2 dimensions.
