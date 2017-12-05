@@ -32,7 +32,7 @@ Our raw data set isn’t in the format we’d like to work w/
 
 # Preprocessing.
 
-1) Translate all aw datestamps into properly encoded date variables via `ymd()` from `lubridate`/
+1) Translate all datestamps into properly encoded date variables via `ymd()` from `lubridate`/
 ```{r}
 prices %<>% mutate(Date = ymd(Date))
 ```
@@ -47,10 +47,12 @@ summary(date.stock.mtx)
 Notice there are some missing entries --> go back to `prices`, remove missing entries, + rerun cast.
 ```{r}
 prices <- read.csv('data/stock_prices.csv')
-prices <- na.omit(prices)
-prices %<>% mutate(Date = ymd(Date))
+#prices <- na.omit(prices)
+prices %<>% mutate(Date = ymd(Date)) %>%
+  filter(Date > ymd("2001-12-31") & Date != ymd("2002-02-01"),
+         Stock != "DDR")
+
 date.stock.mtx <- cast(prices, Date ~ Stock, value = "Close")
-date.stock.mtx <- na.omit(date.stock.mtx)
 table(is.na(date.stock.mtx))
 ```
 
@@ -72,12 +74,11 @@ pca.stock <- princomp(date.stock.mtx[,2:ncol(date.stock.mtx)])
 pca.stock
 ```
 
-The SD's tell us how much of the variance in the data set is accounted for by the different principal components. The 1st component, `Comp.1`, accounts for 32% of the variance, while the next component accounts for 22%. By the end, the last component, `Comp.25`, accounts for less than 1% of the variance. This suggests that we can learn a lot about our data by just looking at the 1st principal component.
+The SD's tell us how much of the variance in the data set is accounted for by the different principal components. The 1st component, `Comp.1`, accounts for 29% of the variance, while the next component accounts for 20%. By the end, the last component, `Comp.25`, accounts for less than 1/2% of the variance. This suggests that we can learn a lot about our data by just looking at the 1st principal component.
 
-We can examine the 1st principal component in more detail by looking at its **loadings**, which tell us how much weight it gives to each of the columns. Extracting loadings gives us a big matrix that tells us how much each of the 25 columns gets puts into each of the principal components. We’re really only interested in the 1st principal
-component, so we pull out the 1st column of the `pca` loadings:
+We can examine the 1st principal component in more detail by looking at its **loadings**, which tell us how much **weight** it gives to each of the columns. Extracting loadings gives us a big matrix that tells us how much each of the 25 columns gets puts into each of the principal components. We’re really only interested in the 1st principal component, so we pull out the 1st column of the `pca` loadings:
 ```{r}
-# extract loadings element of princomp object in pca object
+# extract loadings element of the principal component from pca object
 principal.component <- pca.stock$loadings[,1]
 ```
 
@@ -89,51 +90,67 @@ ggplot(data.frame(Loading = loadings), aes(Loading, fill = 1)) +
   guides(fill = F)
 ```
 
-The results are a little b/c because there’s a nice distribution of loadings, but they’re overwhelmingly negative. This is actually a trivial nuisance that a single line of code will fix.
+The results are a little suspicious b/c there’s a nice distribution of loadings, but they’re overwhelmingly negative. This is actually a trivial nuisance that a single line of code will fix.
 
-Now that we have our principal component, we might want to generate our 1-col summary of our data set w/ `predict`
+Now that we have our principal component, we want to generate our 1-col summary of our data set w/ `predict`
 ```{r}
 market.index <- predict(pca.stock)[,1]
 ```
 
-To tell whether these predictions are any good, we compare against famous market indices, such as the Dow Jones Index
+To tell whether these predictions are any good, we compare against famous market indices, such as the Dow Jones Index, whose date we have to convert + b/c the DJI runs for so much longer than we want, subset to get only dates we’re interested in:
 ```{r}
 dji.prices <- read.csv('data/DJI.csv')
-dji.prices <- transform(dji.prices, Date = ymd(Date))
+dji.prices %<>% mutate(Date = ymd(Date)) %>%
+  filter(Date > ymd("2001-12-31") & Date != ymd("2002-02-01"))
 ```
-Because the DJI runs for so much longer than we want, we need to do some subsetting
-to get only the dates we’re interested in:
-dji.prices <- subset(dji.prices, Date > ymd('2001-12-31'))
-dji.prices <- subset(dji.prices, Date != ymd('2002-02-01'))
-After doing that, we extract the parts of the DJI we’re interested in, which are the daily
-closing prices and the dates on which they were recorded. Because they’re in the op-
-posite order of our current data set, we use the 
-rev
- function to reverse them:
+
+Now extract the parts of the DJI we’re interested in = daily closing prices + the associated dates. B/c they’re in the opposite order of our current data set, use `rev` to reverse them, + then make some simple graphical plots to compare our market index generated using PCA w/ the DJI:
+```{r}
 dji <- with(dji.prices, rev(Close))
 dates <- with(dji.prices, rev(Date))
-Now we can make some simple graphical plots to compare our market index generated
-using PCA with the DJI:
 comparison <- data.frame(Date = dates, MarketIndex = market.index, DJI = dji)
-ggplot(comparison, aes(x = MarketIndex, y = DJI)) + 
+
+ggplot(comparison, aes(MarketIndex, DJI)) + 
   geom_point() +
   geom_smooth(method = 'lm', se = FALSE)
-This first plot is shown in 
-Figure 8-3
-. As you can see, those negative loadings that
-seemed suspicious before turn out to be a real source of trouble for our data set: our
-index is negatively correlated with the DJI.
-But that’s something we can easily fix. We just multiply our index by 
--1
- to produce an
-index that’s correlated in the right direction with the DJI:
-comparison <- transform(comparison, MarketIndex = -1 * MarketIndex)
-Now we can try out our comparison again:
-ggplot(comparison, aes(x = MarketIndex, y = DJI)) + 
+```
+
+Those *negative loadings* that seemed suspicious before turn out to be a real source of trouble for our data set: our
+index is *negatively* correlated w/ DJI. Fix by multiplying our index by  -1 to produce an index correlated in the right direction with the DJI + try our comparison again
+```{r}
+comparison %<>% mutate(MarketIndex = -1*MarketIndex)
+ggplot(comparison, aes(MarketIndex, DJI)) + 
   geom_point() +
   geom_smooth(method = 'lm', se = FALSE)
-As you can see in 
-Figure 8-4
-, we’ve fixed the direction of our index, and it looks like it
-matches the DJI really well. The only thing that’s missing is to get a sense of how well
-our index tracks the DJI over time
+```
+
+Looks like our index matches the DJI really well using just the principal component (1st column). The only thing that’s missing is to get a sense of how well our index tracks the DJI over time. To get this, `melt` a dataframe that’s easy to work with for visualizing both indices at once + then make a line plot in which the x-axis = date + y-axis = price of each index.
+```{r}
+# melt down MarketIndex and DJI cols into single "index" col and put their values into a new col "Price" 
+# make date = row #/index
+alt.comparison <- melt(comparison, id.vars = 'Date')
+names(alt.comparison) <- c('Date', 'Index', 'Price')
+ggplot(alt.comparison, aes(Date, Price, group = Index, color = Index)) +
+  geom_point() +
+  geom_line()
+```
+
+This doesn’t look so good b/c the DJI takes on very high values, whereas our index takes on very small values. Fix this w/ `scale` to put both indices on a common scale:
+```{r}
+# scale data
+comparison %<>% mutate(MarketIndex = scale(MarketIndex),
+                       DJI = scale(DJI))
+#head(comparison)
+
+# melt down MarketIndex and DJI cols into single "index" col and put their values into a new col "Price" 
+# make date = row #/index
+alt.comparison <- melt(comparison, id.vars = 'Date')
+names(alt.comparison) <- c('Date', 'Index', 'Price')
+ggplot(alt.comparison, aes(Date, Price, group = Index, color = Index)) +
+  geom_point() +
+  geom_line()
+```
+
+This plot makes it seem like our market index created entirely w/ PCA w/out require any domain knowledge about the stock market, tracks the DJI incredibly well. In short, PCA really works to produce a reduced representation of stock prices that looks just like something we might create w/ more careful thought about how to express the general well-being of the stock market. We think that’s pretty amazing.
+
+Hopefully this example convinces you that PCA is a powerful tool for simplifying data + can actually do a lot to discover structure in your data even when you’re not trying to predict something. If interested in this topic, look into **independent component analysis (ICA)**, an alternative to PCA that works well in some circumstances where PCA breaks down.
