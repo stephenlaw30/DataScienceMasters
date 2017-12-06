@@ -1,0 +1,56 @@
+---
+title: "Upper Confidence Bound"
+author: "Steve Newns"
+output: html_document
+---
+
+```{r, warning=F,message=F}
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressMessages(library(arules)) # sparse matrix
+```
+
+We are solving the Multi-Armed Bandit problem for optimizing click-through rate (CTR) with the Upper Confidence Bound algorithm.  
+
+```{r}
+## import data 
+ctr <- read.csv("../data/Ads_CTR_Optimisation.csv", header = T)
+glimpse(ctr)
+```
+
+This dataset contains 1001 ad impressions on 10 ads, and each cell contains a 1 or a 0 if a user did or did not click on the ad, respectively. The client here is a car company is launching a new ad campaign and is placing ads on a social network in an attempt to target those users most likely to buy a new luxury SUV based on our earlier classification models. To evaluate the marketing campaign, the company developed 10 versions of an ad to show and recorded the CTR of those versions by the users.
+
+It costs a lot of money to run these ad campaigns on the social network , so we want to optimize the campaign by quickly finding and exploiting the "best" ad, AKA the ad that will lead to the most clicks (conversion rate). We have no predictors or outcomes, just this binary click data. We experimented with these ads by placing the 10 versions on the ad on the social network and record 10,000 users' activity on each. If a user clicks on the ad, the ad gets a reward, and if not, the ad does not get an award. We are *not going to show the ads to each user at random*. 
+
+Each **round** in this reinforcement learning depends on the *previous* round. For example, at round 11, the algorithm will, behind the scenes, look at what happened in the previous 10 rounds, and depending on the results of those rounds, choose which ad to show to the user in round 11. We have no idea which ads a user will click, so we have to dynamically learn.
+
+According to our above simulaion, user 1 click on the ad if we show version 1, 5, or 9. User 2 clicks on the ad is we show ad 9 only, the 3rd user will click on no ad, etc. The goal of the algorithm is to maximize total reward (sum of all rewards from each round) obtained througout different selections of the ads.
+
+What would happen if we randomly select the versions in each round (i.e. no algorithm or strategy)?
+```{r}
+# Implementing Random Selection
+set.seed(453)
+n <- 10000
+d = 10
+ad_selected <- integer(0)
+total_reward <- 0
+
+for (i in 1:n) {
+  # for each iteration, get a random sample from 1-10, representing an ad version
+  ad = sample(1:10, 1)
+  # add to selected ads,
+  ad_selected = append(ad_selected, ad)
+  # get the cell value for this user (iteration) and this ad, then add to total reward
+  reward <- ctr[n, ad]
+  total_reward = total_reward + reward
+}
+
+# Visualising the results
+hist(ad_selected, col = 'blue', 
+     main = paste('Histogram of Ads Selections (Reward: ',total_reward,')'),
+     xlab = 'Ads', ylab = 'Number of times each ad was selected')
+```
+ 
+Our total reward from random ad placement is 1011, and each ad was displayed a pretty similary amount of time, indicating we did not exploit the best ad. We'll compare this total reward to our reinforcement algorithm's results.
+ 
+
