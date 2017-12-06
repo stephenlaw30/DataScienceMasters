@@ -165,6 +165,81 @@ Every time you connect to a db using `dbConnect()`, you're creating a *new* conn
 dbDisconnect(con)
 ```
 
+# Import flat files from the web
 
+`utils` functions import flat file data, such as `read.csv()` + `read.delim()`, + are capable of automatically importing from URLs that point to flat files on the web. `readr`
+
+    Load the readr package. It's already installed on DataCamp's servers.
+    Use url_csv to read in the .csv file it is pointing to. Use the read_csv() function. The .csv contains column names in the first row. Save the resulting data frame as pools.
+    Similarly, use url_delim to read in the online .txt file. Use the read_tsv() function and store the result as potatoes.
+    Print pools and potatoes. Looks correct?
+```{r}
+# Load the readr package
+library(readr)
+
+# Import the csv file: pools
+url_csv <- "http://s3.amazonaws.com/assets.datacamp.com/production/course_1478/datasets/swimming_pools.csv"
+pools <- read_csv(url_csv)
+
+# Import the txt file: potatoes
+url_delim <- "http://s3.amazonaws.com/assets.datacamp.com/production/course_1478/datasets/potatoes.txt"
+potatoes <- read_tsv(url_delim)
+
+# Print pools and potatoes
+pools
+potatoes
+```
+
+There is a safer alternative to HTTP, HTTPS (https://) connections, (HypterText Transfer Protocol Secure) that you can use w/ the standard importing functions (since R version 3.2.2).
+
+    Take a look at the URL in url_csv. It uses a secure connection, https://.
+    Use read.csv() to import the file at url_csv. The .csv file it is referring to contains column names in the first row. Call it pools1.
+    Load the readr package. It's already installed on DataCamp's servers.
+    Use read_csv() to read in the same .csv file in url_csv. Call it pools2.
+    Print out the structure of pools1 and pools2. Looks like the importing went equally well as with a normal http connection!
+```{r}
+# https URL to the swimming_pools csv file.
+url_csv <- "https://s3.amazonaws.com/assets.datacamp.com/production/course_1478/datasets/swimming_pools.csv"
+
+# Import the file using read.csv(): pools1
+pools1 <- read.csv(url_csv)
+
+# Load the readr package
+library(readr)
+
+# Import the file using read_csv(): pools2
+pools2 <- read_csv(url_csv)
+
+# Print the structure of pools1 and pools2
+str(pools1)
+str(pools2)
+```
+
+# Downloading Files
+## Import Excel files from the web
+
+When you learned about `gdata`, it was already mentioned that `gdata` can handle `.xls` files on the internet. `readxl` can't, at least not yet.
+
+    Load the readxl and gdata packages. They are already installed on DataCamp's servers.
+    Import the .xls file located at the URL url_xls using read.xls() from gdata. Store the resulting data frame as excel_gdata.
+    You can not use read_excel() directly with a URL. Complete the following instructions to work around this problem:
+    Use download.file() to download the .xls file behind the URL and store it locally as "local_latitude.xls".
+    Call read_excel() to import the local file, "local_latitude.xls". Name the resulting data frame excel_readxl.
+```{r}
+# Load the readxl and gdata package
+library(readxl)
+library(gdata)
+
+# Specification of url: url_xls
+url_xls <- "http://s3.amazonaws.com/assets.datacamp.com/production/course_1478/datasets/latitude.xls"
+
+# 1) Import the .xls file DIRECLTY with gdata: excel_gdata
+excel_gdata <- gdata::read.xls(url_xls)
+
+# 2a)  file behind URL, name it local_latitude.xls
+download.file(url_xls, destfile = 'local_latitude.xls')
+# 2b) Import the local .xls file with readxl: excel_readxl
+excel_readxl <- read_excel('local_latitude.xls')
+```
 
 
