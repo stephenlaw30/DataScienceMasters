@@ -19,9 +19,7 @@ There are many situations where we might want to know how similar members of a g
 
 An alternative way of thinking about this problem is we want to see whether individuals who like most of the brand features have diverse socioeconomic features. A useful means of doing this = visualize how survey respondents **cluster**. We could then use various visual cues to indicate their memberships in different socioeconomic categories (would want to see a large amount of mixing between gender, + among races + economic stratification). Likewise, we could use this knowledge to see how the close groups are clustered based on the brand’s appeal. We could also see how many people were in 1 cluster compared to others, or how far away other clusters were. This might tell us what features of the brand to target at different socioeconomic categories. 
 
-When phrasing these questions, we use words such as “close” + “far,” which have an inherent notion of distance. To
-visualize distance among clusters, we need some spatial concept of how individuals congregate. We can use notions of
-distance among a set of observations to illustrate similarities + dissimilarities, which requires the definition of some metric for distance relevant to the type of data being analyzed. For brand marketing, we could use the ordinal nature of the survey’s scale to find the distances among respondents in a very straightforward way = simply calculate the absolute differences. It is not enough, however, to only calculate these distances. 
+When phrasing these questions, we use words such as “close” + “far,” which have an inherent notion of distance. To visualize distance among clusters, we need some spatial concept of how individuals congregate. We can use notions of distance among a set of observations to illustrate similarities + dissimilarities, which requires the definition of some metric for distance relevant to the type of data being analyzed. For brand marketing, we could use the ordinal nature of the survey’s scale to find the distances among respondents in a very straightforward way = simply calculate the absolute differences. It is not enough, however, to only calculate these distances. 
 
 **Multidimensional scaling (MDS)** is for clustering observations based on a measure of distance among the observations. Applying MDS allows us to visualize data using *only a measure of the distance between all of the DPs*. 
 
@@ -50,8 +48,7 @@ t(test_mtx)
 
 **Matrix multiplication** is slightly more complicated, but involves only basic arithmetic. To multiply 2 matrices, loop over the rows of the 1st matrix + the columns of the 2nd matrix. For each row-column pair, multiply each pair of entries + sum them together. There are a few important things to keep in mind when performing matrix multiplication. 
 
-B/c we're multiplying the row elements of the 1st matrix by the column elements of the 2ND, these dimensions *MUST* conform across the 2 matrices. In our case, we could not simply multiply `test.matrix` by a 2×2 matrix as the arithmetic would not work out. As such, the result of a matrix multiplication will *always* have the same # of rows as the 1st matrix + the same # of columns as the 2nd matrix. An immediate consequence of this is that order matters in matrix multiplication. In our case, we want a matrix that summarizes differences among customers, so we multiply
-our customer-by-review matrix by its transpose to get a **customer-by-customer matrix** as the product. If we did the inverse, we'd get the differences among the reviews, which might be interesting in another situation, but it is not useful right now.
+B/c we're multiplying the row elements of the 1st matrix by the column elements of the 2ND, these dimensions *MUST* conform across the 2 matrices. In our case, we could not simply multiply `test.matrix` by a 2×2 matrix as the arithmetic would not work out. As such, the result of a matrix multiplication will *always* have the same # of rows as the 1st matrix + the same # of columns as the 2nd matrix. An immediate consequence of this is that order matters in matrix multiplication. In our case, we want a matrix that summarizes differences among customers, so we multiply our customer-by-review matrix by its transpose to get a **customer-by-customer matrix** as the product. If we did the inverse, we'd get the differences among the reviews, which might be interesting in another situation, but it is not useful right now.
 
 Matrix multiplication is as simple as taking a row element of the 1st matrix + multiplying it by the corresponding column element from the 2nd matrix, taking all those products, + summing them.
 ```{r}
@@ -78,14 +75,13 @@ This matrix is actually only the lower triangle of the entire distance matrix. I
 
 Customers A + D are the closest, and customers D + B are the farthest. We now have a clearer sense of similarities among the users based on product reviews; however, it would be better if we could get a *visual* sense of these dissimilarities, which is where MDS can be used: to produce a spatial layout of customers based on these distances.
 
-**MDS** = a set of statistical techniques used to visually depict similarities + differences from set of distances. For classical MDS: take a distance matrix that specifies the distance between every pair of points in a data set + return a set of coordinates for those 2 points that approximates those distances. We need to create an *approximation* b/c it may not be possible to find points in 2 dimensions that are all separated by a specific set of distances. For example, it isn’t possible to find 4 points in 2 dimensions that are all at a distance of 1 from each other. (To convince yourself of this, note that 3 points all at a distance of 1 from each other = tips of a triangle. Convince
-yourself there isn’t any way to find another point that’s at a distance of 1 from all 3 points on this triangle.)
+**MDS** = a set of statistical techniques used to visually depict similarities + differences from set of distances. For classical MDS: take a distance matrix that specifies the distance between every pair of points in a data set + return a set of coordinates for those 2 points that approximates those distances. We need to create an *approximation* b/c it may not be possible to find points in 2 dimensions that are all separated by a specific set of distances. For example, it isn’t possible to find 4 points in 2 dimensions that are all at a distance of 1 from each other. (To convince yourself of this, note that 3 points all at a distance of 1 from each other = tips of a triangle. Convince yourself there isn’t any way to find another point that’s at a distance of 1 from all 3 points on this triangle.)
 
 Classical MDS uses a specific approximation to the distance matrix + is therefore another example of an optimization algorithm being used for ML. Of course, the approximation algorithm behind classical MDS can be used in 3 dimensions or 4, but our goal is to obtain a representation of our data that’s easy to visualize, so we'll be using MDS to scale data in 2 dimensions. This is the most common way of using MDS because it allows for very simple visualizations of the data on a coordinate plot. It is perfectly reasonable, however, to use MDS to scale data into higher-order dimensions. A 3D visualization might reveal different levels of clustering among observations as points move into the 3rd dimension.
 
 The classical MDS procedure is part of R’s base functions as `cmdscale` w/ required input = a distance matrix. By default, `cmdscale` computes an MDS in 2 dimensions, but you can set this using the `k` parameter
 ```{r}
-test.mds <- cmdscale(test.dist)
+(test.mds <- cmdscale(test.dist))
 plot(test.mds, type = "n")
 text(test.mds, c('A','B','C','D'))
 ```
@@ -98,8 +94,7 @@ Case study = real data from roll call votes from the US Senate to show how membe
 
 "The current Congress —the 111th— is the most ideologically polarized in modern history. In both the House + the Senate, the most conservative Democrat is more liberal than the most liberal Republican. If one defines the congressional “center” as the overlap between the 2 parties, the center has disappeared." — William A. Galston, The Brookings Institute (2010)
 
-Often hear claims that polarization in the US Congress is at an all-time high + it is easy to understand why. Such portraits are often made in the popular press + mainstream media outlets in the US often work to amplify these differences. If we think of legislative morass as a by-product of this polarization, we could look to legislative outcomes as a rough measure of polarization. In the 110th Congress, nearly 14k pieces of legislation were introduced,
-but only 449 bills, or 3.3%, actually became law + of those 449 bills, 144 simply changed the name of a federal building.
+Often hear claims that polarization in the US Congress is at an all-time high + it is easy to understand why. Such portraits are often made in the popular press + mainstream media outlets in the US often work to amplify these differences. If we think of legislative morass as a by-product of this polarization, we could look to legislative outcomes as a rough measure of polarization. In the 110th Congress, nearly 14k pieces of legislation were introduced, but only 449 bills, or 3.3%, actually became law + of those 449 bills, 144 simply changed the name of a federal building.
 
 But is the US Congress actually more polarized now than ever before? We'd prefer a more principled means of answering this question w/ MDS to visualize clustering of senators across party lines to see whether any mixing exists between members of the 2 parties. Before we can do this, however, we need a metric for measuring distance among senators. Fortunately, the US Congress is 1 of the most open legislative bodies in the world + we can use the public records of legislators to construct a reasonable distance metric.
 
@@ -122,7 +117,9 @@ See that the extension for the datafiles = **.dta** for a Stata datafile, a comm
 memory in this case. 
 ```{r}
 # read in each .dta file from data.files character vector
-rollcall_data <- lapply(data.files, function(x) { read.dta(paste(data.dir, x, sep = ""), convert.factors = F) })
+rollcall_data <- lapply(data.files, 
+                        function(x) { read.dta(paste(data.dir, x, sep = ""),
+                                               convert.factors = F) })
 head(rollcall_data,3)
 ```
 
@@ -136,86 +133,99 @@ When we check the dims of the `st DF, the 101st Congress, see it has 103 rows + 
 
 Before we can proceed, we need to make sense of this identification info
 ```{r}
-dim(rollcall.data[[1]])
-head(rollcall.data[[1]])
+#dim(rollcall_data[[1]])
+head(rollcall_data[[1]])
 ```
 
-Some of the column are quite obvious, such as 
-lstate
- and 
-name
-, but what about 
-eh1
-and 
-eh2
-? Thankfully, Poole and Rosenthal provide a codebook for all of the roll call
-data. The
- codebook for the 101st Congress is located at 
-http://www.voteview.com/sen
-ate101.htm
- and is replicated in 
-Example 9-1
-. This codebook is particularly helpful
-because it not only explains what is contained in each of the first nine columns, but
-also how each of the votes are coded, which we will need to pay attention to shortly.
-1. There
- is also a specific R function for reading the 
-.ord
- data types provided by Poole and Rosenthal called
-readKH
-. For more information, see 
-http://rss.acs.unt.edu/Rdoc/library/pscl/html/readKH.html
-.
-224
-|
-Chapter 9:
-MDS: Visually Exploring US Senator Similarity
-Example 9-1. Codebook for roll call data from Poole and Rosenthal
-1.  Congress Number
-2.  ICPSR ID Number:  5 digit code assigned by the ICPSR as 
-                   corrected by Howard Rosenthal and myself.
-3.  State Code:  2 digit ICPSR State Code. 
-4.  Congressional District Number (0 if Senate)
-5.  State Name
-6.  Party Code:  100 = Dem., 200 = Repub. (See PARTY3.DAT)
-7.  Occupancy:  ICPSR Occupancy Code -- 0=only occupant; 1=1st occupant; 2=2nd occupant; etc.
-8.  Last Means of Attaining Office:  ICPSR Attain-Office Code -- 1=general election;
-            2=special election; 3=elected by state legislature; 5=appointed
-9.  Name
-10 - to the number of roll calls + 10:  Roll Call Data --
-                         0=not a member, 1=Yea, 2=Paired Yea, 3=Announced Yea,
-                                         4=Announced Nay, 5=Paired Nay, 6=Nay,
-                         7=Present (some Congresses, also not used some Congresses),
-                         8=Present (some Congresses, also not used some Congresses),
-                         9=Not Voting
-For our purposes we are only interested in the names of the voters, their party affilia-
-tions, and their actual votes. For that reason, our first step is to get the roll call vote
-data in a form from which we can create a reasonable distance metric from the votes.
-As we can see in 
-Example 9-1
-, roll call votes in the Senate are not simply Yeas or Nays;
-there are Announced and Paired forms of Yea and Nay votes, as well as Present votes,
-that is, votes in which a senator abstained from voting on a specific bill but was present
-at the time of the vote. There are also times when the senators were simply not present
-to cast a vote or had not yet even been elected to the Senate. Given the variety of possible
-votes, how do we take this data and transform it into something we can easily use to
-measure distance between the senators?
-One approach is to simplify the data coding by aggregating like vote types. For example,
-Paired voting is a procedure whereby members of Congress know they will not be
-present for a given roll call can have their vote “paired” with another member who is
-going to vote the opposite. This, along with Announced votes, are Parliamentary means
-for the Senate or House to a establish a quorum for a vote to be held. For our purposes,
-however, we are less concerned with the mechanism by which the vote occurred, but
-rather the intended outcome of the vote, i.e., for or against. As such, one method for
-aggregating would be to group all Yea and Nay types together. By the same logic, we
-could group all of the non-vote-casting types together.
-rollcall.simplified <- function(df) {
-    no.pres <- subset(df, state < 99)    
-    for(i in 10:ncol(no.pres)) {
-        no.pres[,i] <- ifelse(no.pres[,i] > 6, 0, no.pres[,i])
-        no.pres[,i] <- ifelse(no.pres[,i] > 0 & no.pres[,i] < 4, 1, no.pres[,i])
-        no.pres[,i] <- ifelse(no.pres[,i] > 1, -1, no.pres[,i])
-    }
-    return(as.matrix(no.pres[,10:ncol(no.pres)]))
+Some cols are quite obvious, such as `lstate` +`name`, but what about `eh1` + `eh2`.? Poole + Rosenthal provide a codebook for all roll call data w/ the codebook for the 101st Congress located at http://www.voteview.com/senate101.html
+<ol>
+<li> Congress Number <li>
+<li> ICPSR ID Number:  5 digit code assigned by the ICPSR as corrected by Howard Rosenthal + myself. <li>
+<li> State Code:  2 digit ICPSR State Code.  <li>
+<li> Congressional District Number (0 if Senate) <li>
+<li> State Name <li>
+<li> Party Code:  100 = Dem., 200 = Repub. (See PARTY3.DAT) <li>
+<li> Occupancy:  ICPSR Occupancy Code -- 0=only occupant; 1=1st occupant; 2=2nd occupant; etc. <li>
+<li> Last Means of Attaining Office:  ICPSR Attain-Office Code -- 1=general election; 2=special election; 3=elected by state legislature; 5=appointed <li>
+<li> Name <li>
+<li> to the number of roll calls + 10:  Roll Call Data -- 0=not a member, 1=Yea, 2=Paired Yea, 3=Announced Yea, 4=Announced Nay, 5=Paired Nay, 6=Nay, 7=Present (some Congresses, also not used some Congresses), 8=Present (some Congresses, also not used some Congresses), 9=Not Voting <li>
+</ol>
+
+We're only interested in the *names* of voters, their party affiliations, + their actual votes. Get the roll call vote data in a form from which to create our reasonable distance metric from the votes. We see roll call votes in the Senate are not simply Yeas or Nays;
+there are Announced and Paired forms of Yea and Nay votes, as well as Present votes (votes in which a senator abstained from voting on a specific bill but was present at the time of the vote). There are also times when senators were simply not present to cast a vote or had not yet even been elected to the Senate. Given the variety of possible votes, 1 approach to take this data + transform it into something we can easily use to measure distance between the senators is to simplify data coding by aggregating like vote types. 
+
+For example, "Paired voting"" = procedure whereby members of Congress know they will not be present for a given roll call + have their vote “paired” w/ another member who is going to vote the opposite. This, along with "Announced votes"", are Parliamentary means for the Senate/House to a establish a quorum for a vote to be held. We're less concerned w/ the mechanism by which the vote occurred, but rather the intended outcome of the vote (for or against). As such, 1 method for aggregating = group all Yea + Nay types together + group all non-vote-casting types together.
+```{r}
+simplify_rollcall <- function(df) {
+  not.present <- subset(df, state < 99) # remove VP
+  # loop through all voting cols
+  for(i in 10:ncol(not.present)) {
+    not.present[,i] <- ifelse(not.present[,i] > 6, 0, # non-votes
+                          ifelse(not.present[,i] > 0 & not.present[,i] < 4, 1, # yeays
+                            ifelse(not.present[,i] > 1, -1, not.present[,i]))) # nays
+  }
+  return(as.matrix(not.present[10:ncol(not.present)]))
 }
-rollcall.simple <- lapply(rollcall.data, rollcall.
+
+# apply this simplification to each congress (data frame in rollcall_data)
+rollcall_simplified <- lapply(rollcall_data, simplify_rollcall)
+```
+
+# Exploring senator MDS clustering by Congress
+
+1st step = use senator-by-votes matrix to create a senator-by-senator distance matrix on which we will perform MDS. Uee `lapply` to perform the conversion steps for each Congress separately by 1st performing the matrix multiplication + storing the results in `rollcall_dist` + then performing MDS using `cmdscale` via another `lapply`.
+
+2 things to note about the MDS operation:
+<ul>
+<li> by default `cmdscale` computes the MDS for 2 dimensions, so `k=2` is redundant, but it's useful to be explicit when performing this operation when sharing code </li>
+<li> We are multiplying all points by –1 strictly for visualization so it flips the x-axis positioning of all points + puts Dems on the left side + Republicans on the right. In context this is a useful visual cue, as we typically think of D as being ideologically left + R as toward the right. We only noticed that D's would end up on the right + R's on the left of the x-axis for the MDS after we visualized it. Part of doing data analysis well = being flexible + thinking critically about how to improve either a method or presentation of results after having completed them. </li>
+</ul>
+```{r}
+# get distances of each senator
+rollcall_dist <- lapply(rollcall_simplified, function(m) { dist(m %*% t(m))})
+
+# create data frame containing coordinate points of each senator we got from their distances
+rollcall_mds <- lapply(rollcall_dist, function(x) { as.data.frame(cmdscale(x, k = 2)*-1)})
+head(rollcall_mds,5)
+```
+
+Next, add back in the appropriate identification data to the coordinate points data frames in `rollcall.mds` so we can visualize them in the context of party affiliation. 
+```{r}
+congresses <- 101:111
+for(i in 1:length(rollcall_mds)) {
+  # set names of coordinate points + remove VP from original data
+  names(rollcall_mds[[i]]) <- c("X","Y")
+  congress <- subset(rollcall_data[[i]], state < 99)  
+  # for each senators name, split on the comma where present to only keep last names
+  congress_names <- sapply(as.character(congress$name),
+                           function(s) { strsplit(s, "[, ]")[[1]][1]}) 
+  # add ID cols
+  rollcall_mds[[i]] <- transform(rollcall_mds[[i]], 
+                                 name = congress_names, party = as.factor(congress$party),
+                                 congress = congresses[i])
+}
+head(rollcall_mds[[1]])
+```
+Now we have the data frames for the visualization. 1st, just plot the data for the 110th Senate, but then loop over this list of data frames to create individual visualizations for all Congresses.
+```{r}
+congress_110 <- rollcall_mds[[10]]
+base_plot_110 <- ggplot(congress_110, aes(X, Y)) + 
+                    scale_size(range = c(2,2), guide = F) + 
+                    scale_alpha(guide = F) + 
+                    theme_bw() + 
+                    theme(axis.ticks.x = element_blank(), axis.text.x = element_blank(), 
+                         axis.text.y = element_blank(), panel.grid.major = element_blank()) + 
+                    ggtitle("Roll Call Vote MDS Clustering for 110th US Senate") +
+                    xlab("") + ylab("") + 
+                    scale_shape(name = "Party", breaks = c("100","200","328"), 
+                                labels = c("Dem","Rep","Ind"), solid = F) + 
+                    scale_color_manual(name = "Party", 
+                                       values = c("100"="blue","200"="red","328"="green"),
+                                       breaks = c("100","200","328"), labels = c("Dem","Rep","Ind"))
+
+print(base_plot_110 + geom_point(aes(shape = party, alpha = .75, size = 2)))
+print(base_plot_110 + geom_text(aes(color = party, alpha = .75, size = 2, 
+                                    label = congress_110$name), hjust=0, vjust=0))
+```
+
+Typical `ggplot` procedure = create a object + then add a `geom` or `stat` layer, but in this case, we create a base object containing all the formatting particularities for these plots (including size, alpha, shape, color, + theme layers) b/c we want to make 2 plots: points themselves where shape = party affiliation + senators’ names as points w/ text color corresponds = party affiliation. By adding all of these formatting layers first, we can simply add `geom` layers to the base to get the plot we want. 
