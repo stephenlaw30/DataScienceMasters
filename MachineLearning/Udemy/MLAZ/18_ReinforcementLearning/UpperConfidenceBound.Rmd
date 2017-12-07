@@ -31,7 +31,7 @@ What would happen if we randomly select the versions in each round (i.e. no algo
 # Implementing Random Selection
 set.seed(453)
 n <- 10000
-d = 10
+d <- 10
 ad_selected <- integer(0)
 total_reward <- 0
 
@@ -53,4 +53,78 @@ hist(ad_selected, col = 'blue',
  
 Our total reward from random ad placement is 1011, and each ad was displayed a pretty similary amount of time, indicating we did not exploit the best ad. We'll compare this total reward to our reinforcement algorithm's results.
  
+# Implement UCB from scratch
 
+So, for each round, *n*, we need to consider N_i(n), the # of times an ad, *i*, was selected up to the current round n, and R_i(n), the sum of the rewards of ad i up to round n. 
+```{r}
+# create collection of number of times an ad i (for each ad) was selected up to round n
+# contains $'s of selections for each ad i
+# make vector of size d = 10 made up of 0's = b/c at 1st round, each ad hasn't been selected so we start at 0
+number_of_selections <- integer(10)
+rewards_sums <- integer(10)
+# 10k-element vector/list of ads selected at each round
+ad_selected <- integer(0)
+# create variable to hold total reward after all rounds
+total_reward <- 0
+```
+
+Then, compute the average reward of ad i up to round n via R_i(n) / N_i(n) and the confidence interval (CI) at round n by first calculating the delta_i(n) = Sqrt((3/2)*(log(n)/N_i(n))) and then adding and subtracting this from our average reward at round n. Then we select the ad i with the maximum UCB = avg_r_i(n) + delta_i(n) as our best n
+
+
+```{r}
+N <- nrow(ctr)
+d <- 10
+# for each round
+for (n in 1:N) {
+  # for each ad
+  ad_number <- 0
+  max_ucb <- 0
+  for (i in 1:d) {
+    # don't have info at start, so set up initial conditions (choose which ads to select) for 1st 10 rounds
+    #   AKA: select w/ no strategy = simply select 1st 10 ads (round 1 , select ad 1, etc.)
+    # at end of 10 rounds, we have 1 selection for each ad + a sum of rewards for each to use from round 11 onward
+    if (number_of_selections[i] > 0) { 
+      # if ad was selected at least once (if we are after round 10), then begin logic below
+      # for ith ad, get the reward sums and selection sums up to current round n and do computations
+      R_i_n <- rewards_sums[i]
+      N_i_n <- number_of_selections[i]
+    
+      avg_r_i_n <- R_i_n / N_i_n
+    
+      delta_i_n <- sqrt((3/2) * (log(n)/N_i_n)) 
+      #ulb_i <- avg_r_i_n - delta_i_n
+      ucb_i <- avg_r_i_n + delta_i_n
+    # for 1st 10 rounds:  
+    } else {
+      # set UCB to very large number to make sure we select each ad once during 1st 10 rounds ( > max_ucb)
+      ucb_i <- 1e400
+    }
+    # get the max UCB and the ad associated with it
+    if(ucb_i > max_ucb) {
+      max_ucb <- ucb_i
+      ad_number <- i
+    }
+  }
+  # get ad with max UCB and place into vector of selected ads for each round
+  ad_selected <- append(ad_selected, ad_number)
+  # update vector of total ad selections for this ad after this round + move on to next ad
+  number_of_selections[ad_number] <- number_of_selections[ad_number] + 1
+  # get reward for this round for this ad + move on to next round
+  reward <- ctr[n,ad_number]
+  # update vector of total rewards sum of current ad with reward from this round 
+  rewards_sums[ad_number] <- rewards_sums[ad_number] + reward
+  
+  # get total reward after all rounds
+  total_reward <- total_reward + reward
+}
+# Visualising the results
+hist(ad_selected, col = 'blue', 
+     main = paste('Histogram of Ads Selections (Reward: ',total_reward,')'),
+     xlab = 'Ads', ylab = 'Number of times each ad was selected')
+```
+
+so we can see total reward almost doubled from random selection and it looks like ad 5 is our best ad to maximize conversion rate. In `ads_selected`, we can see the 1st 10 ads chosen aare ads 1-10, and at the end of the algorithm, we should see that ad 5 is selected each time.
+```{r}
+ad_selected[1:10]
+ad_selected[9980:10000]
+```
