@@ -213,7 +213,7 @@ base_plot_110 <- ggplot(congress_110, aes(X, Y)) +
                     scale_size(range = c(2,2), guide = F) + 
                     scale_alpha(guide = F) + 
                     theme_bw() + 
-                    theme(axis.ticks.x = element_blank(), axis.text.x = element_blank(), 
+                    theme(axis.ticks = element_blank(), axis.text.x = element_blank(), 
                          axis.text.y = element_blank(), panel.grid.major = element_blank()) + 
                     ggtitle("Roll Call Vote MDS Clustering for 110th US Senate") +
                     xlab("") + ylab("") + 
@@ -229,3 +229,86 @@ print(base_plot_110 + geom_text(aes(color = party, alpha = .75, size = 2,
 ```
 
 Typical `ggplot` procedure = create a object + then add a `geom` or `stat` layer, but in this case, we create a base object containing all the formatting particularities for these plots (including size, alpha, shape, color, + theme layers) b/c we want to make 2 plots: points themselves where shape = party affiliation + senators’ names as points w/ text color corresponds = party affiliation. By adding all of these formatting layers first, we can simply add `geom` layers to the base to get the plot we want. 
+
+Begin analysis by addressing initial question: *do senators from different parties mix when clustered by roll call vote records?* From the 110th   Congree plot, the answer is clearly no. There appears to be quite a large gap between Dems and Republicans. The data also confirms that those senators often thought to be most extreme are in fact outliers: Senator Sanders, an Independent from Vermont at the time, at the far middle-left, + Senators Coburn + DeMint at the far upper right. Likewise, Senators Collins + Snowe are tightly clustered at the lower-center for the 111th Congress. As you may recall, it was these moderate Republican senators who became central figures in many of the large legislative battles in the US Senat at the time.
+
+Another interesting result of this analysis is the positioning of Senators Obama + McCain in the 110th Senate. Obama appears singled out in the upper-left quadrant of the plot, whereas McCain is clustered w/ Senators Wicker + Thomas, closer to the center. Although it might be tempting to interpret this as meaning the 2 senators had very complementary voting records, given the nature of the data’s coding, it is more likely a result of the 2 missing many of the same votes due to campaigning. That is, when they *did* vote on the same bill, they may have had relatively different *voting habits*, although not extremely different *voting records*, but when they missed votes, it was often for the same piece of legislation. Of course, this begs the question: how do we interpret the position of Wicker + Thomas?
+
+Now create the plots of each Congress and save their 2 plot versions.
+```{r}
+# Generate plots of each congress
+for(i in 1:length(rollcall_mds)) {
+  # get current congress data
+  mds <- rollcall_mds[[i]]
+  congress <- congresses[i]
+  plot.title <- paste("Roll Call Vote MDS Clustering for U.S. Senate ",congress,sep = "")
+  
+  # Build base plot
+  mds_plot <- ggplot(mds, aes(X, Y)) +
+    scale_size(range = c(2,2), guide = F) +
+    scale_alpha(guide = F) +
+    theme_bw() + 
+    theme(axis.ticks = element_blank(), 
+          axis.text.x = element_blank(),
+          axis.text.y = element_blank(),
+          panel.grid.major = element_blank()) +
+    ggtitle(plot.title) + xlab("") + ylab("")
+  
+  # Build up point + text plots separately
+  mds_point <- mds_plot + geom_point(aes(shape = party, alpha = 0.75, size = 2))
+  mds_text <- mds_plot + geom_text(aes(color = party, alpha = 0.75, label = mds$name, size = 2))
+  
+  # Fix labels, shapes + colors
+  # if we have more htan 2 parties (D, R + I)
+  if(length(levels(mds$party)) > 2) {
+    mds_point <- mds_point + scale_shape(name = "Party", breaks = c("100", "200", "328"),
+                              labels = c("Dem.", "Rep.", "Ind."), solid = FALSE)
+    
+    mds_text <- mds_text + scale_color_manual(name = "Party", 
+                                             values=c("100" = "red","200" = "blue", "328" = "green"),
+                                             breaks = c("100", "200", "328"), 
+                                             labels = c("Dem.", "Rep.", "Ind."))
+  } else {
+    mds_point <- mds_point + scale_shape(name = "Party", breaks = c("100", "200"), 
+                                         labels = c("Dem.", "Rep."), solid = FALSE)
+    
+    mds_text <- mds_text + scale_color_manual(name="Party", values=c("100" = "red", "200" = "blue"),
+                                              breaks = c("100", "200"), labels = c("Dem.", "Rep."))
+  }
+ 
+  ggsave(plot = mds_point, filename = file.path('.', 'images', 'senate_plots',
+                                                paste(congress, "_point.pdf", sep = "")),
+         width = 8, height = 5)
+  
+  ggsave(plot = mds_text, filename = file.path('images', 'senate_plots',
+                                               paste(congress, "_names.pdf", sep = "")),
+         width = 8, height = 5)
+}
+```
+
+
+For our final viz, examine the MDS plots for all Congresses in chronological time to get some indication as to the overall mixing of senators by party over time + will give a more principled perspective on the statement that the Senate is more polarized now than it has ever been. 
+```{r}
+# stack each congress' df under each other to create single df
+all_mds <- do.call(rbind,rollcall_mds)
+# create same plot but break out by (~) congress
+(all_plots <- ggplot(all_mds, aes(X,Y)) + 
+  geom_point(aes(shape = party, alpha = .75, size = 2)) + 
+  scale_size(range = c(2,2), guide = F) + 
+  scale_alpha(guide = F) + 
+  theme_bw() + 
+  theme(axis.ticks = element_blank(), axis.text.x = element_blank(), axis.text.y = element_blank(),
+        panel.grid.major = element_blank()) +
+  ggtitle("Roll Call Vote MDS Clustering for U.S. Senate (101st - 111th Congress)") + 
+  xlab("") + ylab("") + 
+  scale_shape(name = "Party", breaks = c("100","200","328"), labels = c("Dem","Rep","Ind"),
+              solid = F) + 
+  facet_wrap(~ congress))
+```
+
+By using roll call voting as a measure of difference among senators, it seems from these results that the US Senate is in fact just as partisan as it has ever been. By + large, we can see only large groups of triangles + circles clustered together with very few exceptions in each Congress. One might say the 101st + 102nd Congresses were less polarized because the clusters seem closer, *but this is an artifact of the axis scales*.
+
+Recall MDS is simply attempting to minimize a cost function based on the computed distance matrix among all observations. *Just b/c the scales for the 101st + 102nd Congress are smaller than those of many of the other plots does not mean that those Congresses are less polarized*. These differences can result for many reasons, such as # of observations. However, b/c we have visualized them in a single plot, the scales must be uniform across all panels, which can cause some to appear squeezed or others stretched.
+
+The important takeaway from this plot = there is very little mixing of parties when you cluster them by roll call voting. Although there may be slight variation w/in parties, as we can see by the stratification of either the circles or triangle points, there is very little variation between parties. In nearly all cases, we see Dems clustered w/ Dems + Republicans w/ Republicans. Of course, there are many other pieces of info beyond party affiliation that would be interesting to add to this
+plot. We might wonder if senators from the same geographic region cluster together, or if committee comembership leads to clustering.
