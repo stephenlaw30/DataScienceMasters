@@ -10,3 +10,73 @@ library(tidyverse)
 library(ggplot2)
 library(magrittr)
 ```
+# The k-Nearest Neighbors Algorithm
+
+Can use those same sort of similarity metrics as last chapter to recommend items to a website’s users.
+k-nearest neighbors = arguably one of the most intuitive of all ML algorithms. Simplest form of kNN = the sort of algorithm most people would spontaneously invent if asked to make recommendations using similarity data: recommend the song that’s closest to songs a user already likes, but not yet in that list. That intuition is essentially a 1-nearest neighbor algorithm. The full k-NN algorithm amounts to a generalization of this intuition where you draw on more than 1 DP before making a recommendation.
+
+The full k-NN algorithm works much in the way some of us ask for recommendations from our friends. 1st, start w/ people whose taste we feel we share ==> ask a bunch of them to recommend something to us. If many recommend the same thing, we deduce we’ll like it as well. How can we take that intuition and transform it into something algorithmic? 
+
+Something simpler = classifying points into 2 categories: can use logistic regression to split those points using a single line, the decision boundaryBut, there are problems like that can’t be solved using  a simple linear decision boundary but can be solved w/ a nonlinear method; **the kernel trick** (Ch 12). Another approach = use the points nearest the point you’re trying to classify to make a guess. You could, for example, draw a circle around the point you’re looking at + then decide on a classification based on the points w/in that circle = the **“Grassroots Democracy” algorithm**, which is pretty usable, but has 1 noticeable flaw: we have to pick a radius for the circle we’ll use to define “local” points. If all of your DPs have neighbors at roughly the same distance, this won’t be a problem. But if some points have many close neighbors while others have almost none, you’ll end up picking a circle that’s so big it extends well past the decision boundaries for some points. What can we do to work around this problem? 
+
+The obvious solution = avoid using a circle to define a point’s neighbors + instead look at the k-closest points = the k-nearest neighbors. Once we have them, look at their classifications + use majority rule to decide on a class for our new point. 
+```{r}
+df <- read.csv("data/example_data.csv")
+glimpse(df)
+```
+
+```{r}
+# compute Euclidiean distance between the points + store in distance matrix
+# distance matrix = 2D array with distance between i + j is at matrix[i,j]
+distance_mtx <- function(df) {
+  distance <- matrix(rep(NA, nrow(df)**2), ncol = nrow(df))
+  
+  for(i in 1:nrow(df)) {
+    for(j in 1:nrow(df)) {
+      distance[i,j] <- sqrt((df[i,'X']-df[j,'X'])**2 + (df[i,'Y']-df[j,'Y'])**2)
+    }
+  }
+return(distance)
+}
+distance_mtx(df)[1:5,1:5]
+```
+
+We also need a function to return the k-nearest neighbors for a point `i` = simply look at the `i`th row of the distance matrix to find how far all other points are from your input point. Once you sort this row, you have a list of the neighbors ordered by distance from the input point `i`. Select the 1st k entries after ignoring the input point (very 1st point in the distance matrix) + you’ll have the k-nearest neighbors of input point `i`.
+```{r}
+#kNN algorithm with default k = 5 to look for distances of point i
+k_nearest_neighbors <- function(i, distance, k = 5) {
+  # get the k points occuring after input point i
+  return(order(distance[i,])[2:(k+1)])
+}
+distance_mtx(df)[1,k_nearest_neighbors(1,distance_mtx(df),k=5)]
+```
+
+Once you’ve done that, build a `knn` function that takes a df + a value for k + then produces predictions for each point in the df. Our function isn’t very general, b/c we’re assuming the class labels are found in a column `Label`, but this is just a quick exercise to see how the algorithm works. Use majority rules voting to make predictions by taking the mean `Label` value + thresholding mean distance of point `i` at 0.5. This function returns a vector of predictions we can append to our data frame + then assess performance.
+```{r}
+knn <- function(df, k = 5) {
+  # get distance + set up prediction array to store predictions
+  distance <- distance_mtx(df)
+  predictions <- rep(NA, nrow(df))
+  
+  for(i in 1:nrow(df)) {
+    indices <- k_nearest_neighbors(i, distance ,k = k)
+    predictions[i] <- ifelse(mean(df[indices,'Label']) > .5, 1, 0)
+  }
+  return(predictions)
+}
+
+df %<>% 
+  mutate(kNNPredictions = knn(df))
+head(df)
+
+paste("Correct:",sum(with(df,Label != kNNPredictions)))
+paste("Total:",nrow(df))
+paste("Accuracy: ",(1 - sum(with(df,Label != kNNPredictions))/nrow(df))*100,"%", sep = "")
+```
+
+We’ve incorrectly predicted labels for 7 points out of 100, so we’re correct 93% of the time, not bad performance for such a simple algorithm. 
+
+Now apply kNN to some real data about usage of R packages w/ a black-box implementation of kNN
+```{r}
+
+```
