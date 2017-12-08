@@ -76,7 +76,139 @@ paste("Accuracy: ",(1 - sum(with(df,Label != kNNPredictions))/nrow(df))*100,"%",
 
 We’ve incorrectly predicted labels for 7 points out of 100, so we’re correct 93% of the time, not bad performance for such a simple algorithm. 
 
-Now apply kNN to some real data about usage of R packages w/ a black-box implementation of kNN
+Now apply kNN to some real data about usage of R packages w/ a black-box implementation of kNN from `class` package, `knn`, which uses cross-validation.
 ```{r}
+# remove hard-coded knn algorithm
+rm(knn)
 
+library('class')
+
+n <- nrow(df)
+set.seed(1)
+# get a SORTED random sample of indices from df of size = 1/2 the # of rows in df
+indices <- sort(sample(1:n, n*(1/2)))
+
+# create training + test sets from random sample indices
+train_x <- df[indices, 1:2]
+train_y <- df[indices, 3]
+test_x <- df[-indices, 1:2]
+test_y <- df[-indices, 3]
+
+# use black-box knn algorithm to predict neighbors where 
+#   cl = train.y = factor of true classifications of training set
+#predicted.y <- knn(train = train_x, test = test_x, cl = train_y, k = 5)
+
+predicted_y <- knn(train_x, test_x, train_y, k = 5)
+
+paste("Correct:",sum(predicted_y != test_y))
+paste("Total:",length(test_y))
+paste("Accuracy: ",(1 - sum(predicted_y != test_y)/length(test_y))*100,"%", sep = "")
 ```
+
+Amazingly, we get exactly 7 labels wrong here as well, but the test set has only 50 examples, so we’re only achieving 86% accuracy. That’s still pretty good, though. Let’s look at how a logistic model would've worked to give a point of comparison:
+```{r}
+# train logistic regression model on training data with default error distribution + test on test data
+logistic_model <- glm(Label ~ X + Y, data = df[indices,], family = "gaussian")
+predictions <- as.numeric(predict(logistic_model, newdata = df[-indices,]) > 0)
+
+paste("Correct:",sum(predictions != test_y))
+paste("Total:",length(test_y))
+paste("Accuracy: ",(1 - sum(predictions != test_y)/length(test_y))*100,"%", sep = "")
+```
+
+As you can see, the best logistic classifier mispredicts 16 DP's = an accuracy of 68%. When your problem is far from being linear, kNN will work out of the box much better than other methods.
+
+# R Package Installation Data
+
+Now that we have an understanding of how to use kNN, let’s go through the logic of making recommendations. 1 way to start to make recommendations = find items similar to items users already like + then apply kNN = the **item-based approach**. Another approach = find popular items w/ users who are similar to a user we’re trying to build recommendations for + then apply kNN = **user-based approach**. Both approaches are reasonable, but 1 is almost always better than the other one in practice. 
+
+If you have many more users than items (Netflix users vs. movies), you’ll save on computation + storage costs by using the item-based approach b/c you only need to compute similarities between all pairs of items. If you have many more items than users (often when just starting to collect data), probably want to try user-based approach. We’ll go w/ the item-based approach w/ the data available to participants in the R package recommendation contest on Kaggle = complete package installation record for approximately 50 R programmers. This = quite a small data set, but was sufficient
+to start learning things about the popularity of different packages + their degree of similarity.
+
+Winning entries for the contest all used kNN as part of their recommendation algorithm, though it was generally only 1 part of many for the winning algorithms. The other important algorithm incorporated into most winning solutions = **matrix factorization**. Anyone building PROD-level recommendation system should consider combining recommendations from both kNN + matrix factorization models. The best systems often combine kNN, matrix factorization, + other classifiers together into a **super-model** via **ensemble methods** (Ch 12, briefly).
+
+In the R contest, participants were supposed to predict whether a user would install a package for which we had withheld the installation data by exploiting the fact that you knew which other R packages a user had installed. When making predictions about a new package, could look at packages most similar to it + check if they were installed. In other words, it was natural to use an item-based kNN approach for the contest.
+
+1st, load the data set + inspect it a bit, then construct a similarity measure between packages. Raw data for the contest is not ideally suited for this purpose, so we’ve prepared a simpler data set in which each row describes a user-item pair + a third column states whether that user has the package installed or not.
+```{r}
+installations <- read.csv('data/installations.csv')
+head(installations)
+```
+
+User 1 installed `abind` package, but not `AcceptanceSampling`. This raw info will give us a measure of similarity
+between packages after we transform it into a different form. We’re going to convert **long form data** into a **wide form** of data where each row = a user + each column = to a package using `cast()` from `reshape`
+```{r}
+library("reshape")
+user.pckg.mtx <- cast(installations, User ~ Package, value = "Installed")
+
+# check 1st + 2nd cols = installations of abind and AcceptanceStalling
+user.pckg.mtx[, 1]
+```
+
+Unfortunately, this operation has stored the user ID's in the 1st col. Make these the row names and remove this col.
+```{r}
+# make user IDs the row names + remove the redundant col
+row.names(user.pckg.mtx) <- user.pckg.mtx[, 1]
+user.pckg.mtx <- user.pckg.mtx[, -1]
+head(user.pckg.mtx)
+```
+
+Now we have a proper user-package matrix that makes it trivial to compute similarity measures. For simplicity, use the correlation between columns as our measure of similarity via `cor()`
+```{r}
+suppressWarnings(similarities <- cor(user.pckg.mtx))
+dim(similarities)
+```
+
+```{r}
+# similarities/correlation between 1st package and itself, and 1st package and the 2nd package
+similarities[1, 1]
+similarities[1, 2]
+```
+
+Package 1 is perfectly similar to package 1 + somewhat dissimilar from package 2. But kNN doesn’t use similarities; it uses distances = need to translate similarities into distances w/ some clever algebra so that a similarity of 1 = distance of 0 + similarity of –1 = an infinite distance. The code we’ve
+written here does this. If it’s not intuitively clear why it works, try to spend some time
+thinking about how the algebra moves points around.
+```{r}
+# create distances such that a similarity of 1 = -log(1) which is 0, and similiary of -1 = -log(0), which is Inf
+distances <- -log((similarities / 2) + 0.5)
+```
+
+We now have our distance measure + can start implementing kNN w/ `k = 25` for example purposes, but you’d want to try multiple values of k in PROD to see which works best. To make recommendations, estimate how likely a package is to be installed by simply counting how many of its neighbors are installed, then sort packages by this count + suggest packages w/ the highest score to users.
+```{r}
+get_knn <- function(p, distances, k = 25) {
+  # for given package p, sort the distances from p of every other package (cols after p) and get top 25
+  return(order(distances[p,])[2:(k + 1)])
+}
+```
+
+Using the nearest neighbors, we get back, predict probability of installation by simply counting how many of the neighbors are installed:
+```{r}
+get_installation_prob <- function(user, pckg, user.pckg.mtx, distances, k = 25) {
+  # get sorted distances of all packages from given package and return top 25
+  neighbors <- get_knn(pckg, distances, k = k)
+  # for each neighbor, get the install/not install value from user.pckg.mtx and get the mean of this install sum 
+  return(mean(sapply(neighbors, function(neighbor) { user.pckg.mtx[user, neighbor]})))
+}
+get_installation_prob(1, 1, user.pckg.mtx, distances)
+```
+
+For user 1, package 1 has probability 0.76 = 76% of being installed. What we’d like to do is find packages most likely to be installed + to recommend those. Do this by looping over ALL packages, finding their installation probabilities, + displaying the most probable:
+```{r}
+get_most_probably_pckgs <- function(user, user.pckg.mtx, distances, k = 25) {
+  # for the total # of packages in the matrix, get the installation probability of the package
+  # then order their indices them from greatest to least
+  return(order(sapply(1:ncol(user.pckg.mtx), 
+                      function(package) {
+                        get_installation_prob(user, package, user.pckg.mtx, distances, k = k)
+                      }), decreasing = T))
+}
+
+# get most probable packages for user 1 to install
+user <- 1
+listings <- get_most_probably_pckgs(user, user.pckg.mtx, distances)
+
+# get top 10 most probable package installations for user 1
+colnames(user.pckg.mtx)[listings[1:10]]
+```
+
+1 of the things that’s nice about this approach is we can easily justify our predictions to end users. We can say that we recommended package P to a user U b/c he had already installed packages X, Y, + Z. This transparency can be a real virtue in some applications. Now that we’ve built a recommendation system using only similarity measures, it’s time to move on to building an engine in which we use social info in the form of network structures to make recommendations.
