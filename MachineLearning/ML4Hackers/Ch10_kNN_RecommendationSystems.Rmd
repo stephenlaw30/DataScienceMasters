@@ -10,6 +10,7 @@ library(tidyverse)
 library(ggplot2)
 library(magrittr)
 ```
+
 # The k-Nearest Neighbors Algorithm
 
 Can use those same sort of similarity metrics as last chapter to recommend items to a website’s users.
