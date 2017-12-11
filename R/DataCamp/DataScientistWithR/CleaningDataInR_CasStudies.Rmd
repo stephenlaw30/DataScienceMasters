@@ -1,0 +1,40 @@
+---
+title: "Cleaning Data: Case Studies"
+author: "Steve Newns"
+date: "December 5, 2017"
+output: html_document
+---
+
+# Ticket Sales
+
+```{r}
+sales <- read.csv("sales.csv", stringsAsFactors = F)
+# View dimensions of sales
+dim(sales)
+
+# Inspect first 6 rows of sales
+head(sales)
+
+# View column names of sales
+names(sales)
+```
+
+ rows appear to represent individual purchases and the columns contain different pieces of information about each purchase. 
+ 
+```{r}
+ # Look at structure of sales
+str(sales)
+
+# View a summary of sales
+summary(sales)
+
+# Load dplyr
+library(dplyr)
+
+# Get a glimpse of sales
+glimpse(sales)
+
+# Remove the first column (just a duplication of the row numbers)  of sales: sales2
+sales2 <- sales[,-1]
+```
+ 
