@@ -31,7 +31,7 @@ mean(with(df, 0 == Label))
 
 In short, the logistic regression model (+ the linear decision boundary it finds) is completely useless. It makes the same predictions as a model w/ no info beyond the fact that Class 0 occurs more often than Class 1 (**the baseline model** = should be used as a prediction in the absence of all other info). SVM provides a trivial way to outperform logistic regression. Before
 
-`e1071` package provides `svm()` that is just as easy to use as `glm()`
+`e1071` package provides `svm()` which is just as easy to use as `glm()`
 ```{r}
 library('e1071')
 svm_model <- svm(Label ~ X + Y, df)
@@ -41,8 +41,9 @@ mean(with(df, svm_predictions == Label))
 
 We’ve clearly done better than logistic regression just by switching to SVMs. Plot its predictions vs. those from a logistic regression:
 ```{r}
-df <- cbind(df, data.frame(Logit = ifelse(predict(logistic_model) > 0, 1, 0), # logistic regression
-                       SVM = ifelse(predict(svm_model) > 0, 1, 0))) # SVM 
+df <- cbind(df, 
+            data.frame(Logit = ifelse(predict(logistic_model) > 0, 1, 0), # logistic regression prediction
+                       SVM = ifelse(predict(svm_model) > 0, 1, 0))) # SVM prediction
 head(df)
 ```
 
@@ -56,9 +57,10 @@ ggplot(predictions, aes(X, Y, color = factor(value))) +
   geom_point() +
   facet_grid(variable ~ .)
 ```
-Here we’ve added the logistic regression + SVM predictions to the raw data set + plotted the ground truth labels along w/ the logit and SVM predictions in a faceted plot. It's obvious that the logistic regression is useless b/c it puts the decision boundary *outside* of the data set while the ground truth data in the top row clearly has a band of entries for Class 1 in the center. The SVM is able to capture this band structure, even though it makes odd predictions near the furthest boundaries of the data set.
 
-The SVM uses the **kernel trick**, which using a mathematical transformation (depending only on a simple computation involving “kernels”) moves the original data set into a new mathematical space in which the decision boundary is easy to describe. Describing the mathematics of the kernel trick is nontrivial, but it’s easy to gain some intuition by testing out different kernels w/ the `kernel` parameter to 1 of 4 values: `linear`, `polynomial`, `radial`, `sigmoid`. To get a feel for how these kernels work, try using all of them to generate predictions + plot them:
+Here we’ve added the logistic regression + SVM predictions to the raw data set + plotted the ground truth labels along w/ the logit + SVM predictions in a faceted plot. It's obvious that the logistic regression is useless b/c it puts the decision boundary *outside* of the data set while the ground truth data in the top row clearly has a band of entries for Class 1 in the center. The SVM is able to capture this band structure, even though it makes odd predictions near the furthest boundaries of the data set.
+
+The SVM uses the **kernel trick**, which, using a mathematical transformation (depending only on a simple computation involving “kernels”), moves the original data set into a new mathematical space in which the decision boundary is easy to describe. Describing the mathematics of the kernel trick is nontrivial, but it’s easy to gain some intuition by testing out different kernels w/ the `kernel` parameter w/ 1 of 4 values: `linear`, `polynomial`, `radial`, `sigmoid`. To get a feel for how these kernels work, try using all of them to generate predictions + plot them:
 ```{r}
 # reset df
 df <- df[, c('X', 'Y', 'Label')]
@@ -75,75 +77,58 @@ with(df, mean(Label == ifelse(predict(radial_svm) > 0, 1, 0)))
 sigmoid_svm <- svm(Label ~ X + Y, df, kernel = 'sigmoid')
 with(df, mean(Label == ifelse(predict(sigmoid_svm) > 0, 1, 0)))
 
-df <- cbind(df,
-            data.frame(LinearSVM = ifelse(predict(linear_svm) > 0, 1, 0),
+df <- cbind(df, data.frame(LinearSVM = ifelse(predict(linear_svm) > 0, 1, 0),
                        PolynomialSVM = ifelse(predict(polynomial_svm) > 0, 1, 0),
                        RadialSVM = ifelse(predict(radial_svm) > 0, 1, 0),
                        SigmoidSVM = ifelse(predict(sigmoid_svm) > 0, 1, 0)))
+
+# melt each SVM col into single col
 predictions <- melt(df, id.vars = c('X', 'Y'))
+
 ggplot(predictions, aes(X, Y, color = factor(value))) +
   geom_point() +
   facet_grid(variable ~ .)
 ```
 
-The linear + polynomial kernels look more or less like logistic regression. In contrast, the radial kernel gives us a decision boundary somewhat like the ground truth boundary, + the sigmoid kernel gives us a very complex + strange decision boundary. SVM could make much better predictions than it seems to do out of the box via a set of hyperparameters that are not set to useful values by default. Getting the best predictions from the model requires tuning these hyperparameters.
+The linear + polynomial kernels look more or less like logistic regression. In contrast, the radial kernel gives us a decision boundary somewhat like the ground truth boundary, + the sigmoid kernel gives us a very complex + strange decision boundary. SVM could make much better predictions than it seems to do out-of-box via a set of hyperparameters that are not set to useful values by default. Getting the best predictions from the model requires tuning these hyperparameters.
 
 The first hyperparameter = the `degree` of the polynomial used by the polynomial kernel.
 ```{r}
-polynomial.degree3.svm.fit <- svm(Label ~ X + Y,
-                                  data = df,
-                                  kernel = 'polynomial',
-                                  degree = 3)
-with(df, mean(Label != ifelse(predict(polynomial.degree3.svm.fit) > 0, 1, 0)))
-#[1] 0.5156
-polynomial.degree5.svm.fit <- svm(Label ~ X + Y,
-                                  data = df,
-                                  kernel = 'polynomial',
-278
-|
-Chapter 12:
-Model Comparison
-                                  degree = 5)
-with(df, mean(Label != ifelse(predict(polynomial.degree5.svm.fit) > 0, 1, 0)))
-#[1] 0.5156
-polynomial.degree10.svm.fit <- svm(Label ~ X + Y,
-                                   data = df,
-                                   kernel = 'polynomial',
-                                   degree = 10)
-with(df, mean(Label != ifelse(predict(polynomial.degree10.svm.fit) > 0, 1, 0)))
-#[1] 0.4388
-polynomial.degree12.svm.fit <- svm(Label ~ X + Y,
-                                   data = df,
-                                   kernel = 'polynomial',
-                                   degree = 12)
-with(df, mean(Label != ifelse(predict(polynomial.degree12.svm.fit) > 0, 1, 0)))
-#[1] 0.4464
-Here we can see that setting 
-degree
- to 3 or 5 doesn’t have any effect on the quality of
-the model’s predictions. (It’s worth noting that the default value of 
-degree
- is 3.) But
-setting 
-degree
- to 10 or 12 does have an effect. To see what’s happening, let’s plot out
-the decision boundaries again:
+svm_model_polynomialD3 <- svm(Label ~ X + Y, df, kernel = 'polynomial', degree = 3)
+paste("3rd degree polynomial accuracy:",
+      with(df, mean(Label != ifelse(predict(svm_model_polynomialD3) > 0, 1, 0))))
+
+svm_model_polynomialD5 <- svm(Label ~ X + Y, df, kernel = 'polynomial', degree = 5)
+paste("5th degree polynomial accuracy:",
+      with(df, mean(Label != ifelse(predict(svm_model_polynomialD5) > 0, 1, 0))))
+
+svm_model_polynomialD10 <- svm(Label ~ X + Y, df, kernel = 'polynomial', degree = 10)
+paste("10th degree polynomial accuracy:",
+      with(df, mean(Label != ifelse(predict(svm_model_polynomialD10) > 0, 1, 0))))
+
+svm_model_polynomialD12 <- svm(Label ~ X + Y, df, kernel = 'polynomial', degree = 12)
+paste("12th degree polynomial accuracy:",
+      with(df, mean(Label != ifelse(predict(svm_model_polynomialD12) > 0, 1, 0))))
+```
+
+Setting `degree` to 3 or 5 doesn’t have any effect on the quality of the model’s predictions. (default value = 3). But
+setting `degree` to 10 or 12 does have an effect. To see what’s happening, plot out the decision boundaries again:
+```{r}
 df <- df[, c('X', 'Y', 'Label')]
 df <- cbind(df,
-            data.frame(Degree3SVM = ifelse(predict(polynomial.degree3.svm.fit) > 0,
-                                           1,
-                                           0),
-                       Degree5SVM = ifelse(predict(polynomial.degree5.svm.fit) > 0,
-                                           1,
-                                           0),
-                       Degree10SVM = ifelse(predict(polynomial.degree10.svm.fit) > 0,
-                                            1,
-                                            0),
-                       Degree12SVM = ifelse(predict(polynomial.degree12.svm.fit) > 0,
-                                            1,
-                                            0)))
-predictions <- melt(df, id.vars = c('X', 'Y'))
-ggplot(predictions, aes(x = X, y = Y, color = factor(value))) +
+            data.frame(Degree3SVM = ifelse(predict(svm_model_polynomialD3) > 0, 1, 0),
+                       Degree5SVM = ifelse(predict(svm_model_polynomialD5) > 0, 1, 0),
+                       Degree10SVM = ifelse(predict(svm_model_polynomialD10) > 0, 1, 0),
+                       Degree12SVM = ifelse(predict(svm_model_polynomialD12) > 0, 1, 0)))
+
+# melt down cols for each SVM degress into single col
+svm_predictions <- melt(df, id.vars = c("X","Y"))
+
+ggplot(svm_predictions, aes(X, Y, color = factor(value))) +
   geom_point() +
   facet_grid(variable ~ .)
-SVMs: The Support Vect
+```
+
+It’s clear using a larger degree improves the quality of the predictions, though it does so in a hackish way that’s not really mimicking the structure of the data. And, the model-fitting step becomes slower as the degree increases. Finally, the same overfitting problems we saw in polynomial regression will creep up. For that reason, always use cross-validation to experiment w/ setting the `degree` hyperparameter in applications that use SVMs w/ polynomial kernels. Although there’s no doubt SVMs w/ polynomial kernels are a valuable tool to have in your toolkit, they can’t be guaranteed to work well w/out some effort + thinking.
+
+After playing w/ `degree` for the polynomial kernel, let’s try out the `cost` hyperparameter, which is used with all of the possible SVM kernels.
