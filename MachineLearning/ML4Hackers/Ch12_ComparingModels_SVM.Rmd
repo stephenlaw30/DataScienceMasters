@@ -111,8 +111,7 @@ paste("12th degree polynomial accuracy:",
       with(df, mean(Label != ifelse(predict(svm_model_polynomialD12) > 0, 1, 0))))
 ```
 
-Setting `degree` to 3 or 5 doesn’t have any effect on the quality of the model’s predictions. (default value = 3). But
-setting `degree` to 10 or 12 does have an effect. To see what’s happening, plot out the decision boundaries again:
+Setting `degree` to 3 or 5 doesn’t have any effect on the quality of the model’s predictions. (default value = 3). But setting `degree` to 10 or 12 does have an effect. To see what’s happening, plot out the decision boundaries again:
 ```{r}
 df <- df[, c('X', 'Y', 'Label')]
 df <- cbind(df,
@@ -132,3 +131,83 @@ ggplot(svm_predictions, aes(X, Y, color = factor(value))) +
 It’s clear using a larger degree improves the quality of the predictions, though it does so in a hackish way that’s not really mimicking the structure of the data. And, the model-fitting step becomes slower as the degree increases. Finally, the same overfitting problems we saw in polynomial regression will creep up. For that reason, always use cross-validation to experiment w/ setting the `degree` hyperparameter in applications that use SVMs w/ polynomial kernels. Although there’s no doubt SVMs w/ polynomial kernels are a valuable tool to have in your toolkit, they can’t be guaranteed to work well w/out some effort + thinking.
 
 After playing w/ `degree` for the polynomial kernel, let’s try out the `cost` hyperparameter, which is used with all of the possible SVM kernels.
+```{r}
+svm_model_radial_cost1 <- svm(Label ~ X + Y, df, kernel = 'radial', cost = 1)
+paste("Radial Cost 1 accuracy:",
+      with(df, mean(Label == ifelse(predict(svm_model_radial_cost1) > 0, 1, 0))))
+
+svm_model_radial_cost2 <- svm(Label ~ X + Y, df, kernel = 'radial', cost = 2)
+paste("Radial Cost 2 accuracy:",
+      with(df, mean(Label == ifelse(predict(svm_model_radial_cost2) > 0, 1, 0))))
+
+svm_model_radial_cost3 <- svm(Label ~ X + Y, df, kernel = 'radial', cost = 3)
+paste("Radial Cost 3 accuracy:",
+      with(df, mean(Label == ifelse(predict(svm_model_radial_cost3) > 0, 1, 0))))
+
+svm_model_radial_cost4 <- svm(Label ~ X + Y, df, kernel = 'radial', cost = 4)
+paste("Radial Cost 4 accuracy:",
+      with(df, mean(Label == ifelse(predict(svm_model_radial_cost4) > 0, 1, 0))))
+```
+
+Increasing `cost` makes the model progressively fit more + more poorly b/c `cost` = a **regularization hyperparameter** like `lambda`, +  increasing them will always make model fit the training data less tightly. Of course, this increase in regularization can improve model performance on test data, so you should always see what value of `cost` most improves your test performance using cross-validation.
+To get some insight into what’s happening in terms of the fitted model, look at the predictions graphically
+```{r}
+df <- df[, c('X', 'Y', 'Label')]
+df <- cbind(df,
+            data.frame(Cost1SVM = ifelse(predict(svm_model_radial_cost1) > 0, 1, 0),
+                       Cost2SVM = ifelse(predict(svm_model_radial_cost2) > 0, 1, 0),
+                       Cost3SVM = ifelse(predict(svm_model_radial_cost3) > 0, 1, 0),
+                       Cost4SVM = ifelse(predict(svm_model_radial_cost4) > 0, 1, 0)))
+
+# melt down cols for each SVM degress into single col
+svm_predictions <- melt(df, id.vars = c("X","Y"))
+
+ggplot(svm_predictions, aes(X, Y, color = factor(value))) +
+  geom_point() +
+  facet_grid(variable ~ .)
+```
+
+Changes induced by the `cost` parameter are quite subtle, but can be seen on the periphery of the data. As `cost` goes up, the boundaries created by the radial kernel become more + more linear.
+
+TO conclude our SVM hyperparameter experiments = play around w/ the `gamma` hyperparameter. For testing purposes, we’ll observe its effects on a sigmoid kernel by testing out 4 different gamma values:
+```{r}
+svm_model_sigmoid_gamma1 <- svm(Label ~ X + Y, df, kernel = 'sigmoid', gamma = 1)
+paste("sigmoid gamma 1 accuracy:",
+      with(df, mean(Label == ifelse(predict(svm_model_sigmoid_gamma1) > 0, 1, 0))))
+
+svm_model_sigmoid_gamma2 <- svm(Label ~ X + Y, df, kernel = 'sigmoid', gamma = 2)
+paste("sigmoid gamma 2 accuracy:",
+      with(df, mean(Label == ifelse(predict(svm_model_sigmoid_gamma2) > 0, 1, 0))))
+
+svm_model_sigmoid_gamma3 <- svm(Label ~ X + Y, df, kernel = 'sigmoid', gamma = 3)
+paste("sigmoid gamma 3 accuracy:",
+      with(df, mean(Label == ifelse(predict(svm_model_sigmoid_gamma3) > 0, 1, 0))))
+
+svm_model_sigmoid_gamma4 <- svm(Label ~ X + Y, df, kernel = 'sigmoid', gamma = 4)
+paste("sigmoid gamma 4 accuracy:",
+      with(df, mean(Label == ifelse(predict(svm_model_sigmoid_gamma4) > 0, 1, 0))))
+```
+
+Every time we increase `gamma`, the model does a little better. To get a sense for the source of that improvement, turn to graphical diagnostics of the predictions:
+```{r}
+df <- df[, c('X', 'Y', 'Label')]
+df <- cbind(df,
+            data.frame(gamma1SVM = ifelse(predict(svm_model_sigmoid_gamma1) > 0, 1, 0),
+                       gamma2SVM = ifelse(predict(svm_model_sigmoid_gamma2) > 0, 1, 0),
+                       gamma3SVM = ifelse(predict(svm_model_sigmoid_gamma3) > 0, 1, 0),
+                       gamma4SVM = ifelse(predict(svm_model_sigmoid_gamma4) > 0, 1, 0)))
+
+# melt down cols for each SVM degress into single col
+svm_predictions <- melt(df, id.vars = c("X","Y"))
+
+ggplot(svm_predictions, aes(X, Y, color = factor(value))) +
+  geom_point() +
+  facet_grid(variable ~ .)
+```
+
+The rather complicated decision boundary chosen by the sigmoid kernel warps around as we change the value of `gamma`. To really get a better intuition for what’s happening, experiment w/ many more values of `gamma`
+
+This ends the intro to the SVM, a valuable algorithm to have in a toolkit, but it’s time to stop building up your toolkit + instead start focusing on thinking critically about which tool is best for any given job. To do that, we’ll explore multiple models simultaneously on a single data set.
+
+# Comparing Algorithms
+multiple models simultaneously on a single data set.
