@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1510009398472.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2603176995",
+    "id" : "83125D02",
+    "lastKnownWriteTime" : 1510072564,
+    "last_content_update" : 1510360952615,
+    "path" : "C:/Users/Nimz/Dropbox/DataScienceMasters/R/R4DS/r4ds/R4DS_Ch19_Functions.Rmd",
+    "project_path" : "R4DS_Ch19_Functions.Rmd",
+    "properties" : {
+        "cursorPosition" : "388,2",
+        "scrollLine" : "377"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

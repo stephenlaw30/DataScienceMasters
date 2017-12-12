@@ -1,0 +1,2 @@
+"0","ggplot(uci2, aes(region)) + geom_bar(aes(fill = income)) +"
+"0","  theme(axis.text.x = element_text(angle = 45, hjust = 1))"

@@ -1,0 +1,313 @@
+---
+title: "LogisticRegressionProject"
+author: "Steve Newns"
+date: "November 11, 2017"
+output: html_document
+---
+
+In this project we will be working with the **UCI adult dataset**, attempting to predict if people in data set belong in a certain `class` by `salary`, either making less than or equal to \$50k or more \$50k per year.
+
+# Get the Data
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(magrittr) # piping
+library(Amelia) # missing data plot
+library(caTools) # split data
+library(ROCR) # prediction()
+
+uci <- read.csv("./data/adult_sal.csv")
+glimpse(uci)
+```
+Notice the index `X` has been repeated and is its own column. This needs to be dropped.
+
+```{r}
+uci %<>%
+  select(-X)
+summary(uci)
+```
+
+# Data Cleaning
+
+It doesn't look like we have any missing variables, and we have a lot of columns that are cateogrical **factors**, but a lot of these columns have a larger number of factors than may be necessary for this logistic regression. The main way to deal with these factors with a large number of levels is **feature engineering** to cut down on the number of levels for each factor. We'll start with `type_employer`.
+
+```{r}
+table(uci$type_employer)
+```
+While there were no `NULL` values for `type_employer`, there are 1836 "?" values. And the 2 smallest groups are "Never worked" and "Without-pay".
+
+We will combine these 2 smallest groups into a single group, "Unemployed". 
+
+We can also combine State and Local government jobs into a category called "SL-gov"" and combine the two self-employed job categories into a single category, "self-emp".
+
+```{r}
+uci %<>%
+  mutate(type_employer = as.factor(if_else(as.character(type_employer) %in%
+                                             c("Never-worked","Without-pay"),
+                                                  "Unemployed", 
+                                    if_else(as.character(type_employer) %in%
+                                              c("State-gov","Local-gov"),
+                                                  "SL-gov",                                    
+                                    if_else(as.character(type_employer) %in%
+                                              c("Self-emp-not-inc","Self-emp-inc"),
+                                                  "Self-emp",as.character(type_employer))))))
+table(uci$type_employer)
+```
+
+Now to look at `marital`.
+```{r}
+table(uci$marital)
+```
+
+We will reduce this to 3 simpler groups:
+<ul>
+<li> Married </li>
+<li> Not-Married </li>
+<li> Never-Married </li>
+</ul>
+
+```{r}
+uci %<>%
+  mutate(marital = as.factor(if_else(as.character(marital) %in%
+                                             c("Married-AF-spouse","Married-civ-spouse",
+                                                "Married-spouse-absent"),
+                                                    "Married", 
+                                    if_else(as.character(marital) %in%
+                                              c("Divorced","Separated","Widowed"),
+                                                  "Not_Married","Never-Married"))))
+table(uci$marital)
+```
+
+
+Now to check `country`.
+```{r}
+table(uci$country)
+length(uci$country)
+```
+I want to reduce the number of groups here significantly, so I'll group them by continent.
+```{r}
+uci %<>%
+  mutate(country = as.character(if_else(country %in% c("Cambodia","China","Hong","India","Iran",
+                                                       "Japan","Laos","Philippines","Taiwan",
+                                                       "Thailand","Vietnam"),
+                                        "Asia", 
+                                if_else(country %in% c("Canada","Cuba","Dominican-Republic",
+                                                       "Outlying-US(Guam-USVI-etc)","Haiti","Jamaica",
+                                                       "Mexico","Puerto-Rico","United-States"),
+                                        "North America",
+                                if_else(country %in% c("Columbia","Ecuador","Peru","Trinadad&Tobago",
+                                                       "Guatemala","Honduras","El-Salvador",
+                                                       "Nicaragua"),
+                                        "Central & South America",
+                                if_else(country %in% c("England","France","Germany","Greece",
+                                                       "Holand-Netherlands","Hungary","Ireland",
+                                                       "Italy","Poland","Portugal","Scotland",
+                                                       "Yugoslavia"),
+                                        "Europe",
+                                if_else(country == "South","Other",as.character(country))))))))
+table(uci$country)
+length(uci$country)
+```
+Great, we haven't lost any records.
+Out[23]:
+                   Asia                  Europe Latin.and.South.America 
+                    671                     521                    1301 
+          North.America                   Other 
+                  29405                     663 
+```{r}
+table(uci$education)
+length(uci$education)
+```
+```{r}
+uci %<>%
+  mutate(education = as.factor(if_else(as.character(education) %in% c("1st-4th","5th-6th","7th-8th",
+                                                         "Preschool"),
+                                        "Grade School", 
+                                if_else(as.character(education) %in% c("9th","10th","11th","12th",
+                                                                       "HS-grad"),
+                                        "High School",
+                                if_else(as.character(education) %in% c("Assoc-voc","Assoc-acdm"),
+                                        "2-year college",                                        
+                                if_else(as.character(education) %in% c("Some-college","Bachelors"),
+                                        "4-year college",
+                                if_else(as.character(education) %in% c("Masters","Doctorate",
+                                                                       "Prof-school"),
+                                        "Postgrad","Other")))))))
+table(uci$education)
+length(uci$education)
+```
+```{r}
+table(uci$occupation)
+length(uci$occupation)
+```
+```{r}
+uci %<>%
+  mutate(occupation = as.factor(if_else(as.character(occupation) %in% c("Adm-clerical",
+                                                            "Exec-managerial","Prof-specialty","Sales",
+                                                            "Tech-support"),
+                                                        "White-collar", 
+                                if_else(as.character(occupation) %in% c("Armed-Forces",
+                                                            "Craft-repair","Farming-fishing",
+                                                            "Handlers-cleaners","Machine-op-inspct",
+                                                            "Priv-house-serv","Protective-serv",
+                                                            "Transport-moving"),
+                                                        "Blue-collar",
+                                if_else(as.character(occupation) == "Other-serv", "Other",
+                                        as.character(occupation))))))
+table(uci$occupation)
+length(uci$occupation)
+```
+
+We could still play around with education and occupation to try to reduce the number of factors for those columns, but let's go ahead and move on to dealing with the missing data. Feel free to group thos columns as well and see how they effect your model.
+
+Convert any cell with a '?' or a ' ?' value to a NA value. Hint: is.na() may be useful here or you can also use brackets with a conditional statement. Refer to the solutions if you can't figure this step out.
+```{r}
+convert_question_mark <- function(x) {
+  if (x == "?") {
+    return(NA)
+  } else {
+    return(x)
+  }
+}
+
+uci2 <- uci %>%
+  mutate(country = as.factor(sapply(country,convert_question_mark)),
+         type_employer = sapply(type_employer,convert_question_mark),
+         occupation = sapply(occupation,convert_question_mark),
+         marital = sapply(marital,convert_question_mark),
+         relationship = sapply(relationship,convert_question_mark),
+         race = sapply(race,convert_question_mark),
+         sex = sapply(sex,convert_question_mark))
+         
+summary(uci2)
+```
+
+Using table() on a column with NA values should now not display those NA values, instead you'll just see 0 for ?. Optional: Refactor these columns (may take awhile). For example:
+
+```{r}
+table(uci2$type_employer)
+```
+     SL-gov    self-emp     Private Federal-gov           ?  Unemployed 
+       3391        3657       22696         960           0          21 
+
+Now we'll use `missmap()` to check for missing values.
+
+```{r}
+missmap(uci2, y.labels = c(''), y.at = c(1), legend = F, main = "Missing Values in UCI")
+```
+
+We end up with a heatmap that points out missing values (NA) to give you a quick glance at how much data is missing, in this case, not a whole lot (relatively speaking)
+
+We will use `na.omit()` to omit NA data from this. data frame. **Note**, *it really depends on the situation and your data to judge whether or not this is a good decision. You shouldn't always just drop NA values.*
+```{r}
+uci2 <- na.omit(uci2)
+summary(uci2)
+missmap(uci2, y.labels = c(''), y.at = c(1), legend = F, main = "Missing Values in UCI")
+```
+Let's look at histogram of `age`, colored by income.
+```{r}
+ggplot(uci2, aes(age)) + geom_histogram(aes(fill = income), color = "black", binwidth = 2) + 
+  theme_bw()
+uci2 %>%
+  group_by(income) %>%
+  summarise(mean(age), median(age))
+ggplot(uci2,aes(age)) + geom_histogram(aes(fill=income),color='black',binwidth=1) + theme_bw()
+
+```
+Both are quite right-skewed, indicating that the majority of both those making under and over \$50k per year are younger. But, we also notice the much larger amount of people making less than \$50k per year overall.
+
+Look at hours worked per week.
+
+```{r}
+ggplot(uci2, aes(hr_per_week)) + geom_histogram(binwidth = 5)
+```
+Look at the giant peak for up to 40 hours per week, which is expected. Also not the blip over there at 100 hours per week, and the other small "peak" at around 50 hours per week. 
+
+```{r}
+uci2 %<>%
+  mutate(aboveAvgHrPerWk = as.factor(if_else(hr_per_week < 40, "Part-time",
+                                             if_else(hr_per_week == 40, "Full-time","Over-time")))) %>%
+  select(-hr_per_week)
+
+table(uci2$aboveAvgHrPerWk)
+length(uci2$aboveAvgHrPerWk)
+```
+
+Rename the `country` to `region` to better reflect the factor levels.
+```{r}
+uci2 %<>%
+  mutate(region = country) %>%
+  select(-country)
+```
+
+Create a barplot of region with the fill color defined by income class. Optional: Figure out how rotate the x axis text for readability
+
+
+```{r}
+ggplot(uci2, aes(region)) + geom_bar(aes(fill = income)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+# Building a Model
+
+Now it's time to build a model to classify people into 2 groups: Above or Below \$50k in Salary.
+
+**Logistic Regression** is a type of **classification** model to predict the outcome of *categorical* dependent variables using 1 or more independent variables (which can be either categorical or numerical).
+
+Logistic regression is based on the **Sigmiod (logistic) function**, which always takes values between 0 and 1. Replacing the dependent variable of the logistic function with a linear combination of a dependent variable to use for regression, we arrive at the formula for logistic regression.
+
+## Train Test Split
+Split the data into a train and test set using `caTools` 
+```{r}
+set.seed(12345)
+spl <- sample.split(uci2$income, SplitRatio = .75)
+train <- subset(uci2, spl == T)
+test <- subset(uci2, spl == F)
+```
+
+## Training the Model - Fitting Generalized Linear Models
+
+`glm` is used to fit generalized linear models, specified by giving a symbolic description of the linear predictor and a description of the error distribution.
+
+# Use all the features to train a glm() model on the training data
+```{r}
+full_model <- glm(income ~ ., train, family = "binomial")
+summary(full_model)
+```
+Note we get a warning, which just means the model may have guessed the probability of a class with a 0% or 100% chance of occuring.
+
+We have too many features, and some are important, others not so much. 
+
+R comes with an awesome function `step()`, which tries to iteratively remove predictor variables from the model in an attempt to delete variables that do not significantly add to the fit by using **AIC**. 
+
+# Choose a model by AIC in a Stepwise Algorithm
+```{r}
+step_model <- step(full_model)
+summary(step_model)
+```
+So we get a BUNCH of info, and notice that `step()` kept all the features used previously. This is because while this used AIC criteria to compare models, there are other criteria we could have used, such as the **variable inflation factor (VIF)** with `vif()` 
+
+# Compare against test set
+
+```{r}
+predict_test <- predict(step_model, type = "response", newdata = test)
+ROCRpredict_test <- prediction(predict_test,test$income)
+(AUCpredict_test <- as.numeric(performance(ROCRpredict_test, "auc")@y.values))
+```
+
+```{r}
+#create confusion matrix w/ t = 0.5 
+(cm <- table(test$income,predict_test > 0.5)) # (actuals, predicted > t)
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or Recall): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nAccuracy: ",accuracy)
+```
+need the cost for recall vs. precision for specific problem

@@ -1,0 +1,3 @@
+"0","uci2 %>%"
+"0","  group_by(income) %>%"
+"0","  summarise(mean(age), median(age))"

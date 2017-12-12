@@ -1,0 +1,4 @@
+"0","set.seed(12345)"
+"0","spl <- sample.split(uci2$income, SplitRatio = .75)"
+"0","train <- subset(uci2, spl == T)"
+"0","test <- subset(uci2, spl == F)"

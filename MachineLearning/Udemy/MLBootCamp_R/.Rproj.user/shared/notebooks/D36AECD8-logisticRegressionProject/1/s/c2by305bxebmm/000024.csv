@@ -1,0 +1,2 @@
+"0","ggplot(uci2, aes(age)) + geom_histogram(aes(fill = income), color = ""black"", binwidth = 2) + "
+"0","  theme_bw()"

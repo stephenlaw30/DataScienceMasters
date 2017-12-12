@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1510517895685.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1234489604",
+    "id" : "3EB58D59",
+    "lastKnownWriteTime" : 1507853091,
+    "last_content_update" : 1507853091,
+    "path" : "C:/Users/Nimz/Dropbox/DataScienceMasters/MachineLearning/Udemy/MLAZ/08_Logistic_Regression/Logistic Regression.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "67,19",
+        "scrollLine" : "59"
+    },
+    "relative_order" : 5,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

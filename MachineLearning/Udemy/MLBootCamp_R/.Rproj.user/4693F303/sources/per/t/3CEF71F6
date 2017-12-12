@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1510429138814.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2664526139",
+    "id" : "3CEF71F6",
+    "lastKnownWriteTime" : 1510440072,
+    "last_content_update" : 1510440072395,
+    "path" : "C:/Users/Nimz/Dropbox/DataScienceMasters/MachineLearning/Udemy/MLBootCamp_R/logisticRegression.R",
+    "project_path" : "logisticRegression.R",
+    "properties" : {
+        "cursorPosition" : "31,0",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

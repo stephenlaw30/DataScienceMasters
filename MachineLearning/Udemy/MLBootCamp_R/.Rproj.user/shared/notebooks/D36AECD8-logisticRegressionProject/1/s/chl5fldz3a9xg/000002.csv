@@ -1,0 +1,7 @@
+"0","predict_test <- predict(step_model, type = ""response"", newdata = test)"
+"0","ROCRpredict_test <- prediction(predict_test,test$income)"
+"0","(AUCpredict_test <- as.numeric(performance(ROCRpredict_test, ""auc"")@y.values))"
+"1","[1]"
+"1"," 0.9019544"
+"1","
+"
