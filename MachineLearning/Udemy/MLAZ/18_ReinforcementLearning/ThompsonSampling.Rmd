@@ -1,0 +1,121 @@
+---
+title: "Thompson Sampling"
+author: "Steve Newns"
+output: html_document
+---
+
+```{r, warning=F,message=F}
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+suppressMessages(library(arules)) # sparse matrix
+```
+
+We are solving the Multi-Armed Bandit problem for optimizing click-through rate (CTR) with the Upper Confidence Bound algorithm.  
+
+```{r}
+## import data 
+ctr <- read.csv("../data/Ads_CTR_Optimisation.csv", header = T)
+glimpse(ctr)
+```
+
+This dataset contains 1001 ad impressions on 10 ads, and each cell contains a 1 or a 0 if a user did or did not click on the ad, respectively. The client here is a car company is launching a new ad campaign and is placing ads on a social network in an attempt to target those users most likely to buy a new luxury SUV based on our earlier classification models. To evaluate the marketing campaign, the company developed 10 versions of an ad to show and recorded the CTR of those versions by the users.
+
+It costs a lot of money to run these ad campaigns on the social network , so we want to optimize the campaign by quickly finding and exploiting the "best" ad, AKA the ad that will lead to the most clicks (conversion rate). We have no predictors or outcomes, just this binary click data. We experimented with these ads by placing the 10 versions on the ad on the social network and record 10,000 users' activity on each. If a user clicks on the ad, the ad gets a reward, and if not, the ad does not get an award. We are *not going to show the ads to each user at random*. 
+
+Each **round** in this reinforcement learning depends on the *previous* round. For example, at round 11, the algorithm will, behind the scenes, look at what happened in the previous 10 rounds, and depending on the results of those rounds, choose which ad to show to the user in round 11. We have no idea which ads a user will click, so we have to dynamically learn.
+
+According to our above simulation, user 1 click on the ad if we show version 1, 5, or 9. User 2 clicks on the ad is we show ad 9 only, the 3rd user will click on no ad, etc. The goal of the algorithm is to maximize total reward (sum of all rewards from each round) obtained througout different selections of the ads.
+
+What would happen if we randomly select the versions in each round (i.e. no algorithm or strategy)?
+```{r}
+# Implementing Random Selection
+set.seed(453)
+n <- 10000
+d <- 10
+ad_selected <- integer(0)
+total_reward <- 0
+
+for (i in 1:n) {
+  # for each iteration, get a random sample from 1-10, representing an ad version
+  ad = sample(1:10, 1)
+  # add to selected ads,
+  ad_selected = append(ad_selected, ad)
+  # get the cell value for this user (iteration) and this ad, then add to total reward
+  reward <- ctr[n, ad]
+  total_reward = total_reward + reward
+}
+
+# Visualising the results
+hist(ad_selected, col = 'blue', 
+     main = paste('Histogram of Ads Selections (Reward: ',total_reward,')'),
+     xlab = 'Ads', ylab = 'Number of times each ad was selected')
+```
+ 
+Our total reward from random ad placement is 1011, and each ad was displayed a pretty similary amount of time, indicating we did not exploit the best ad. We'll compare this total reward to our reinforcement algorithm's results.
+ 
+# Implement Thompson Sampling from scratch
+
+So, for each round, *n*, we need to consider N_i1(n), the # of times an ad, *i*, got reward = 1 up to the current round n, and N_i0(n), the # of times an ad, *i*, got reward = 0 up to the current round n.
+```{r}
+# create collection of number of times an ad i (for each ad) got rewards 0 + 1 up to round n
+# contains #'s of selections for each ad i
+ad_selected <- integer(0)
+# make vector of size d = 10 made up of 0's = b/c at 1st round, each ad has no reward
+rewards_sums_0 <- integer(10)
+rewards_sums_1 <- integer(10)
+
+total_reward <- 0
+```
+
+Then, for each ad i, take a random draw from the Beta Bernoulli distribution of N_i1(n) + 1 and N_i0(n) + 1, assuming an ad i gets rewards y based on a Bernoulli distribution (probability of success = p(y|theta_i)), and assuming theta_i has a normal distribution. We get the posterior probability via Bayes Rule. Then we select the ad i with the highest probability theta_i after our random draw from the posterior probability for each ad i.
+
+```{r}
+set.seed(Sys.time())
+N <- nrow(ctr)
+d <- 10
+# for each round
+for (n in 1:N) {
+  # for each ad i
+  ad_number <- 0
+  max_random_draw <- 0
+  for (i in 1:d) {
+    # don't have info at start, so set up initial conditions = generate random draws for 1st 10 rounds
+    # draws come from beta distribution - take 1 draw
+    #N_i1_n <- rewards_sums_1
+    #N_i0_n <- rewards_sums_0
+
+    # for each ad i, get a random draw from its beta distribution
+    random_draw_beta_i <- rbeta(n = 1, rewards_sums_1[i] + 1, rewards_sums_0[i] + 1)
+
+    # get the max randomly drawed probability theta_i + the ad associated with it
+    # by checking this condition for each ad after each random draw
+    if(random_draw_beta_i > max_random_draw) {
+      max_random_draw <- random_draw_beta_i
+      ad_number <- i
+    }
+  }
+  # get ad with max theta_i and place into vector of ads for each round
+  ad_selected <- append(ad_selected, ad_number)
+
+  # get reward for this round for this ad + move on to next round
+  reward <- ctr[n,ad_number]
+
+  # update vector of total rewards of 1 and of 0 for current ad with the reward from current ad
+  ifelse(reward == 1, rewards_sums_1[ad_number] <- rewards_sums_1[ad_number]  + 1,
+         rewards_sums_0[ad_number] <- rewards_sums_0[ad_number] + 1)
+
+  # get total reward after all rounds
+  total_reward <- total_reward + reward
+}
+
+# Visualising the results
+hist(ad_selected, col = 'blue', 
+     main = paste('Histogram of Ads Selections (Reward: ',total_reward,')'),
+     xlab = 'Ads', ylab = 'Number of times each ad was selected')
+```
+
+So we can see total reward almost doubled from random selection and was higher than UCB (2178), and it still looks like ad 5 is our best ad to maximize conversion rate. In `ads_selected`, we can see the 1st 10 ads chosen aare ads 1-10, and at the end of the algorithm, we should see that ad 5 is selected each time.
+```{r}
+ad_selected[1:10]
+ad_selected[9980:10000]
+```
