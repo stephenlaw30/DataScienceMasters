@@ -933,3 +933,96 @@ weather6$events[weather6$events == ""] <- "None"
 # Print the first 6 rows of weather6
 head(weather6)
 ```
+
+## Identifying dates
+
+Some of the columns in your dataset contain dates of different events. Right now, they are stored as character strings. That's fine if all you want to do is look up the date associated with an event, but if you want to do any comparisons or math with the dates, it's MUCH easier to store them as Date objects.
+
+Luckily, all of the date columns in this dataset have the substring "dt" in their name, so you can use the str_detect() function of the stringr package to find the date columns. Then you can coerce them to Date objects using a function from the lubridate package.
+
+You'll use lapply() to apply the appropriate lubridate function to all of the columns that contain dates. Recall the following syntax for lapply() applied to some data frame columns of interest:
+
+lapply(my_data_frame[, cols], function_name)
+
+Also recall that function names in lubridate combine the letters y, m, d, h, m, and s depending on the format of the date/time string being read in.
+Instructions
+100xp
+
+    Load the stringr package.
+    Use str_detect() to find values in the names() of sales5 containing the string "dt". Assign the resulting logical vector to the variable date_cols.
+    Load the lubridate package.
+    Coerce the date_cols into Date objects using lapply() and the appropriate function from lubridate. Conveniently, all date columns in sales5 are in year-month-day format, so you can use the ymd() function from lubridate.
+```{r}
+## sales5 is pre-loaded
+
+# Load stringr
+library(stringr)
+
+# Find columns of sales5 containing "dt": date_cols
+date_cols <- str_detect(names(sales5),"dt")
+
+# Load lubridate
+library(lubridate)
+
+# Coerce date columns into Date objects
+sales5[, date_cols] <- lapply(sales5[, date_cols], ymd)
+```
+
+code looks great, but there were a few more warnings… Sigh. You'll sort it out in the next exercise.
+ 
+## More warnings!
+
+As you saw, some of the calls to ymd() caused a failure to parse warning. That's probably because of more missing data, but again, it's good to check to be sure.
+
+The first two lines of code (provided for you here) create a list of logical vectors called missing. Each vector in the list indicates the presence (or absence) of missing values in the corresponding column of sales5. See if the number of missing values in each column is the same as the number of rows that failed to parse in the previous exercise.
+
+As a reminder, here are the warning messages:
+
+Warning message:  2892 failed to parse.
+Warning message:  101 failed to parse.
+Warning message:  4 failed to parse.
+Warning message:  424 failed to parse.
+
+Instructions
+100xp
+
+    Run the first line as-is to regenerate the date_cols vector.
+    Run the second line as-is to generate a list of logical vectors representing missing values in the date columns of sales5.
+    Use sapply() to create a numerical vector containing the number of NA values in each date column. Call this vector num_missing.
+    Print out the num_missing vector.
+```{r}
+## stringr is loaded
+
+# Find date columns (don't change)
+date_cols <- str_detect(names(sales5), "dt")
+
+# Create logical vectors indicating missing values of all dates cols (don't change)
+missing <- lapply(sales5[, date_cols], is.na)
+
+# Create a numerical vector that counts missing values in each date col: num_missing
+num_missing <- sapply(missing, sum)
+
+# Print num_missing
+num_missing
+```
+
+##Combining columns
+
+Sure enough, the number of NAs in each column match the numbers from the warning messages, so missing data is the culprit. How to proceed depends on your desired analysis. If you really need complete sets of date/time information, you might delete the rows or columns containing NAs.
+
+As your last step, you'll use the tidyr function unite() to combine the venue_city and venue_state columns into one column with the two values separated by a comma and a space. For example, "PORTLAND" "MAINE" should become "PORTLAND, MAINE".
+Instructions
+100xp
+
+    Combine the venue_city and venue_state columns of sales5 into a new column called venue_city_state, containing the city and state names separated by a comma and a space. Call the resulting data frame sales6.
+    View the first 6 rows of sales6.
+```{r}
+## tidyr is loaded
+
+# Combine the venue_city and venue_state columns
+sales6 <- unite(sales5, venue_city_state, venue_city, venue_state, sep = ", ")
+
+# View the head of sales6
+head(sales6)
+
+ This dataset is much cleaner. Your next steps would depend on what specific analyses you wanted to perform; for now, we'll call it a chapter. Next up, you'll look at some data about “the T”, Boston's public transit system. 

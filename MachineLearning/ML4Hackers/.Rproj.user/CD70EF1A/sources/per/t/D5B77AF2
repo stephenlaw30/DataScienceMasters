@@ -5,15 +5,15 @@
     "dirty" : false,
     "encoding" : "UTF-8",
     "folds" : "",
-    "hash" : "3367237469",
+    "hash" : "3149065991",
     "id" : "D5B77AF2",
-    "lastKnownWriteTime" : 1513003960,
-    "last_content_update" : 1513003960553,
+    "lastKnownWriteTime" : 1513172360,
+    "last_content_update" : 1513172360699,
     "path" : "C:/Users/NEWNSS/Dropbox/DataScienceMasters/R/DataCamp/DataScientistWithR/CleaningDataInR.Rmd",
     "project_path" : null,
     "properties" : {
-        "cursorPosition" : "151,9",
-        "scrollLine" : "129"
+        "cursorPosition" : "1027,224",
+        "scrollLine" : "979"
     },
     "relative_order" : 3,
     "source_on_save" : false,
