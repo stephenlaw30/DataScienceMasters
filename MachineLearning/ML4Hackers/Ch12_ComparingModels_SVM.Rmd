@@ -210,4 +210,62 @@ The rather complicated decision boundary chosen by the sigmoid kernel warps arou
 This ends the intro to the SVM, a valuable algorithm to have in a toolkit, but it’s time to stop building up your toolkit + instead start focusing on thinking critically about which tool is best for any given job. To do that, we’ll explore multiple models simultaneously on a single data set.
 
 # Comparing Algorithms
-multiple models simultaneously on a single data set.
+
+Since we know how to use to SVMs, logistic regression, and kNN, let’s compare their performance on the `SpamAssassin` data set. Experimenting w/ multiple algorithms is a good habit to develop when working w/ real-world data b/c often you won’t be able to know in advance which algorithm will work best with your data set. Also, 1 of the major skills that separates the most experienced people in ML from those just starting is the ability to know from the structure of a problem when a certain algorithm won’t work well. The best way to build up this intuition is to apply all of the standard algorithms to every problem you come across until you have a sense of when they’ll fail.
+```{r}
+load('data/dtm.RData')
+set.seed(1)
+
+train_indices <- sort(sample(1:nrow(dtm), round(.5*nrow(dtm))))
+test_indices <- which(! 1:nrow(dtm) %in% train_indices)
+
+train_x <- dtm[train_indices, 3:ncol(dtm)]
+train_y <- dtm[train_indices, 1]
+test_x <- dtm[test_indices, 3:ncol(dtm)]
+test_y <- dtm[test_indices, 1]
+
+rm(dtm)
+```
+
+Now, w/ data in memory, we can immediately move forward to regularized logistic regression
+```{r}
+library('glmnet')
+regularized_logistic_regression <- glmnet(train_x, train_y, family = "binomial")
+```
+
+Of course, this leaves us w/ a great deal of flexibility, so we’d like to compare various settings for `lambda` to see which gives best performance. 
+
+To push through this example quickly, we’ll cheat a bit and test the hyperparameter settings on the test set rather than do repeated splits of the training data. If rigorously testing models, don't make this sort of simplification. For now, just try all values `glmnet` proposed + see which performs best on the test set:
+```{r}
+(lambdas <- regularized_logistic_regression$lambda)
+```
+
+So, these are the values of lambda we'll be using
+```{r}
+performance <- data.frame()
+for (lambda in  lambdas) {
+  # test model on new test data with each lambda
+  temp_predictions <- predict(regularized_logistic_regression, test_x, s = lambda)
+  predictions <- as.numeric(temp_predictions > 0)
+  # calculate MSE
+  mse <- mean(predictions != test_y)
+  # add row back to DF
+  performance <- rbind(performance, data.frame(Lambda = lambda, MSE = mse))
+}
+
+ggplot(performance, aes(Lambda, MSE)) + 
+  geom_point() + 
+  scale_x_log10()
+```
+
+We see a pretty clear region of values for `lambda` that gives the lowest possible error rate. To find the *best* value for our final analysis, use simple indexing + `min`
+```{r}
+final_lambda <- with(performance, max(Lambda[which(MSE == min(MSE))]))
+```
+
+In this case, there are actually 2 different values of `lambda` that give identical performance, so we extract the larger of the 2 b/c it's the one w/ greater regularization applied. We can then calculate MSE for our logistic model using this best value for lambda
+```{r}
+(mse <- with(subset(performance, Lambda == final_lambda), MSE))
+```
+
+Using regularized logistic regression, which requires only a trivial amount of hyperparameter tuning to implement, misclassifies only 6% of all emails in our test set. But we’d like to see how other methods do w/ similar amounts of work so we can decide whether we should be using logistic regression, SVMs, or kNN. Start by fitting a linear kernel SVM to see how it compares w/ logistic regression:
