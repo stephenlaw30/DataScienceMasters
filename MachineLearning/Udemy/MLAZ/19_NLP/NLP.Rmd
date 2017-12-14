@@ -1,0 +1,47 @@
+---
+title: "NLP"
+author: "Steve Newns"
+output: html_document
+---
+
+```{r, warning=F,message=F}
+suppressMessages(library(tidyverse))
+suppressMessages(library(ggplot2))
+```
+
+We want to analyze restaraunt reviews to predict if a review is a "good" review or a bad "review"
+
+```{r}
+## import data 
+restaraunts <- read.delim("../data/Restaurant_Reviews.tsv", quote = "",
+                          sep = "\t", stringsAsFactors = F)
+glimpse(restaraunts)
+head(restaraunts)
+```
+
+So we have 2 columns, one with the text of the review, and another with the binary 1/0 Label `Liked` of whether a customer liked the restaraunt or did not like the restaraunt.
+
+Now we want to create some variables (predictors) that are equal to all the words appearing in the reviews. We will transform our data set into corpus and then into a sparse matrix where each row is a review, and then we will have a column for each unique word from all of the reviews. The cells will be the count of time each word has appeared in a specific review. We also need to remove the most common words in the English language and words that would not be a predictor of the meaning of a phrase. These are **stop words**, and we need will remove these from our corpus.
+
+```{r}
+library(tm) # text mining
+library(SnowballC) # stopwords
+
+corpus <- VCorpus(VectorSource(restaraunts$Review)) #
+as.character(corpus[[1]])
+as.character(corpus[[841]])
+
+corpus %<>%
+  tm_map(tolower) %>%
+  tm_map(removeNumbers) %>%
+  tm_map(removePunctuation) %>%
+  tm_map(removeWords, stopwords()) %>% # remove English stopwords
+  tm_map(stemDocument) %>% # get the ROOTs of each word via stemming
+  tm_map(stripWhitespace) # get rid of extra spaces leftover
+
+# check reviews to make sure function worked
+as.character(corpus[[1]])
+as.character(corpus[[841]])
+```
+
+```{r}
