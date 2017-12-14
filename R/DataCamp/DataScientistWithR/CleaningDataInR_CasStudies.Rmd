@@ -108,4 +108,60 @@ sales3$sales_ord_create_dttm[issues] # NULL values
 sales3$sales_ord_create_dttm[2517]    
 ```
 
-The warning was just because of four missing values. You'll ignore them for now, but if your analysis depended on complete date/time information, you would probably need to delete those rows. 
+The warning was just because of four missing values. You'll ignore them for now, but if your analysis depended on complete date/time information, you would probably need to delete those rows.
+
+# MBTA Ridership Data
+
+## Using readxl
+
+The Massachusetts Bay Transportation Authority ("MBTA" or just "the T" for short) manages America's oldest subway, as well as Greater Boston's commuter rail, ferry, and bus systems.
+
+It's your first day on the job as the T's data analyst and you've been tasked with analyzing average ridership through time. You're in luck, because this chapter of the course will guide you through cleaning a set of MBTA ridership data!
+
+The dataset is stored as an Excel spreadsheet called mbta.xlsx in your working directory. You'll use the read_excel() function from Hadley Wickham's readxl package to import it.
+
+The first time you import a dataset, you might not know how many rows need to be skipped. In this case, the first row is a title (see this Excel screenshot), so you'll need to skip the first row. You can also download the whole Excel spreadsheet here.
+Instructions
+100xp
+
+    Load the readxl package.
+    Import the ridership data using read_excel(). Set the skip argument to 1 and store the result to mbta.
+```{r}
+# Load readxl
+library(readxl)
+
+# Import mbta.xlsx and skip first row: mbta
+mbta <- read_excel("mbta.xlsx", skip = 1)
+
+str(mbta)
+
+# View the first 6 rows of mbta
+head(mbta)
+
+# View a summary of mbta
+summary(mbta)
+```
+
+## Removing unnecessary rows and columns
+
+It appears that the data are organized with observations stored as columns rather than as rows. You can fix that.
+
+First, though, you can address the missing data. All of the NA values are stored in the All Modes by Qtr row. This row really belongs in a different data frame; it is a quarterly average of weekday MBTA ridership. Since this dataset tracks monthly average ridership, you'll remove that row.
+
+Similarly, the 7th row (Pct Chg / Yr) and the 11th row (TOTAL) are not really observations as much as they are analysis. Go ahead and remove the 7th and 11th rows as well.
+
+The first column also needs to be removed because it's just listing the row numbers.
+
+In case you were wondering, this dataset is stored as a tibble which is just a specific type of data frame. For more information, see here.
+Instructions
+100xp
+
+    Remove the first, seventh, and eleventh rows of mbta (All Modes By Qtr, Pct Chg / Yr, and TOTAL). Name the resulting data frame mbta2.
+    Remove the first column of mbta2. Name the resulting data frame mbta3.
+```{r}
+# Remove rows 1, 7, and 11 of mbta: mbta2
+mbta2 <- mbta[-c(1,7,11),]
+
+# Remove the first column of mbta2: mbta3
+mbta3 <- mbta2[,-c(1)]
+```
