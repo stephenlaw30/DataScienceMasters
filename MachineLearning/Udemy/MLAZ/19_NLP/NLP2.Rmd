@@ -16,8 +16,8 @@ We want to analyze restaraunt reviews to predict if a review is a "good" review 
 
 ```{r}
 ## import data 
-restaraunts <- read.delim("../data/Restaurant_Reviews.tsv", quote = "", stringsAsFactors = F)
-                          #sep = "\t", 
+restaraunts <- read.delim("../data/Restaurant_Reviews.tsv", quote = "",
+                          sep = "\t", stringsAsFactors = F)
 glimpse(restaraunts)
 head(restaraunts)
 ```
@@ -33,13 +33,13 @@ as.character(corpus[[1]])
 as.character(corpus[[841]])
 
 # clean data + reduce # of cols
-corpus %<>%
-  tm_map(content_transformer(tolower)) %>% # need content_transformer() to keep corpus as a VCorpus, not a list
-  tm_map(removeNumbers) %>%
-  tm_map(removePunctuation) %>%
-  tm_map(removeWords, stopwords()) %>% # remove English stopwords
-  tm_map(stemDocument) %>% # get the ROOTs of each word via stemming
-  tm_map(stripWhitespace) # get rid of extra spaces leftover
+
+corpus <- tm_map(content_transformer(tolower))  # need content_transformer() to keep corpus as a VCorpus, not a list
+corpus <-   tm_map(removeNumbers) 
+  corpus <- tm_map(removePunctuation) 
+  corpus <- tm_map(removeWords, stopwords())  # remove English stopwords
+  corpus <- tm_map(stemDocument)  # get the ROOTs of each word via stemming
+  corpus <- tm_map(stripWhitespace) # get rid of extra spaces leftover
 
 # check reviews to make sure functions worked
 as.character(corpus[[1]])
@@ -68,8 +68,7 @@ library(caTools) # split data
 
 # transform matrix (contains the predictors) into a data frame
 dtm_df <- as.data.frame(as.matrix(dtm))# as.data.frame(cbind(, Liked = as.factor(restaraunts$Liked)))
-dtm_df$Liked <- factor(restaraunts$Liked, levels = c(0,1))
-
+dtm_df$Liked <- restaraunts$Liked
 str(dtm_df[,1:5])
 str(dtm_df[,(ncol(dtm_df)-1):ncol(dtm_df)])
 ```
@@ -78,81 +77,27 @@ str(dtm_df[,(ncol(dtm_df)-1):ncol(dtm_df)])
 
 ```{r}
 set.seed(123)
-split = sample.split(dtm_df$Liked, SplitRatio = 0.8)
-training_set = subset(dtm_df, split == TRUE)
-test_set = subset(dtm_df, split == FALSE)
-
-classifier = randomForest(x = training[-692],
-                          y = training$Liked,
-                          ntree = 10)
-
-# Predicting the Test set results
-y_pred = predict(classifier, newdata = test[-692])
-
-# Making the Confusion Matrix
-(cm = table(test[, 692], y_pred))
-```
-
-```{r}
-set.seed(123)
 spl <- sample.split(dtm_df$Liked, SplitRatio = .8)
 
 training <- dtm_df %>% subset(spl == TRUE)
 test <- dtm_df %>% subset(spl == FALSE)
 
-restaraunts_rf <- randomForest(x = training[-692], y = training$Liked, ntree = 10)
+restaraunts_rf <- randomForest(x = training[-692], y = training$Liked, nTree = 10)
 
 # Predict using model on test set labels
 y_pred_rf <- predict(restaraunts_rf, test[-ncol(dtm_df)])
 head(y_pred_rf)
 ```
 
+
+```{r}
+# Predict using model on test set labels
+y_pred_rf <- predict(restaraunts_rf, test[-692])
+head(y_pred_rf)
+```
 Now we will check our prediction results vs. the actual results with a confusion matrix.
 
 ```{r}
 ## Making the Confusion Matrix
 (cm <- table(test$Liked, y_pred_rf))
-
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
-
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy)
-```
-
-Now we need to visualize the results.
-
-```{r}
-## Create function to visualize different set results
-plot.rf_model <- function(set) {
-  x1 <- seq(min(set[,1]) - 1, max(set[,1]) + 1, by = 0.05) # get sminimum scaled age + go up to the max by increments of .1
-  x2 <- seq(min(set[,2]) - 1, max(set[,2]) + 1, by = 0.05) # get minimum scaled salary + go up to the max by increments of .1
-  
-  set.grid <- expand.grid(x1,x2) # Create DF from all possible combos of the age + salary vectors to make a grid
-  colnames(set.grid) <- c("Age","EstimatedSalary")
-  
-  y_pred.rf.grid <- predict(social.rf, set.grid, type = "class") # use grid to predict values w/ our model
-  
-  plot(set[,-3],
-       main = c("Random Forest (", deparse(substitute(set), nlines = 1),
-                " set)"), # get set name from argument given
-       xlab = "Age",
-       ylab = "Estimated Salary",
-       xlim = range(x1),
-       ylim = range(x2))
-  
-  contour(x1,x2, matrix(as.numeric(y_pred.rf.grid), length(x1), length(x2)), add = T) # add logistic regression "split" line
-  
-  points(set.grid, pch = 19, col = if_else(y_pred.rf.grid == 1, "springgreen3", "tomato"))
-  points(set, pch = 19, col = if_else(set[,3] == 1, "green4", "red3"))
-  
-}
-
-plot.rf.model(training)
-plot.rf.model(test)
-```
 ```

@@ -1,7 +1,7 @@
 # Natural Language Processing
 
 # Importing the dataset
-dataset_original = read.delim('Restaurant_Reviews.tsv', quote = '', stringsAsFactors = FALSE)
+dataset_original = read.delim('C:/Users/NEWNSS/Dropbox/DataScienceMasters/MachineLearning/Udemy/MLAZ/data/Restaurant_Reviews.tsv', quote = '', stringsAsFactors = FALSE)
 
 # Cleaning the texts
 # install.packages('tm')
@@ -23,8 +23,8 @@ dataset = as.data.frame(as.matrix(dtm))
 dataset$Liked = dataset_original$Liked
 
 # Importing the dataset
-dataset = read.csv('Social_Network_Ads.csv')
-dataset = dataset[3:5]
+#dataset = read.csv('Social_Network_Ads.csv')
+#dataset = dataset[3:5]
 
 # Encoding the target feature as factor
 dataset$Liked = factor(dataset$Liked, levels = c(0, 1))
