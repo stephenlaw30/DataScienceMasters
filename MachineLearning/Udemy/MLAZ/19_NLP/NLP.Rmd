@@ -77,20 +77,20 @@ str(dtm_df[,(ncol(dtm_df)-1):ncol(dtm_df)])
 ## Fitting Random Forest to the Training set
 
 ```{r}
-set.seed(123)
-split = sample.split(dtm_df$Liked, SplitRatio = 0.8)
-training_set = subset(dtm_df, split == TRUE)
-test_set = subset(dtm_df, split == FALSE)
-
-classifier = randomForest(x = training[-692],
-                          y = training$Liked,
-                          ntree = 10)
-
-# Predicting the Test set results
-y_pred = predict(classifier, newdata = test[-692])
-
-# Making the Confusion Matrix
-(cm = table(test[, 692], y_pred))
+# set.seed(123)
+# split = sample.split(dtm_df$Liked, SplitRatio = 0.8)
+# training_set = subset(dtm_df, split == TRUE)
+# test_set = subset(dtm_df, split == FALSE)
+# 
+# classifier = randomForest(x = training[-692],
+#                           y = training$Liked,
+#                           ntree = 10)
+# 
+# # Predicting the Test set results
+# y_pred = predict(classifier, newdata = test[-692])
+# 
+# # Making the Confusion Matrix
+# (cm = table(test[, 692], y_pred))
 ```
 
 ```{r}
@@ -100,10 +100,12 @@ spl <- sample.split(dtm_df$Liked, SplitRatio = .8)
 training <- dtm_df %>% subset(spl == TRUE)
 test <- dtm_df %>% subset(spl == FALSE)
 
-restaraunts_rf <- randomForest(x = training[-692], y = training$Liked, ntree = 10)
+cols <- ncol(training)
+
+restaraunts_rf <- randomForest(x = training[-cols], y = training[,cols], ntree = 10)
 
 # Predict using model on test set labels
-y_pred_rf <- predict(restaraunts_rf, test[-ncol(dtm_df)])
+y_pred_rf <- predict(restaraunts_rf, test[-cols])
 head(y_pred_rf)
 ```
 
@@ -116,43 +118,69 @@ Now we will check our prediction results vs. the actual results with a confusion
 sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
 specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
 precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+f1 <- (2*precision*specificity)/(precision + specificity)
 accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
 
 cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nSpecificity (TN rate or \"Recall\", or \"measuring completeness\"): ",specificity)
+cat("\nPrecision (Positive Predictive Value, or \"measuring exactness\"): ",precision)
+cat("\nF1 Score (compromise between Precision and Recall): ",f1)
 cat("\nAccuracy: ",accuracy)
 ```
 
-Now we need to visualize the results.
+So we end up with 79 correctly-predicted negative reviews and 70 correctly-predicted positive reviews, giving an accuracy of 74.5%
+
+Now let's do the same with other classification models.
+
+## Logistic Regression
 
 ```{r}
-## Create function to visualize different set results
-plot.rf_model <- function(set) {
-  x1 <- seq(min(set[,1]) - 1, max(set[,1]) + 1, by = 0.05) # get sminimum scaled age + go up to the max by increments of .1
-  x2 <- seq(min(set[,2]) - 1, max(set[,2]) + 1, by = 0.05) # get minimum scaled salary + go up to the max by increments of .1
-  
-  set.grid <- expand.grid(x1,x2) # Create DF from all possible combos of the age + salary vectors to make a grid
-  colnames(set.grid) <- c("Age","EstimatedSalary")
-  
-  y_pred.rf.grid <- predict(social.rf, set.grid, type = "class") # use grid to predict values w/ our model
-  
-  plot(set[,-3],
-       main = c("Random Forest (", deparse(substitute(set), nlines = 1),
-                " set)"), # get set name from argument given
-       xlab = "Age",
-       ylab = "Estimated Salary",
-       xlim = range(x1),
-       ylim = range(x2))
-  
-  contour(x1,x2, matrix(as.numeric(y_pred.rf.grid), length(x1), length(x2)), add = T) # add logistic regression "split" line
-  
-  points(set.grid, pch = 19, col = if_else(y_pred.rf.grid == 1, "springgreen3", "tomato"))
-  points(set, pch = 19, col = if_else(set[,3] == 1, "green4", "red3"))
-  
-}
+## fit to training data
+restaraunts_logRegression <- glm(Liked ~ ., training, family = "binomial") # binomial regression (1/0, yes/no, etc.)
 
-plot.rf.model(training)
-plot.rf.model(test)
+# Predict using model on test set labels
+temp_y_pred_logreg <- predict(restaraunts_logRegression, test[-cols], type= "response")
+y_pred_logreg <- if_else(temp_y_pred_logreg > .5, 1, 0)
+
+## Making the Confusion Matrix
+(cm <- table(test$Liked, y_pred_logreg))
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+f1 <- (2*precision*specificity)/(precision + specificity)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or \"Recall\", or \"measuring completeness\"): ",specificity)
+cat("\nPrecision (Positive Predictive Value, or \"measuring exactness\"): ",precision)
+cat("\nF1 Score (compromise between Precision and Recall): ",f1)
+cat("\nAccuracy: ",accuracy)
 ```
+
+So logistic regression does much worse, indicating that the data set is not linearly seperable.
+
+## K-NN
+```{r}
+library(class)
+## fit to training data
+y_pred_knn <- knn(training[,-cols], test[,-cols], cl = training[,cols], k = 5)
+
+## Making the Confusion Matrix
+(cm <- table(test$Liked, y_pred_knn))
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+f1 <- (2*precision*specificity)/(precision + specificity)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or \"Recall\", or \"measuring completeness\"): ",specificity)
+cat("\nPrecision (Positive Predictive Value, or \"measuring exactness\"): ",precision)
+cat("\nF1 Score (compromise between Precision and Recall): ",f1)
+cat("\nAccuracy: ",accuracy)
 ```
+
+So kNN does better than logistic regression, but still worse than a random forest. We can play with the parameters though.
+
