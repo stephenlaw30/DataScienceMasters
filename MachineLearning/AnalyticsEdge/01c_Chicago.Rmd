@@ -1,0 +1,109 @@
+---
+title: "01c_Chicago"
+output: html_document
+---
+
+Crime is an international concern, but is documented and handled in very different ways in different countries. In the US, violent crimes and property crimes are recorded by the FBI. Additionally, each city documents crime, and some release data regarding crime rates. Chicago, the 3rd most populous city in the US, with a population of over 2.7M people, has released crime data from 2001 onward online.
+ 
+There are 2 main types of crimes: **violent crimes** and **property crimes**. We'll focus on 1 specific type of property crime, **motor vehicle theft (grand theft auto)**, the act of stealing/attempting to steal a car, to do some basic data analysis to understand the motor vehicle thefts in Chicago. 
+```{r}
+library(tidyverse)
+
+gta <- read.csv("data/mvtWeek1.csv")
+glimpse(gta)
+```
+
+For the fields of the 191.641 crimes, we have: `ID`: a unique identifier for each observation, `Date`: the date the crime occurred, `LocationDescription`: the location where the crime occurred, `Arrest`: a binary T/F of whether or not an arrest was made for the crime, `Domestic`: a binary T/F whether or not crime was a domestic crime (committed against a family member), `Beat`: the area/"beat" in which the crime occurred (this isi the smallest regional division defined by the Chicago PD), `District`: the police district in which the crime occured (Each district is composed of many beats, + are defined by the Chicago PD), `CommunityArea`: community area in which the crime occurred (Since the '20s, Chicago has been divided into "community areas", of which there are now 77, that were devised in an attempt to create socially homogeneous regions), `Year`: the year in which the crime occurred, `Latitude`: the latitude of the location at which the crime occurred, `Longitude`: the longitude of the location at which the crime occurred.
+
+In many datasets, you have a **datetime** field that you need to extract yourself. Look at the 1st entry of `Date.` The format is comes in is `m/d/y h:mm`.
+```{r}
+library(magrittr)
+gta %<>% mutate(Date = as.Date(strptime(Date, format = "%m/%d/%y %H:%M")))
+summary(gta$Date)
+```
+
+Now let's extract the month and day of the week and add these variables to the data frame.
+```{r}
+gta %<>% mutate(Month = months(Date), Weekday = weekdays(Date))
+names(gta)     
+```
+
+In which month did the fewest motor vehicle thefts occur?
+```{r}
+sort(table(gta$Month))
+```
+On which weekday did the most thefts occur?
+```{r}
+sort(table(gta$Weekday), decreasing = T)
+```
+
+Which month has the largest number of motor vehicle thefts for which an arrest was made?
+```{r}
+table(gta$Month,gta$Arrest)
+```
+
+Make a histogram of Date wtih an extra arg to specify 100 breaks
+```{r}
+hist(gta$Date, breaks = 100)
+```
+
+It looks like crime decreases from 2002-2012, but within it decreased from 05-08 and then increased from 09-11. Now, let's see how arrests have changed over time. Create a boxplot of Date, sorted by Arrest.
+```{r}
+boxplot(gta$Date ~ gta$Arrest)
+```
+
+It looks like there were more arrests were made in the 1st half of the time period of this dataset, as the `TRUE` value for `Arrest` is skewed towards bottom of plot.
+
+For what proportion of motor vehicle thefts in 2001 was an arrest made?
+```{r}
+prop.table(table(subset(gta,Year == 2001)$Arrest))
+```
+
+About 10.4%. How about 07? Or 12?
+```{r}
+prop.table(table(subset(gta,Year == 2007)$Arrest))
+prop.table(table(subset(gta,Year == 2012)$Arrest))
+```
+
+There may still be open cases in 2012, as well in more recent years, so the proportion of arrests may increase. This trend should be investigated further. However, since we don't know when arrests were actually made, our detective work in this area has reached a dead end.
+
+Analyzing this data could be useful to Chicago PD when deciding where to allocate resources. If they want to increase arrests made for motor vehicle thefts, where should they focus their efforts? We want to find the top 5 locations where motor vehicle thefts occur, excluding `OTHER`.
+```{R}
+sort(table(gta$LocationDescription), decreasing = T)[1:6]
+```
+
+Now to create a subset with thefts in 1 of these 5 locations, `Top5`
+```{r}
+top5 <- gta %>% filter(LocationDescription %in% c("STREET","PARKING LOT/GARAGE(NON.RESID.)",
+                                                  "ALLEY","GAS STATION",
+                                                  "DRIVEWAY - RESIDENTIAL")) %>%
+  mutate(LocationDescription = factor(LocationDescription))
+sort(table(top5$LocationDescription), decreasing = T)
+nrow(top5)
+```
+
+1 location has a much higher arrest rate than the other locations.
+```{r}
+table(top5$LocationDescription,top5$Arrest)
+# CHECK R FOR DATA SCIENCE TO DO THIS
+```
+ 
+ ~25% of crimes at gas stations lead to arrests.
+
+On which day of the week do the most motor vehicle thefts at gas stations happen? How about arrests?
+```{r}
+# crimes
+sort(table(subset(top5, LocationDescription == "GAS STATION")$Weekday), decreasing = T)
+# arrests
+sort(table(subset(top5, LocationDescription == "GAS STATION" 
+                  & Arrest == T)$Weekday), decreasing = T)
+```
+
+On which day of the week do the fewest motor vehicle thefts and then arrests in residential driveways happen?
+```{R}
+sort(table(subset(top5, LocationDescription == "DRIVEWAY - RESIDENTIAL")$Weekday),
+     decreasing = F)
+# arrests
+sort(table(subset(top5, LocationDescription == "DRIVEWAY - RESIDENTIAL" 
+                  & Arrest == T)$Weekday), decreasing = F)
+```
