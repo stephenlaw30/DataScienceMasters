@@ -1,0 +1,38 @@
+---
+title: "Ch2_EDAWithTitanic"
+output: html_document
+---
+
+# Data Exploration w/ RMS Titanic
+
+6 steps involved in the exploration process.  
+<ol>
+<li> **Asking the right questions**: When a user presents a question, for example "What are my expected findings after EDA is finished?", or "What kind of info can I extract through EDA?," different results will be given. Therefore, asking the *right* question is essential in the 1st place, for the **question itself determines the objective + target of the EDA**. </li>
+<li> **Data collection**: Once the goal of exploration is determined, a user can start collecting/extracting relevant data from the data source, w/ regards to the exploration target. Mostly, data collected from disparate systems appears unorganized + diverse in format. Clearly, the original data may be from different sources (files, databases, the Internet, etc.). To retrieve data from these sources requires the assistance of the file IO function, JDBC/ODBC, web crawlers, + so on. This extracted data = raw data b/c it has not been subjected to processing or been through any other manipulation. Most raw data is not easily consumed by the majority of analysis tools or visualization programs. </li>
+<li> **Data munging/Wranging**: helpd map raw data into a more convenient format for consumption via many processes = data parsing, sorting, merging, filtering, missing value completion, + others to transform + organize data, + enable it to fit into a **consume structure**. Later, mapped data can be further utilized for data aggregation, analysis, or visualization </li>
+<li> **Basic EDA**: users can now conduct further analysis toward data processing w/ the most basic analysis = EDA, which involves analyzing a dataset by summarizing its characteristics. Performing basic statistical, aggregation, + visual methods are also crucial tasks to help users understand data characteristics, which are beneficial for users to capture the majority, trends, + outliers easily through plots. </li>
+<li> **Advanced EDA**: Until now, descriptive stats give a general description of data features, but one would like to generate an *inference* rule for a user to predict data features based on input parameters. Therefore, the application of ML enables users to generate an inferential model, where a user can input a training dataset to generate a predictive model. After this, the prediction model can be utilized to predict the output value or label based on given parameters. </li>
+<li> **Model assessment**: to assess whether a generating model performs the best in the data estimation of a given problem, one must perform a model selection. The selection method involves many steps, including data preprocessing, tuning parameters, + even switching the ML algorithm. However, 1 important thing to keep in mind = the simplest model frequently achieves the best results in predictive or exploratory power, whereas complex models often result in overfitting. </li>
+
+```{r}
+train <- read.csv("data/train.csv")
+str(train)
+```
+
+The dataset contains demographic information and survival labels of the passengers. There are 4 variable types: nominal, ordinal, interval, and ratio. **Nominal** are used to label variables, such as gender + name; **ordinal** are measures of non-numeric concepts, such as satisfaction and happiness. **Interval** show numeric scales, which tell us not only the order but can also show the differences between values, such as temperatures in Celsius. A **ratio** shows the ratio of a magnitude of a continuous quantity to a unit magnitude, + they provide order, differences between values, + a true 0 value, such as weight and height.
+We need to convert `Survived` and `Pclass` to nominal factors.
+
+```{r}
+library(magrittr)
+library(tidyverse)
+train %<>% mutate(Survived = factor(Survived),
+                  Pclass = factor(Pclass))
+str(train)
+```
+
+Now to check for NA's
+
+```{r}
+table(is.na(train))
+summary(train)
+```
