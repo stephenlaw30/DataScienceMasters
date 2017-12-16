@@ -1,0 +1,121 @@
+---
+title: "01b_USDA"
+output: html_document
+---
+
+This dataset contains all foods in USDA database in 100g amounts.
+```{r}
+usda <- read.csv("data/USDA.csv")
+str(usda)
+```
+
+So, we have 7058 records/foods with their unique ID's, some descriptions, and some info about calories, macros, sodium, vitamins (in IU's), etc.
+
+Find the food with the highest sodium value.
+```{r}
+usda %>% filter(Sodium == max(Sodium, na.rm = T)) %>%
+  select(Description)
+```
+
+Not suprisingly, the food with the most sodium per 100g is in fact Table salt, which has a max level of sodium of 38,758mg per 100g. Let's look at other foods wtih more than 10,000 mg of sodium
+```{r}
+(high_sodium <- usda %>% filter(Sodium > 10000) %>%
+  select(Description))
+```
+
+Not too suprisingly, the most high sodium "foods" are soups, sauces, and leavening agents. But, caviar usually mentioned as a high-sodium food. Where is it?
+```{r}
+usda %>% filter(tolower(Description) == "caviar") %>%
+  select(Description, Sodium)
+```
+
+There's only 1,500 mg in caviar, which seems small to 10,000 mg, or to 38,000 mg, but its not a fair comparison. We should compare this value for cavia to the mean and standard deviation of sodium across entire data set.
+```{r}
+usda %>%
+  summarise(meanSodium = mean(Sodium, na.rm = T), stdDev = sd(Sodium, na.rm = T))
+```
+
+
+So, the mean sodium value is 322 mg with a standard deviation of 1045 mg, meaning that the highest value from these summary statistics is ~1400 mg total, which is less than caviar. Therefore, we can say caviar is pretty rich in sodium compared to all other foods in dataset.
+
+Now create scatterplot of Protein vs. Fat
+```{r}
+plot(usda$Protein, usda$TotalFat, xlab = "Protein", ylab = "Total Fat",
+     main = "Protein vs. Fat in USDA Food Database", col = "red")
+```
+
+It appears that foods that are high in protein are lower in fat, foods that are high in fat are low in protein. Now look at a histogram of Vitamin C.
+```{r}
+hist(usda$VitaminC, xlab = "Amount of Vitamin C (mg)", col = "blue")
+```
+
+Even though the max value is ~2000, almost all foods are actually below 250mg (about ~6000 of them). Limit the x-axis to get a more detailed view.
+```{r}
+hist(usda$VitaminC, xlim = c(0,100), xlab = "Amount of Vitamin C (mg)", col = "blue")
+```
+
+We only see 1 big cell, so we need to break this blob up into smaller pieces by creating divisions/breaks that are 1 mg in length
+```{r}
+hist(usda$VitaminC, xlim = c(0,100), xlab = "Amount of Vitamin C (mg)",
+     breaks = 100, col = "blue") # break up x axis of 100 values into 1 mg bins
+```
+
+So, we expected 100 bins, but only got 5 bins, each of length 20 mg/ It turns out R took the *original* interval (0-2000) and divided *that* by 100, giving us 100 bins of size 20 mg. We want bins of length = 1 mg, so we need to break out our range into 2000 bins.
+```{r}
+hist(usda$VitaminC, xlim = c(0,100), xlab = "Amount of Vitamin C (mg)",
+     breaks = 2000, col = "blue") # break up x axis of 100 values into 1 mg bins
+```
+
+Now we see that ~5000 foods have less than 1mg of Vitamin C in them
+
+Now create boxplot of sugar
+```{r}
+boxplot(usda$Sugar, ylab = "Sugar Level (g)", main = "Boxplot of Sugar Levels")
+```
+
+The median value seems quite low, at around 5g, and we have many outliers, with multiple foods being around 100g sugar per 100g of food. Let's add a new binary variable that = 1 if sodium is above average and = 0 if below average.
+```{r}
+library(magrittr)
+usda %<>% mutate(above_avg_sodium = if_else(Sodium > mean(Sodium, na.rm = T),1,0))
+summary(usda$above_avg_sodium)
+```
+```{r}
+usda %<>% mutate(above_avg_sodium = if_else(Sodium > mean(Sodium, na.rm = T),1,0))
+summary(usda$above_avg_sodium)
+```
+Unfortunately, we've got 84 `NA`'s. Remove them and then make the same variables for protein, fat, and carbs.
+```{r}
+usda %<>% mutate(highSodium = if_else(Sodium > mean(Sodium, na.rm = T),1,0),
+              highProtein = if_else(Protein > mean(Protein, na.rm = T),1,0),
+              highFat = if_else(TotalFat > mean(TotalFat, na.rm = T),1,0),
+              highCarbs = if_else(Carbohydrate > mean(Carbohydrate, na.rm = T),1,0))
+summary(usda[,c("highSodium","highProtein","highFat","highCarbs")])
+```
+
+Now, lets look for relationships. 1st, count how many foods have an above average sodium level.
+```{r}
+table(usda$highSodium)
+```
+There are 2090 foods that have an above average sodium level. See how many have above average sodium *and* fat.
+```{r}
+table(usda$highSodium,usda$highFat)
+```
+
+There are 712 foods that are very bad for you, apparantly. Let's compute average iron and then sort by high and low protein.
+```{r}
+tapply(usda$Iron, usda$highProtein, mean, na.rm = T)
+```
+
+Looks like the average value of iron for high protein foods is 3.2mg, and for low protein it's 2.6mg. Now, do the same for max Vitamin C for high and low carb foods.
+```{r}
+tapply(usda$VitaminC, usda$highCarbs, max, na.rm = T)
+```
+
+Looks like the max vitamin C value for low carb foods is 1678 mg, and for high carb foods it's 2400 mg.
+
+So, are high carb foods high in vitamin C?
+```{r}
+tapply(usda$VitaminC, usda$highCarbs, summary, na.rm = TRUE)
+```
+
+We see that low carb foods have a lower average and median vitamin C values, so it seems like it's a *general* trend that lower carb foods have lower values of Vitamin C.

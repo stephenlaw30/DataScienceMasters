@@ -1,0 +1,115 @@
+---
+title: "01a_IntroToAnalytics"
+output: html_document
+---
+
+# Loading Data Files
+```{r}
+who = read.csv("./data/WHO.csv")
+str(who)
+#view numerical summary of variables w/in who
+summary(who)
+```
+Create subset of dataset to take only observations where Region = Europe
+```{r}
+library(tidyverse)
+who_europe <- who %>% filter(Region == "Europe")
+str(who_europe)
+summary(who_europe)
+head(who_europe)
+```
+
+Save this new dataset to a CSV file
+```{r}
+write.csv(x = who_europe, file = "../data/WHO_Europe.csv")
+# check for dataset in dir
+ls("../data")
+# now that its saved, remove from workspace
+rm(who_europe)
+```
+
+# Summary Stats and Scatterplots
+```{r}
+#get total statistical summary of under15
+summary(who$Under15)
+```
+
+We see that some country only has 13% of its population under the age of 15. Let's find out who that is, as well as the country with the largest % of its population being under 15 (49.99%)
+```{r}
+who$Country[which.min(who$Under15)]
+who$Country[which.max(who$Under15)]
+```      
+Japan is the country with the lowest %, and Niger is the country with the highest.
+
+Create scatterplot of GNI (gross national income) (x) vs. Fertility (y) using `plot` 
+```{r}
+plot(who$GNI,who$FertilityRate)
+```
+
+We see that most countries have a low GNI but a higher fertility rate or they have a high GNI and low fertility rate. But, note that some countries have high values for both variables. Let's investigate this via a subset of `WHO` where `GNI` > 10k and `FertilityRate` > 2.5
+```{r}
+outliers <- who %>% filter(GNI > 10000 & FertilityRate > 2.5)
+nrow(outliers)
+```
+
+There are only 7 countries that meet these conditions. Who are they?
+```{r}
+outliers[c("Country","GNI","FertilityRate")]
+```
+
+```{r}
+# country w/ smallest % of pop < 60
+who %>% filter(Over60 == min(Over60)) %>%
+  select(Country)
+
+# country w/ largest literacy rate
+who %>% filter(LiteracyRate == max(who$LiteracyRate, na.rm = T)) %>%
+  select(Country)
+```
+
+```{r}
+# Create histogram for cell subscribers
+hist(who$CellularSubscribers)
+```
+We can see the most frequent value appears to be ~100.
+```{r}
+# make box plot of Lif Expectancy by Region
+boxplot(who$LifeExpectancy ~ who$Region)
+```
+We can see 4 outliers (the dots), with America having tightest box (lowest variance), and Europe having highest median Life Expectancy.
+```{r}
+hist(who$LifeExpectancy)
+```
+This data is skewed, so the median value is what we want. Therefore, we can say the data suggest that Europe has the highest life expectancy. Looking back to the boxplot, the Eastern Mediterranean has widest range of values.
+
+To find the outliers, one could compute height of the box via the **IQR**, or (Q3 - Q1), and then finding values > Q3 + IQR or values < Q1 - IQR
+
+We can also add some labels to this plot.
+```{r}
+boxplot(who$LifeExpectancy ~ who$Region, xlab = "", ylab = "LifeExpectancy",
+        main = "Life Expentancy of People By World Region")
+```
+
+Now to make a summary table of Region
+```{R}
+table(who$Region) 
+```
+
+Now to see info about numerical variables via `tapply()`. Look at the mean `Over60` value for each seperate value of `Region`.
+```{r}
+tapply(who$Over60, INDEX = who$Region, FUN = mean)
+```
+
+Let's see what the lowest literacy rate is in each region.
+```{r}
+tapply(who$LiteracyRate, INDEX = who$Region, FUN = min, na.rm = T)
+```
+
+We see the continent of Africa has lowest literacy rate overall.
+
+Find the average child mortality rates by region to see region has the lowest average child mortality rate.
+```{r}
+sort(tapply(who$ChildMortality, INDEX = who$Region, FUN = mean, na.rm = T))
+```
+
+It looks like Europe has the lowest average child mortality rate.
