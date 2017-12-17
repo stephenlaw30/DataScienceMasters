@@ -1,0 +1,126 @@
+---
+title: "01e_StockDynamics"
+output: html_document
+---
+#  Stock dynamics
+
+A stock market is where buyers and sellers trade shares of a company, and is 1 of the most popular ways for individuals and companies to invest money. The size of the world stock market is now estimated to be in the trillions. The largest stock market in the world is the New York Stock Exchange (NYSE), located in NYC. About 2,800 companies are listed on the NSYE. We'll look at the monthly stock prices of 5 of these companies: IBM, General Electric (GE), Procter and Gamble, Coca Cola, and Boeing w/ data from Infochimps. Each data frame has 2 variables, `Date`: the date of the stock price, always given as the first of the month, and `StockPrice`: the average stock price of the company in the given month. We'll take a look at how the stock dynamics of these companies have changed over time.
+
+```{r}
+IBM <- read.csv("data/IBMStock.csv")
+GE <- read.csv("data/GEStock.csv")
+ProcterGamble <- read.csv("data/ProcterGambleStock.csv")
+CocaCola  <- read.csv("data/CocaColaStock.csv")
+Boeing <- read.csv("data/BoeingStock.csv")
+head(IBM)
+```
+
+Before working with these data sets, need to convert dates into a format R can understand.
+```{r}
+library(magrittr)
+library(tidyverse)
+
+edit_dates <- function(df) {
+  df %<>% mutate(Date = as.Date(Date, "%m/%d/%y"))
+  return(df)
+}
+
+IBM <- edit_dates(IBM)
+GE <- edit_dates(GE)
+CocaCola <- edit_dates(CocaCola)
+ProcterGamble <- edit_dates(ProcterGamble)
+Boeing <- edit_dates(Boeing)
+
+# check output
+str(IBM)
+```
+
+Our 5 datasets all have the same number of observations. How many are there in each data set, and what are the earliest and latest years in dataset?
+```{r}
+nrow(IBM)
+summary(IBM)
+```
+
+Let's plot stock prices to see if we can visualize trends in stock prices during this time period. Start with Coca-cola.
+```{r}
+# plot line plot
+plot(CocaCola$Date, CocaCola$StockPrice, "l")
+```
+
+The highest stock price for Coca-Cola appears to be in 1973, while the lowest was around 1980. Now, add the line for Procter & Gamble using the `lines` instead of the `plot`, keeping the plot for Coca-Cola open.
+```{r}
+plot(CocaCola$Date, CocaCola$StockPrice, "l", col = "red", xlab = "Date", ylab = "Price")
+lines(ProcterGamble$Date, ProcterGamble$StockPrice, "l", col = "blue")
+```
+
+As an alternative choice to changing colors, we could instead change the line type of Procter & Gamble to a dashed line.
+```{r}
+plot(CocaCola$Date, CocaCola$StockPrice, "l", col = "red", xlab = "Date", ylab = "Price")
+lines(ProcterGamble$Date, ProcterGamble$StockPrice, "l", col = "blue", lty = 2)
+```
+
+In March 2000, the tech bubble burst, and a stock market crash occurred. According to our plot, both companies' stocks drop, but Procter & Gamble's stock drops more.
+```{r}
+plot(CocaCola$Date, CocaCola$StockPrice, "l", col = "red", xlab = "Date", ylab = "Price")
+lines(ProcterGamble$Date, ProcterGamble$StockPrice, "l", col = "blue", lty = 2)
+# generate a thicker vertical line at date = March 1, 2000
+abline(v=as.Date(c("2000-03-01")), lwd = 2)
+```
+
+Around 1983, stock for 1 of these companies was going up and the other down. Which one was going up?
+```{r}
+plot(CocaCola$Date, CocaCola$StockPrice, "l", col = "red", xlab = "Date", ylab = "Price")
+lines(ProcterGamble$Date, ProcterGamble$StockPrice, "l", col = "blue", lty = 2)
+# generate a thicker vertical line at date = March 1, 2000
+abline(v=as.Date(c("1983-03-01")), lwd = 2)
+```
+
+Take a look at how stock prices changed from 1995-2005 for all 5 companies. 
+```{r}
+plot(CocaCola$Date[301:432], CocaCola$StockPrice[301:432], 
+     "l", col = "red", xlab = "Date", ylab = "Price", ylim = c(30,220))
+lines(ProcterGamble$Date[301:432], ProcterGamble$StockPrice[301:432], "l", 
+      col = "green")
+lines(IBM$Date[301:432], IBM$StockPrice[301:432], "l", 
+      col = "blue")
+lines(Boeing$Date[301:432], Boeing$StockPrice[301:432], "l", 
+      col = "black")
+lines(GE$Date[301:432], GE$StockPrice[301:432], "l", 
+      col = "orange")
+```
+
+It looks like GE's stock fell the most right after the technology bubble burst in March 2000, while IBM reaches the highest value in the time period 1995-2005. 
+
+In Oct 1997, there was a global stock market crash caused by an economic crisis in Asia. 
+```{r}
+plot(CocaCola$Date[301:432], CocaCola$StockPrice[301:432], 
+     "l", col = "red", xlab = "Date", ylab = "Price", ylim = c(30,220))
+lines(ProcterGamble$Date[301:432], ProcterGamble$StockPrice[301:432], "l", 
+      col = "green")
+lines(IBM$Date[301:432], IBM$StockPrice[301:432], "l", 
+      col = "blue")
+lines(Boeing$Date[301:432], Boeing$StockPrice[301:432], "l", 
+      col = "black")
+lines(GE$Date[301:432], GE$StockPrice[301:432], "l", 
+      col = "orange")
+
+abline(v=as.Date(c("1997-09-01")), lwd = 2) # start
+abline(v=as.Date(c("1997-11-01")), lwd = 2) # end
+```
+Comparing Sep 1997 to Nov 1997, Proctor & Gamble and Boeing saw a decreasing trend in stock price.
+
+In the last 2 years of this time period (2004-2005) it appears Boeing stock seems to be performing the best, in terms of increasing stock price (sharpest rise).
+
+Lastly, see if stocks tend to be higher or lower during certain months with `tapply`.
+```{r}
+get_mean_stocks_month <- function(df) {
+  print(deparse(substitute(df)))
+  return(tapply(df$StockPrice, months(df$Date), mean))
+}
+
+get_mean_stocks_month(IBM)
+get_mean_stocks_month(CocaCola)
+get_mean_stocks_month(Boeing)
+get_mean_stocks_month(ProcterGamble)
+get_mean_stocks_month(GE)
+```

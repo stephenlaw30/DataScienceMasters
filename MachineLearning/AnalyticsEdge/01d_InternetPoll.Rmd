@@ -1,0 +1,141 @@
+---
+title: "01d_Internet Poll"
+output: html_document
+---
+
+Internet privacy has gained widespread attention in recent years. To measure the degree to which people are concerned about hot-button issues like Internet privacy, social scientists conduct polls in which they interview a large number of people about the topic. We will analyze data from a July 2013 Pew Internet + American Life Project poll on Internet anonymity and privacy, which involved interviews across the US. While the full polling data can be found online, we will use a more limited version of the results (All Internet use-related fields were only collected from interviewees who either use the Internet/have a 
+smartphone):
+```{r}
+internet <- read.csv("data/AnonymityPoll.csv")
+glimpse(internet)
+```
+
+The variables for our 1002 participants include `Internet.Use`: Binary 1/0 variable indicating if interviewee uses Internet, at least occasionally, `Smartphone`: Binary 1/0 variable indicating if interviewee has a smartphone, `Sex`: Male or Female, `Age`: Age in years, `State`: State of residence of the interviewee, `Region`: Census region of the interviewee (Midwest, Northeast, South, or West), `Conservativeness`: Self-described level of conservativeness of interviewee, from 1 (very liberal) to 5 (very conservative), `Info.On.Internet`: of the following items this interviewee believes to be available on the Internet for others to see: 
+<ul>
+<li> email address; </li>
+<li> home address;  </li>
+<li> home phone;  </li>
+<li> cell phone;  </li>
+<li> employer/company  </li>
+<li> political party/affiliation;  </li>
+<li> Things they've written w/ their name on it;  </li>
+<li> A photo of them </li>
+<li> A video of them; </li> 
+<li> Which groups/organizations they belong to;  </li>
+<li> Their birth date. </li>
+</ul>
+We then have `Worry.About.Info`: Binary 1/0 indicating if one worries about how much personal info is available on Internet, `Privacy.Importance`: Score from 0 (privacy = not too important) to 100 (privacy = very important), which combines the degree to which they find privacy important in the following:  
+<ul>
+<li> websites they browse;  </li>
+<li> Knowledge of the place they're located when they use the Internet;  </li>
+<li> The content + files they download; </li> 
+<li> Thetimes of day they are online; </li> 
+<li> The applications or programs they use;  </li>
+<li> The searches they perform; </li> 
+<li> The content of their email; </li> 
+<li> The people they exchange email with; </li>
+<li> The content of their online chats or hangouts with others. </li>
+</ul>
+Then we have `Anonymity.Possible`: Binary 1/0 indicating if interviewee thinks it's possible to use the Internet anonymously (meaning in such a way that online activities can't be traced back to them), `Tried.Masking.Identity`: Binary 1/0 indicating if interviewee has ever tried to mask his/her identity when using the Internet, `Privacy.Laws.Effective`: Binary 1/0 indicating if interviewee believes United States law provides reasonable privacy protection for Internet users (1 if he/she believes it does, 0 if not)
+
+How many interviewees responded that they do and do not use a smartphone?
+```{r}
+table(internet$Smartphone)
+sum(is.na(internet$Smartphone))
+```
+472 do use a smartphont, 487 do not, and 43 did not answer.
+
+Which states in the Midwest census region?
+```{R}
+internet %>% filter(Region == "Midwest") %>%
+  select(State) %>%
+  unique()
+```
+
+Which was the state in the South census region with the largest number of interviewees?
+```{R}
+sort(table(droplevels(filter(internet, Region == "South")$State)), decreasing = T)
+```
+
+Remember, many of the response variables (Info.On.Internet, Worry.About.Info, Privacy.Importance, Anonymity.Possible, Tried.Masking.Identity) were not collected if an interviewee does not use the Internet or a smartphone, meaning the variables will have missing values for these interviewees.
+
+How many interviewees reported not having used the Internet and not having used a smartphone?
+```{r}
+table(internet$Internet.Use, internet$Smartphone)
+```
+
+186 used neither, while 470 reported having used the Internet but not having used a smartphone, and 17 reported having used a smartphone but not having used the Internet.
+
+How many interviewees have a missing value for their Internet or smartphone use?
+```{r}
+sum(is.na(internet$Internet.Use))
+sum(is.na(internet$Smartphone))
+```
+
+Obtain a data frame called `limited` that only has interviewees who reported Internet usage OR reported smartphone usage.
+```{R}
+limited <- internet %>%
+  filter(Smartphone == 1 | Internet.Use == 1)
+nrow(limited)
+summary(limited)
+```
+
+What is the average number of pieces of personal info on the Internet, according to `Info.On.Internet` for `limited`?
+```{r}
+mean(limited$Info.On.Internet)
+```
+
+How many interviewees reported a value of 0 for Info.On.Internet? How many interviewees reported the maximum value of 11 for Info.On.Internet?
+```{r}
+table(limited$Info.On.Internet)
+```
+
+What proportion of interviewees who answered Worry.About.Info question worry about how much info is available?
+```{r}
+prop.table(table(limited$Worry.About.Info))
+```
+
+What proportion of interviewees who answered Anonymity.Possible think it is possible to be completely anonymous on the Internet?
+```{r}
+prop.table(table(limited$Anonymity.Possible))
+```
+
+What proportion of interviewees who answered Tried.Masking.Identity have tried masking their identity on the Internet?
+```{r}
+prop.table(table(limited$Tried.Masking.Identity))
+```
+
+What proportion of interviewees who answered Privacy.Laws.Effective question find US privacy laws effective?
+```{r}
+prop.table(table(limited$Privacy.Laws.Effective))
+```
+
+Often, we're interested in whether certain characteristics of interviewees (age or political opinions) affect their opinions on privacy, the topic of the poll. We will investigate the relationship between predictors `Age` and `Smartphone` versus the outcome variables `Info.On.Internet` and `Tried.Masking.Identity`, using `limited`.
+
+What is the best represented age group in the population?
+```{r}
+hist(limited$Age)
+```
+
+Both `Age` and `Info.On.Internet` are variables that take on many values, so a good way to observe their relationship is through a graph. Plot `Age` vs. `Info.On.Internet`. However, because `Info.On.Internet` takes on a small number of values, multiple points can be plotted in *exactly* the same location on this graph. What is the largest  of interviewees that have EXACLTY the same value in Age + in Info.On.Internet? In other words, what is the largest number of overlapping points in the plot? 
+```{r}
+head(sort(table(limited$Age,limited$Info.On.Internet),decreasing = T))
+```
+
+For the plot, `jitter` the points up, which adds or subtracts a small random amount from the arguments given.
+```{r}
+plot(x = jitter(limited$Age), y = jitter(limited$Info.On.Internet), 
+     xlab = "Age", ylab = "Info on Internet")
+```
+
+It appeats that those participants in older age seem *slightly* to be more likely to have less info on internet.
+
+What is the average Info.On.Internet value for smartphone and non smartphone users?
+```{r}
+tapply(limited$Info.On.Internet, limited$Smartphone, mean)
+```
+
+What proportion of smartphone and non-smartphone users who answered Tried.Masking.Identity have tried masking their identity when using the Internet?
+```{r}
+tapply(limited$Smartphone, limited$Tried.Masking.Identity, mean, na.rm = T)
+```
