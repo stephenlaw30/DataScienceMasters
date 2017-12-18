@@ -184,3 +184,114 @@ cat("\nAccuracy: ",accuracy)
 
 So kNN does better than logistic regression, but still worse than a random forest. We can play with the parameters though.
 
+## SVM
+### Linear
+```{r}
+library(e1071) # most popular SVM libary, other is `kernlab`
+
+# Fitting Kernel SVM to the Training set
+# `type` = *C-classification* to make sure we're doing a classification machine 
+# `kernel` = *linear*, as we are starting w/ the most basic kernel, the **linear kernel**.
+
+restaraunts.svm <- svm(Liked ~ ., training, type = 'C-classification', kernel = 'linear')
+
+# Predict on test set results
+y_pred_svm <- predict(restaraunts.svm, test[-cols])
+
+## Making the Confusion Matrix
+(cm <- table(test$Liked, y_pred_svm))
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+f1 <- (2*precision*specificity)/(precision + specificity)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or \"Recall\", or \"measuring completeness\"): ",specificity)
+cat("\nPrecision (Positive Predictive Value, or \"measuring exactness\"): ",precision)
+cat("\nF1 Score (compromise between Precision and Recall): ",f1)
+cat("\nAccuracy: ",accuracy)
+```
+Linear SVM does better than kNN and logistic regression, *and* random forest.
+
+### Radial
+```{r}
+library(e1071) # most popular SVM libary, other is `kernlab`
+
+# Fitting Kernel SVM to the Training set
+# `type` = *C-classification* to make sure we're doing a classification machine 
+# `kernel` = *linear*, as we are starting w/ the most basic kernel, the **linear kernel**.
+
+restaraunts.svm <- svm(Liked ~ ., training, type = 'C-classification', kernel = 'radial')
+
+# Predict on test set results
+y_pred_svm <- predict(restaraunts.svm, test[-cols])
+
+## Making the Confusion Matrix
+(cm <- table(test$Liked, y_pred_svm))
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+f1 <- (2*precision*specificity)/(precision + specificity)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or \"Recall\", or \"measuring completeness\"): ",specificity)
+cat("\nPrecision (Positive Predictive Value, or \"measuring exactness\"): ",precision)
+cat("\nF1 Score (compromise between Precision and Recall): ",f1)
+cat("\nAccuracy: ",accuracy)
+```
+
+Radial SVM does the worst so far.
+
+## Naive-Bayes
+```{r}
+restaraunts_nb <- naiveBayes(Liked ~ ., training)
+
+# Predict on test set results
+y_pred_nb <- predict(restaraunts_nb, test[-cols])
+
+## Making the Confusion Matrix
+(cm <- table(test$Liked, y_pred_nb))
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+f1 <- (2*precision*specificity)/(precision + specificity)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or \"Recall\", or \"measuring completeness\"): ",specificity)
+cat("\nPrecision (Positive Predictive Value, or \"measuring exactness\"): ",precision)
+cat("\nF1 Score (compromise between Precision and Recall): ",f1)
+cat("\nAccuracy: ",accuracy)
+```
+
+Nevermind, Naive-Bayes is the worst.
+
+## Decision Trees
+```{r}
+library(rpart)
+restaraunts_dtc <- rpart(Liked ~ ., training)
+
+# Predict on test set results
+y_pred_dtc <- predict(restaraunts_dtc, test[-cols], type = "class")
+
+## Making the Confusion Matrix
+(cm <- table(test$Liked, y_pred_dtc))
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+f1 <- (2*precision*specificity)/(precision + specificity)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or \"Recall\", or \"measuring completeness\"): ",specificity)
+cat("\nPrecision (Positive Predictive Value, or \"measuring exactness\"): ",precision)
+cat("\nF1 Score (compromise between Precision and Recall): ",f1)
+cat("\nAccuracy: ",accuracy)
+```
+
