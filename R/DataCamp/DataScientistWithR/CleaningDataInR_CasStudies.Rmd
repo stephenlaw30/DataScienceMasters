@@ -419,5 +419,174 @@ Instructions
     Import food.csv using fread(). Call the resulting data table dt_food.
     Convert dt_food to a data frame using data.frame() and call the resulting data frame df_food.
 ```{r}
+# Load data.table
+library(data.table)
 
+# Import food.csv: food
+dt_food <- fread("food.csv")
+
+# Convert food to a data frame
+df_food <- data.frame(dt_food)
+food <- df_food
+## food is pre-loaded
+
+# View summary of food
+summary(food)
+
+# View head of food
+head(food)
+
+# View structure of food
+str(food)
 ```
+
+ Information overload. With datasets this big, it's hard to get a handle on exactly what they contain. You'll give it another shot in the next exercise. 
+ 
+ Inspecting variables
+
+The str(), head(), and summary() functions are designed to give you some information about a dataset without being overwhelming. However, this dataset is so large and has so many variables that even these outputs seemed pretty intimidating!
+
+The glimpse() function from the dplyr package often formats information in a more approachable way.
+
+Yet another option is to just look at the column names to see what kinds of data you have. As you look at the names, pay particular attention to any pairs that look like duplicates.
+Instructions
+100xp
+
+    Load the dplyr package.
+    Get a glimpse of food.
+    View the column names of food.
+```{r}
+# Load dplyr
+library(dplyr)
+
+# View a glimpse of food
+glimpse(food)
+
+# View column names of food
+names(food)
+```
+Removing duplicate info
+
+Wow! That's a lot of variables. To summarize, there's some information on what and when information was added (1:9), meta information about food (10:17, 22:27), where it came from (18:21, 28:34), what it's made of (35:52), nutrition grades (53:54), some unclear (55:63), and some nutritional information (64:159).
+
+There are also many different pairs of columns that contain duplicate information. Luckily, you have a trusty assistant who went through and identified duplicate columns for you.
+
+A vector has been created for you that lists out all of the duplicates; all you need to do is remove those columns from the dataset. Don't forget, you can use the - operator to specify columns to omit, e.g.:
+
+my_df[, -3] # Omit third column
+
+Instructions
+100xp
+
+    Run the first line of code as-is to define the duplicates vector.
+    Use duplicates to remove those columns from food. Call the resulting data frame food2
+```{r}
+# Define vector of duplicate cols (don't change)
+duplicates <- c(4, 6, 11, 13, 15, 17, 18, 20, 22, 
+                24, 25, 28, 32, 34, 36, 38, 40, 
+                44, 46, 48, 51, 54, 65, 158)
+
+# Remove duplicates from food: food2
+food2 <- food[-duplicates]    
+```
+
+Removing useless info
+
+Your dataset is much more manageable already.
+
+In addition to duplicate columns, there are many columns containing information that you just can't use. For example, the first few columns contain internal codes that don't have any meaning to us. There are also some column names that aren't clear enough to tell what they contain.
+
+All of these columns can be deleted. Once again, your assistant did a splendid job finding the indices for you.
+Instructions
+100xp
+
+    Run the first line of code as-is to define the useless vector.
+    Remove the useless columns from food2. Call the resulting data frame food3.
+```{r}
+## food2 is pre-loaded
+
+# Define useless vector (don't change)
+useless <- c(1, 2, 3, 32:41)
+
+# Remove useless columns from food2: food3
+food3 <- food2[-useless]
+```
+
+Finding columns
+
+Looking much nicer! Recall from the first exercise that you are assuming you will be analyzing the sugar content of these foods. Therefore, your next step is to look at a summary of the nutrition information.
+
+All of the columns with nutrition info contain the character string "100g" as part of their name, which makes it easy to identify them.
+Instructions
+100xp
+
+    Create a vector called nutrition containing the column indices of the nutrition data. To do this, use a stringr function on the column names of food3 to determine which columns contain "100g" in their name.
+    View a summary of the nutrition columns.
+```{r}
+## stringr and food3 are pre-loaded
+
+# Create vector of column indices: nutrition
+nutrition <- str_detect(names(food3),"100g")
+
+# View a summary of nutrition columns
+summary(food3[nutrition])
+```
+
+Some are logical vectors, many have ~1400-1500 NA's
+
+Replacing missing values
+
+Unfortunately, the summary revealed that the nutrition data are mostly NA values. After consulting with the lab technician, it appears that much of the data is missing because the food just doesn't have those nutrients.
+
+But all is not lost! The lab tech also said that for sugar content, zero values are sometimes entered explicitly, but sometimes the values are just left empty to denote a zero. A statistical miracle!
+
+In this exercise, you'll replace all NA values with zeroes in the sugars_100g column and make histograms to visualize the result. Then, you will exclude the observations which have no sugar to see how the distribution changes.
+
+
+    Use is.na() to create a vector indicating which elements in the sugars_100g column of food3 are currently NA. Call the vector missing.
+    Subset food3$sugars_100g using missing to replace the missing values with zeros. You can just overwrite the values directly with the <- operator.
+    Create a histogram of the sugars_100g variable in food3 with the breaks argument equal to 100.
+    Create food4, a subset of food3 that excludes the foods with zero sugar. You can use single bracket subsetting to do this.
+    Create a histogram of the sugars_100g variable in food4 with the breaks argument equal to 100.
+```{r}
+# Find indices of sugar NA values: missing
+missing <- is.na(food3$sugars_100g)
+
+# Replace NA values with 0
+food3$sugars_100g[missing] <- 0
+
+# Create first histogram
+hist(food3$sugars_100g, breaks = 100)
+
+# Create food4
+food4 <- subset(food3, food3$sugars_100g != 0)
+
+# Create second histogram
+hist(food4$sugars_100g, breaks = 100)
+```
+
+Excluding the observations which don't contain any sugar, you can better visualize what the underlying distribution looks like… And now, for something completely different. 
+
+Dealing with messy data
+
+Your analysis of sugar content was so impressive that you've now been tasked with determining how many of these foods come in some sort of plastic packaging. (No good deed goes unpunished, as they say.)
+
+Your dataset has information about packaging, but there's a bit of a problem: it's stored in several different languages (Spanish, French, and English). This takes messy data to a whole new level! There is no R package to selectively translate, but what if you could just work with the messy data directly?
+
+You're in luck! The root word for plastic is same in English (plastic), French (plastique), and Spanish (plastico). To get a general idea of how many of these foods are packaged in plastic, you can look through the packaging column for the string "plasti".
+Instructions
+100xp
+
+    Create a vector to locate entries in the packaging column of food3 containing the string "plasti". Call the resulting logical vector plastic.
+    Calculate the sum of plastic to count how many of the foods are packaged in plastic.
+```{r}
+## stringr is loaded
+
+# Find entries containing "plasti": plastic
+plastic <- str_detect(food3$packaging, "plasti")
+
+# Print the sum of plastic
+sum(plastic)
+```
+
+# School Attendance Data
