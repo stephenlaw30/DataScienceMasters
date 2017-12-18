@@ -313,3 +313,111 @@ Instructions
 mbta5 <- spread(mbta4, key = mode, value = thou_riders)
 head(mbta5)
 ```
+
+Separating columns
+
+Your dataset is already looking much better! Your boss saw what a great job you're doing and now wants you to do an analysis of the T's ridership during certain months across all years.
+
+Your dataset has month names in it, so that analysis will be a piece of cake. There's only one small problem: if you want to look at ridership on the T during every January (for example), the month and year are together in the same column, which makes it a little tricky.
+
+In this exercise, you'll separate the month column into distinct month and year columns to make life easier.
+Instructions
+100xp
+
+    Look at head(mbta5) to remind yourself what the month column currently looks like.
+    Split the month column of mbta5 at the dash: create a new month column with only the month and a year column with only the year. Assign the resulting data frame to mbta6.
+    View the head of mbta6.
+```{r}
+## tidyr and mbta5 are pre-loaded
+
+# View the head of mbta5
+head(mbta5)
+
+# Split month column into month and year: mbta6 (does not keep old col)
+mbta6 <- separate(mbta5, col = month, into = c("year", "month"), sep = "-")
+
+# View the head of mbta6
+head(mbta6)
+```
+
+# Do your values seem reasonable?
+
+Before you write up the analysis for your boss, it's a good idea to screen the data for any obvious mistakes and/or outliers.
+
+There are many valid techniques for doing this; you'll practice a couple of them here.
+Instructions
+100xp
+
+    View a summary() of mbta6. Pay particular attention to the Boat column stats.
+    Generate a histogram of the Commuter Boat ridership by calling hist() on the column mbta6$Boat.
+```{r}
+## mbta6 is pre-loaded
+
+# View a summary of mbta6
+summary(mbta6) # boat looks off
+
+# Generate a histogram of Boat ridership
+hist(mbta6$Boat)
+```
+
+That's quite an interesting histogram – every value clustered around 4 and one loner out around 40. You'll address that next…. 
+
+#   Dealing with entry error
+
+Think for a minute about that Boat histogram. Every month, average weekday commuter boat ridership was on either side of four thousand. Then, one month it jumped to 40 thousand without warning?
+
+Unless the Olympics were happening in Boston that month (they weren't), this value is certainly an error. You can assume that whoever was entering the data that month accidentally typed 40 instead of 4.
+
+Because it's an error, you don't want this value influencing your analysis. In this exercise, you'll locate the incorrect value and change it to 4.
+
+After you make the change, you'll run the last two commands in the editor as-is. They use functions you may not know yet to produce some cool ridership plots: one showing the lesser-used modes of transport (take a look at the gorgeous seasonal variation in Boat ridership), and one showing all modes of transport. The plots are based on the long version of the data we produced in Exercise 4 -- a good example of using different data formats for different purposes.
+
+If you'd like to learn how to do this on your own, check out DataCamp's Data Visualization with ggplot2 courses!
+Instructions
+100xp
+
+    Create a numeric variable i to store the index of the incorrect Boat value in mbta6. Combine a call to which() with a comparison operator (i.e. >) to determine the row number.
+    Overwrite the incorrect value of mbta6$Boat with a 4.
+    Verify that the change was made by looking at another histogram of mbta6$Boat.
+    Run the last two commands as-is to generate pretty plots.
+```{r}
+# Find the row number of the incorrect value: i
+i <- which(mbta6$Boat > 20)
+
+# Replace the incorrect value with 4
+mbta6$Boat[i] <- 4
+
+# Generate a histogram of Boat column
+hist(mbta6$Boat)
+
+# Look at Boat and Trackless Trolley ridership over time (don't change)
+ggplot(mbta_boat, aes(x = month, y = thou_riders, col = mode)) +  geom_point() + 
+  scale_x_discrete(name = "Month", breaks = c(200701, 200801, 200901, 201001, 201101)) + 
+  scale_y_continuous(name = "Avg Weekday Ridership (thousands)")
+
+# Look at all T ridership over time (don't change)
+ggplot(mbta_all, aes(x = month, y = thou_riders, col = mode)) + geom_point() + 
+  scale_x_discrete(name = "Month", breaks = c(200701, 200801, 200901, 201001, 201101)) +  
+  scale_y_continuous(name = "Avg Weekday Ridership (thousands)")
+```
+
+Take a moment to cycle through the three plots you just created in the plotting window. Congratulations! Your dataset is now squeaky-clean. Of course, depending on your desired analysis, you may still need to make some adjustments. For now, though, head over to the next chapter. 
+
+# World Food Facts
+
+## Importing the data
+
+As a person of many talents, it's time to take on a different job: nutrition analysis! Your goal is to analyze the sugar content of a sample of foods from around the world.
+
+A large dataset called food.csv is ready for your use in the working directory. Instead of the usual read.csv(), however, you're going to use the faster fread() from the data.table package. The data will come in as a data table, but since you're used to working with data frames, you can just convert it.
+
+[Note: In order to make these exercises manageable, we've taken a random subset of the original data. The dataset you'll be working with may not be large enough for fread() to make a huge difference, but be aware that there will be times when read.csv() just won't cut it.]
+Instructions
+100xp
+
+    Load the data.table package.
+    Import food.csv using fread(). Call the resulting data table dt_food.
+    Convert dt_food to a data frame using data.frame() and call the resulting data frame df_food.
+```{r}
+
+```
