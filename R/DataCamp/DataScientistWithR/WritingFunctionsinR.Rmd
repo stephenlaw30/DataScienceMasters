@@ -1,0 +1,202 @@
+---
+title: "Writing Functions in R"
+author: "Steve Newns"
+date: "December 19, 2017"
+output: html_document
+---
+# Quick Refresher
+
+## Writing a function
+
+The function template is a useful way to start writing a function:
+
+my_fun <- function(arg1, arg2) {
+  # body
+}
+
+my_fun is the variable that you want to assign your function to, arg1 and arg2 are arguments to the function. The template has two arguments, but you can specify any number of arguments, each separated by a comma. You then replace # body with the R code that your function will execute, referring to the inputs by the argument names you specified.
+
+Let's get to writing functions!
+Instructions
+100xp
+
+    Using the function template, write a function ratio() that takes arguments x and y and returns their ratio, x / y.
+    Check your function by calling it with the arguments 3 and 4.
+```{R}
+
+```
+Beyond the first couple of arguments you should always use matching by name. It makes your code much easier for you and others to read. This is particularly important if the argument is optional, because it has a default. When overriding a default value, it's good practice to use the name.
+
+Notice that when you call a function, you should place a space around = in function calls, and always put a space after a comma, not before (just like in regular English). Using whitespace makes it easier to skim the function for the important components.
+Instructions
+100xp
+
+Here's a rather cryptic call to mean(). Rewrite the call to follow the best practices we just discussed. Use the natural ordering of the arguments, which you can find by typing ?mean in the console.
+```{r}
+# Rewrite the call to follow best practices
+# mean(0.1,x=c(1:9, NA),TRUE)
+mean(c(1:9, NA), trim = 0.1, na.rm = TRUE)
+```
+
+If y is not passed in as an argument to the function, R looks outside of the function environment. 
+y <- 10
+f <- function(x) {
+  x + y
+}
+f(10) = 20
+
+y <- 10
+f <- function(x) {
+  y <- 5
+  x + y
+}
+f(10) = 15
+
+he value of x is passed in as an argument to the function and the value of y is defined inside of the functio
+
+f <- function(x) {
+  y <- 5
+  x + y
+}
+f(5)
+ERROR = Even though y is set equal to 5 within the body of the function, the object does not exist in the global environment. 
+
+Atomic types of vectors in R = logical
+integer
+double
+character
+
+
+## Subsetting lists
+
+There are a few ways to subset a list. Throughout the course we'll mostly use double bracket ([[]]) subsetting by index and by name.
+
+That is, my_list[[1]] extracts the first element of the list my_list, and my_list[["name"]] extracts the element in my_list that is called name. If the list is nested you can travel down the heirarchy by recursive subsetting. For example, mylist[[1]][["name"]] is the element called name inside the first element of my_list.
+
+A data frame is just a special kind of list, so you can use double bracket subsetting on data frames too. my_df[[1]] will extract the first column of a data frame and my_df[["name"]] will extract the column named name from the data frame.
+
+I've set up a list called tricky_list in your workspace. Use the function typeof() combined with double bracket subsetting to answer the following questions.
+Instructions
+100xp
+
+What type of object is the...
+
+    2nd element in tricky_list?
+    Element called x in tricky_list?
+    2nd element inside the element called x in tricky_list?
+```{r}
+# 2nd element in tricky_list
+tricky_list[[2]]
+typeof(tricky_list[[2]])
+# Element called x in tricky_list
+tricky_list[["x"]]
+typeof(tricky_list[["x"]])
+# 2nd element inside the element called x in tricky_list
+tricky_list[["x"]][[2]]
+typeof(tricky_list[["x"]][[2]])
+```
+
+## Exploring lists
+
+Often you won't know exactly what is inside a list. But, you'll need to figure it out to get some useful piece of data. Extracting elements from the output of the names() and str() functions is a great way to explore the structure of a list.
+
+Calling names() on a list will give you names at the top level of the list and str() will give you a full description of the entire list (which can sometimes be a little overwhelming).
+
+tricky_list has a regression model stored in it. Let's see if we can drill down and pull out the slope estimate corresponding to the wt variable.
+Instructions
+100xp
+
+    Use names() on tricky_list to guess where the regression model is stored.
+    Use names() and str() on the model element of tricky_list.
+    Extract the coefficients element of the model element of tricky_list.
+    Extract the wt element of the coefficients element of the model element of tricky_list
+```{r}
+# Guess where the regression model is stored
+names(tricky_list)
+
+# Use names() and str() on the model element
+names(tricky_list[["model"]])
+str(tricky_list[["model"]])
+
+# Subset the coefficients element
+tricky_list[["model"]][["coefficients"]]
+
+# Subset the wt element
+tricky_list[["model"]][["coefficients"]][["wt"]]
+```
+ Another way is to use the coef() function on the model element of tricky_list. 
+ 
+## A safer way to create the sequence
+
+Let's take a look at the sequence component of our for loop:
+
+i in 1:ncol(df)
+
+Each time our for loop iterates, i takes the next value in 1:ncol(df). This is a pretty common model for a sequence: a sequence of consecutive integers designed to index over one dimension of our data.
+
+What might surprise you is that this isn't the best way to generate such a sequence, especially when you are using for loops inside your own functions. Let's look at an example where df is an empty data frame:
+
+df <- data.frame()
+1:ncol(df)
+
+for (i in 1:ncol(df)) {
+  print(median(df[[i]]))
+}
+
+Our sequence is now the somewhat non-sensical: 1, 0. You might think you wouldn't be silly enough to use a for loop with an empty data frame, but once you start writing your own functions, there's no telling what the input will be.
+
+A better method is to use the seq_along() function. This function generates a sequence along the index of the object passed to it, but handles the empty case much better.
+Instructions
+100xp
+
+    Replace the 1:ncol(df) sequence in our for loop with seq_along(df).
+    Change the value of df to an empty data frame.
+    Repeat the for loop to verify there is no error.
+```{r}
+#for (i in 1:ncol(df)) {
+  #print(median(df[[i]]))
+#}
+# Replace the 1:ncol(df) sequence
+for (i in seq_along(df)) {
+  print(median(df[[i]]))
+}
+
+# Change the value of df
+df <- data.frame()
+
+# Repeat for loop to verify there is no error
+for (i in seq_along(df)) {
+  print(median(df[[i]]))
+}
+```
+
+##Keeping output
+
+Our for loop does a good job displaying the column medians, but we might want to store these medians in a vector for future use.
+
+Before you start the loop, you must always allocate sufficient space for the output, let's say an object called output. This is very important for efficiency: if you grow the for loop at each iteration (e.g. using c()), your for loop will be very slow.
+
+A general way of creating an empty vector of given length is the vector() function. It has two arguments: the type of the vector ("logical", "integer", "double", "character", etc.) and the length of the vector.
+
+Then, at each iteration of the loop you must store the output in the corresponding entry of the output vector, i.e. assign the result to output[[i]]. (You might ask why we are using double brackets here when output is a vector. It's primarily for generalizability: this subsetting will work whether output is a vector or a list.)
+
+Let's edit our loop to store the medians, rather than printing them to the console.
+Instructions
+100xp
+
+    Create a new "double" vector of length ncol(df) and name it output.
+    Inside the body of the loop, store the result of each iteration result in the ith element of output.
+    Print output to the console.
+```{R}
+# Create new double vector: output
+output <- vector(mode = "double", length = ncol(df))
+
+# Alter the loop
+for (i in seq_along(df)) {
+  # Change code to store result in output
+  output[[i]] <- median(df[[i]])
+}
+
+# Print output
+output
+```
