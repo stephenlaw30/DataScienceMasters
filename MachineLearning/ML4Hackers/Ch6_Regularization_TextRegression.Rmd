@@ -21,8 +21,7 @@ Can also use linear regression to capture relationships that aren’t well-descr
 
 We make systematic errors in predictions if we use a straight line for these data. This is easiest to see in a residuals plot that shows all the structure of the original data set, as none of the structure is captured by the default linear regression model.
 
-Use `geom_smooth` without any `method` argument to fit a more complex statistical model called a **Generalized Additive Model (GAM)** that
-provides a smooth, nonlinear representation of the structure in our data:
+Use `geom_smooth` without any `method` argument to fit a more complex statistical model called a **Generalized Additive Model (GAM)** that provides a smooth, nonlinear representation of the structure in our data:
 ```{r}
 set.seed(1)
 x <- seq(-10, 10, by = 0.01)

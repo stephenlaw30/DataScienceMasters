@@ -295,3 +295,38 @@ cat("\nF1 Score (compromise between Precision and Recall): ",f1)
 cat("\nAccuracy: ",accuracy)
 ```
 
+# Regularized logistic regression
+```{r}
+library('glmnet')
+#regularized_logistic_regression <- glmnet(train_x, train_y, family = "binomial")
+restaraunts_regularizedlogReg <- glmnet(as.matrix(training[-cols]),
+                                        as.matrix(training[cols]), 
+                                        family = "binomial") 
+```
+
+Compare various settings for `lambda` to see which gives best performance. 
+
+To push through this example quickly, we’ll cheat a bit and test the hyperparameter settings on the test set rather than do repeated splits of the training data. If rigorously testing models, don't make this sort of simplification. For now, just try all values `glmnet` proposed + see which performs best on the test set:
+```{r}
+lambdas <- restaraunts_regularizedlogReg$lambda
+
+performance <- data.frame()
+for (lambda in lambdas) {
+ # test model on new test data with each lambda
+ temp_predictions <- predict(restaraunts_regularizedlogReg, 
+                             as.matrix(test[-cols]),
+                             s = lambda)
+ predictions <- as.numeric(temp_predictions > 0)
+ # calculate MSE
+ mse <- mean(predictions != as.matrix(training[cols]))
+ # add row back to DF
+ performance <- rbind(performance, data.frame(Lambda = lambda, MSE = mse))
+}
+
+ggplot(performance, aes(Lambda, MSE)) + 
+ geom_point() + 
+ scale_x_log10()
+
+(final_lambda <- with(performance, max(Lambda[which(MSE == min(MSE))])))
+(logreg_mse <- with(subset(performance, Lambda == final_lambda), MSE))
+```
