@@ -618,3 +618,96 @@ replace_missings <- function(x, replacement) {
 # Check your new function by running on df$z
 replace_missings(df$z, 0)
 ```
+
+# Why functional programming?
+
+## Using a for loop to remove duplication
+
+Imagine we have a data frame called df:
+
+df <- data.frame(
+  a = rnorm(10),
+  b = rnorm(10),
+  c = rnorm(10),
+  d = rnorm(10)
+)
+
+We want to compute the median of each column. You could do this with copy and paste (df is available in your workspace, so go ahead and try it in the console):
+
+median(df[[1]])
+median(df[[2]])
+median(df[[3]])
+median(df[[4]])
+
+But that's a lot of repetition! Let's start by seeing how we could reduce the duplication by using a for loop.
+Instructions
+100xp
+
+We've provided some code to get you started. Fill in the body of the for loop to calculate the median of each column and store the results in output.
+```{r}
+# Initialize output vector
+output <- vector("double", ncol(df))  
+
+# Fill in the body of the for loop
+for (i in seq_along(df)) {
+  output[i] <- median(df[,i])
+}
+
+# View the result
+output
+```
+
+## Turning the for loop into a function
+
+Now, imagine you need to do this to another data frame df2. You copy and paste the for loop, and edit every reference to df to be df2 instead.
+
+output <- vector("double", ncol(df2))  
+for (i in seq_along(df2)) {            
+  output[[i]] <- median(df2[[i]])      
+}
+output
+
+And then you realize you have another data frame df3 for which you also want the column medians. You copy and paste...and realize you've copied and pasted two times. Time to write a function!
+Instructions
+100xp
+
+Turn the for loop snippet into a function called col_median() that takes one argument df and returns the vector of column medians.
+```{r}
+# Turn this code into col_median()
+col_median <- function(df) {
+  output <- vector("double", ncol(df))  
+  for (i in seq_along(df)) {            
+    output[[i]] <- median(df[[i]])      
+  }
+  return(output)
+}
+
+# Create col_mean() function to find column means
+col_mean <- function(df) {
+  output <- numeric(length(df))
+  for (i in seq_along(df)) {
+    output[[i]] <- mean(df[[i]])
+  }
+  output
+}
+
+# Define col_sd() function
+col_sd <- function(df) {
+  output <- numeric(length(df))
+  for (i in seq_along(df)) {
+    output[[i]] <- sd(df[[i]])
+  }
+  output
+}
+```
+
+## What about column means?
+
+What if instead of medians of every column you actually want means?
+
+Let's write a col_mean() function that returns the vector of column means.
+Instructions
+100xp
+
+    We have copied and pasted the col_median() function into the editor.
+    Create a col_mean() function by editing col_median() to find the column means instead.
