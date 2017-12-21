@@ -330,3 +330,63 @@ ggplot(performance, aes(Lambda, MSE)) +
 (final_lambda <- with(performance, max(Lambda[which(MSE == min(MSE))])))
 (logreg_mse <- with(subset(performance, Lambda == final_lambda), MSE))
 ```
+
+```{r}
+library(glmnet)
+# Predict on test set results
+restaraunts_regularizedlogReg <- glmnet(as.matrix(training[-cols]),
+                                        as.matrix(training[cols]), 
+                                        family = "binomial", 
+                                        lambda = final_lambda) 
+
+y_pred_rlr <- predict(restaraunts_regularizedlogReg, test[-cols], type = "class")
+
+## Making the Confusion Matrix
+(cm <- table(test$Liked, y_pred_rlr))
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+f1 <- (2*precision*specificity)/(precision + specificity)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or \"Recall\", or \"measuring completeness\"): ",specificity)
+cat("\nPrecision (Positive Predictive Value, or \"measuring exactness\"): ",precision)
+cat("\nF1 Score (compromise between Precision and Recall): ",f1)
+cat("\nAccuracy: ",accuracy)
+```
+```{r}
+fit <- cv.glmnet(x = as.matrix(training[-cols]),
+                 y = as.matrix(training[cols]), 
+                 family = 'binomial', 
+                 # lasso penalty
+                 alpha = 1,
+                 # interested area unded ROC curve
+                 type.measure = "auc",
+                 # 5-fold cross-validation
+                 nfolds = 5,
+                 # high value, less accurate, but faster training
+                 thresh = 1e-3,
+                 # again lower number iterations for faster training
+                 # in this vignette
+                 maxit = 1e3)
+
+y_pred_rlr2 <- predict(fit, test[-cols], type = "class")
+
+## Making the Confusion Matrix
+(cm <- table(test$Liked, y_pred_rlr2))
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+f1 <- (2*precision*specificity)/(precision + specificity)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or \"Recall\", or \"measuring completeness\"): ",specificity)
+cat("\nPrecision (Positive Predictive Value, or \"measuring exactness\"): ",precision)
+cat("\nF1 Score (compromise between Precision and Recall): ",f1)
+cat("\nAccuracy: ",accuracy)
+```
+```
