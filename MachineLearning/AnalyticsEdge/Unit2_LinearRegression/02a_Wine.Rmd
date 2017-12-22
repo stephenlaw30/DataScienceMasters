@@ -1,0 +1,280 @@
+---
+title: "01b_USDA"
+output: html_document
+---
+# UNIT 2 - LINEAR REGRESSION
+
+## STATISTICAL SOMMELIER - INTRO TO LINEAR REGRESSION
+
+#*****1. PREDICTING QUALITY OF WINE
+#Linear regression = very simple but powerful way to predict values
+
+#Bordeaux = a region in France popular for producing wine + while it has been produced in much the same way for 
+# hundreds of years, there are differences in price + quality from year to year that are sometimes very 
+# significant.
+#Bordeaux wines are widely believed to taste better when older, so there's an incentive to store young wines 
+# until they are mature.
+#The main problem is that it;s hard to determine quality of wine when it is so young just by tasting it, since 
+# tastes change so significantly by the time it will actually be consumed.
+#This is why wine tasters and experts are helpful, who taste the wines + then predict which ones will be the best
+# wines later.
+#Can analytics model this process better + make stronger predictions?
+#On March 4, 1990, the NYT announced that Princeton economics professor Orley Ashenfelter can predict quality of
+# Bordeaux wine w/out tasting a single drop via the results of a mathematical model.
+#Ashenfelter linear regression to predict an outcome/dependent variable using a set of what IND variables.
+#For the DV, Ashenfelter chose a typical PRICE in 1990-1991 for Bordeaux wine in an auction, which approximates 
+# quality.
+#As independent variables, he used wine age (older wines = more expensive) + weather-related info, specifically
+# AVG growing season temp, the harvest rain, and winter rain.
+#Ashenfelter believed that his predictions were more accurate than those of the world's most influential wine 
+# critic, Robert Parker, who called Ashenfelter "an absolute total sham," + adds that, "rather like a movie 
+# critic who never goes to see the movie but tells you how good it is based on the actors and the director."
+
+#In Ashenfelter's model, more harvest rain was associated w/ a lower logarithmic (realization) price, + higher 
+#temps were associated w/ a higher  logarithmic (realization) price.
+
+
+
+############## ONE VARIABLE LINEAR REGRESSION ***********************
+#Has just 1 IV
+#Goal of LR is to create a best fit predictive line through the data plotted
+#Trying to predict a DV, Y, using the IV, X
+
+# y(i) = B0 + B1X(i) + Error(i)
+
+#So we take the intercept CoE, B0, and add to it the IV regression CoE/B1/slope of line * the ith obs of X, or 
+# the IV, as well as the standard error for the ith obs (actual - predicted) to get the DV value for i
+
+#We add epsilon(i)/error(i) b/c our slope, B1, is the same for all data points, our prediction may be a bit off
+# from the actual value of y(i), so we add it back in = THE RESIDUAL (error)
+#   - error(i) = 0 if the point lies exactly on the line
+
+#BEST MODEL/best choice of CoE's B0 and B1 == smallest error terms/smalles residuals
+
+#Can compute residuals by actual - prediction value
+
+#SUM OF SQUARED ERRORS (SSE) = a measure of quality of the regression line
+#   = E1^2 + E2^2 + ... + En^2
+#Want a SMALLER SSE! --> smallest possible = best line = best model
+
+#Although SSE allows us to compare lines on the same data set, it's hard to interpret for 2 reasons.
+#   - 1: It scales w/ n, the # of data points. If we built the same model with twice as much data, the SSE might 
+#       be twice as big, but this doesn't mean it's a worse model.
+#   - 2: The units are hard to understand. SSE is in squared units of the DV
+
+#B/c of these problems, Root Means Squared Error, or RMSE, is often used = sqrt(SSE/n)
+#   - It is NORMALIZED by n and is in the SAME units of the DV
+
+#R2 = another common measure of quality of the regression line
+#   - compares 'best model' to a 'BASELINE model', i.e. model w/ no variables, or the average (price, here)
+#   - baseline model predicts average of the DV regardelss of IV values
+#   - SSE for the BASELINE model is also known as TOTAL SUM OF SQUARES, or SST
+
+#R2 = 1 - (SSE/SST)
+#   - R2 is good b/c it capture the VALUE ADDED BY USING A MODEL
+#   - R2 = 0 --> NO improvement over baseline, R2 = 1 --> perfect predictive model
+#       - wANT A LARGER R2
+#       - SSE and SST will always be >= 0, b/c they're SQUARES
+#       - and SSE will always be <= SST b/c our model could just set B1 = 0, and then we'd get the baseline model
+#       - so any linear regression model will NEVER be worse than than the baseline
+#       - In worst case, SSE = SST, and R2 = 0 = no improvemnt
+#        - In best cast, SSE = 0 = no errors = R2 = 1
+#   - It's UNITLESS and universally INTERPRETABLE
+#       - but can still be hard to compare between models, b/c good models for EASY problems will have R2 = ~1 
+#           and good models for HARD problems can still have R2 = ~0
+
+
+
+
+############## MULTIPLE-VARIABLE LINEAR REGRESSION ***********************
+#If we use each variable in its own single variable LR, we get:
+#   - AGST R2 = 0.44 (best)
+#   - HarvRain = 0.32
+#   - FrancePop = 0.22
+#   - Age = 0.20
+#   - WintRain 0.02 (worst)
+
+#W/ multiple LR, we can use all/some of these to improve predictive ability
+
+# y(i) = B0 + B1X1(i) + B2X2(i) + ... BkXk(i) + E(i)
+#   - same equation as single LR, but but has a CoE/Beta for EACH IV
+#   - so B2X2(i) = The regression CoE B for the 2nd IV * the 2nd IV for the ith obs
+
+#best model is same as before --> minimize SSE using E's (error terms)
+
+#Can start w/ a LR model that uses the IV that gave the best R2, AGST, + add IV's for each model iteration 
+#   - VAR                       R2
+#   - AGST                      0.44
+#   - AGST, HR                  0.71
+#   - AGST, HR, Age             0.79
+#   - AGST, HR, Age, WR         0.83
+#   - AGST, HR, Age, WR, Pop    0.83
+
+#so as we add IV's to the model, R2 improves, but there are diminishing returns for each IV added
+
+#Not ALL var's should be used b/c each new var = more data = a MORE COMPLICATED MODEL
+#   - also risks OVERFITTING the model = misleading high R2 from data used to create the model w/ bad 
+#       performance on unseen data (i.e. prediction of year 2013)
+#         - it begins to model random noise
+#   - R2 CANNOT DECREASE W/ MORE VARIABLES
+
+wine <- read.csv("wine.csv")
+str(wine) #we got 25 wines
+summary(wine)
+
+#1-variable LR model using AGST via linear model lm(DV ~ IV, datasetToUse) function
+model1 <- lm(wine$Price ~ wine$AGST, data = wine)
+summary(model1)
+#see description of function, residuals/error terms, CoE estimates, error, t-value, p-value, R1, Adj. R2, etc.
+#See that for each 0.6351 increase in AGST in units of AGST, price will increase by 1 unit of price
+#AGST is also VERY significant, w/ an "okay" R2 and Adj. R2 (adjusted for # of IV's used to # of data points in
+#   the model to create system of checks and balances)
+#   - as R2 increases w/ each IV added, Adj. R2 adds a penalization factor if an added IV does NOT improve the
+#       model
+
+#Compute SSE for the model w/ out residuals that are stored in the vector --> model1$residuals
+model1$residuals
+#see values for each residual. Compute SEE by taking the sum of each of these squares
+sse <- sum(model1$residuals**2) 
+#SSE = 5.73 --> want to minimize this.
+
+#Add Harvest Rain to the model
+model2 <- lm(Price ~ AGST + HarvestRain, data = wine)
+summary(model2)
+#See that AGST's CoE has increased, and HarvestRain's is slightly negative, while both are V. SIG.
+#Both R2 and Adj. R2 have increased as well. 
+#   - For each .60262 increase in AGST in units of AGST, Price will increase by 1 in units of Price
+#   - For each -0.00457 decrease in HarvestRain in units of HarvestRain, Price will increase by 1.....
+#Check the SSE
+sse2 <- sum(model2$residuals**2)
+#so it's 2.97, an improvement
+
+#Add ALL IV's
+model3 <- lm(Price ~ AGST + HarvestRain + WinterRain + Age + FrancePop, data = wine)
+summary(model3)
+#See that only AGST and HarvestRain are SIG and they are V. SIG., while all CoE's are very small.
+# - R2 and Adj. R2 have increased, but the variables aren't sig.
+# - CoE of 0 = does NOT affect the DV --> REMOVE VARS THAT AREN'T SIGNIFICANTLY DIFF FROM 0
+# - Std. Err = measure of how likely it is the CoE will vary from the estimate value
+# - T-value = Estimate/SE
+#     - larger the ABSV of t-value, the MORE likely the CoE is SIG
+# - Pr(>|t) = how plausible it is that the CoE is actually 0, given the data used to build the model
+
+sse3 <- sum(model3$residuals**2)
+#SEE is now at its lowest/best yet
+
+rainModel <- lm(Price ~ HarvestRain + WinterRain, data = wine)
+summary(rainModel)
+
+#Remove all COMPLETELY INSIG var FrancePop (wouldn't expect to impace wine price (expected quality) anyway)
+model4 <- lm(Price ~ AGST + HarvestRain + WinterRain + Age, data = wine)
+summary(model4)
+#See that all vars are now SIG, while only AGST + HarvRain remain V. SIG.
+#All CoE's are very small, except AGST, which has a decent impact on Price here
+# - R2 has decreased while Adj. R2 has INCREASED, so this model is stronger
+#So before, Age was NOT SIG, but is now SIG after removing FrancePop. Why?
+
+
+
+#################CORRELATION AND MULTICOLLINEARITY**********************#
+#Age and FrancePop were highly CORRELATED in a NEGATIVE MANNER
+plot(wine$Age,wine$FrancePop)
+#Makes sense b/c France's Population has increased w/ time (decreased w/ how old the wine is)
+
+#Compute correlation of Winter Rain and Price
+cor(wine$WinterRain,wine$Price)
+#It's 0.13665, so very slightly positive
+cor(wine$Age,wine$FrancePop)
+#Corr = -.99, so Very highly negatively correlated
+#Get correlations of ALL IV's
+cor(wine)
+
+#So Age and FrancePop were highly CORRELATED, and caused MULTICOLLINEARITY problems in the model
+#   - this refers to the situation when 2 INDEPENDANT var's are highly correlated (DV has nothing to do w/ it)
+#   - High corr between an IV + the DV is good b/c we're trying to predict which IV's DO IN FACT affect the DV
+
+#Due to possibilites of multicollinearity, ALWAYS REMOVE 1 IV AT A TIME (BACKWARDS ELIMINATION)
+#what is we removed BOTH Age + FrancePop b/c they were both INSIG + compare w/ model4
+#   model4 <- lm(Price ~ AGST + HarvestRain + WinterRain + Age, data = wine)
+model5 <- lm(Price ~ AGST + HarvestRain + WinterRain, data = wine)
+summary(model4)
+summary(model5)
+#We get a worse R2 and Adj. R2
+
+#We removed FrancePop and not AGe b/c you'd expect wine to be significant for price of wine, since older wines
+#   are typically more expensive, + population wouldn't really have an effect on wine price
+
+#Multicollinearity reminds us that CoE's are only interpretable IN THE PRESENCE OF OTHER VARIABLES BEING USED.
+# - High correlations can even cause coefficients to have an unintuitive sign.
+
+#Do we have any other highly-correlated IV's?
+# There is no definitive cut-off value for what makes a correlation TOO high, but typically, correlation > 0.7
+# or <  -0.7 is cause for concern.
+#If you look back at all of the correlations we computed for data set: 
+cor(wine)
+#Doesn't look like we have any other highly-correlated IV's
+#So we'll stick w/ model, using AGST, HarvestRain, WinterRain, and Age as IV's
+
+
+
+#############MAKING PREDICTIONS###################
+#Our wine model had R2 = 0.83, which tells us how accurate our model is on the data used to construct the model.
+# So our model does a good job predicting the data it's seen.
+#But we also want a model that does well on NEW data/data it's never seen before so we can use the model to 
+# make predictions for LATER years.
+
+#For this particular application, Bordeaux wine BUYERS PROFIT from being able to PREDICT QUALITY of a wine years
+# BEFORE IT MATURES
+#They know the values of the IV's (age + weather), don't know the price the wine will eventually sell for.
+# So it's important to build a model that does well at predicting data it's never seen before.
+#Data used to build a model is often called the TRAINING DATA + new data = the TEST DATA
+# ACCURACY OF A MODEL ON TEST DATA = OUT-OF-SAMPLE ACCURACY
+
+#Let's see how well our model performs on some test data in R.
+wine_test <- read.csv("wine_test.csv")
+str(wine_test) #got 2 wines from 1979 + 1980 w/ prices of $6.95 and $6.50
+summary(wine_test)
+
+#use PREDICT() to use the model on the new data
+wine_predictions <- predict(model4,newdata=wine_test)
+#For out 1st wine (1979), we predict Price = $6.77, and for our 2nd wine (1980), we predict Price = $6.69
+# Wine1's predicted price is BELOW the actual by $0.18, and Wine2's is ABOVE by $0.19
+
+#It looks like our predictions are pretty good, and we can QUANTIFY THIS COMPUTING R2 FOR THE TEST SET
+#   - R2 = 1 - (SSE / SST)
+#   - SSE = sum of actual-predicted ^ 2
+#   - SST = sum of acutal-ACTUALSaverageFromTRAINING ^ 2
+sse4 = sum((wine_test$Price - wine_predictions)**2)
+sst4 = sum((wine_test$Price - mean(wine$Price))**2)
+R2_predictions = 1 - (sse4/sst4)
+#So our R2 = 0.7944278, which is pretty good, but note our test set is very small.
+# We need to increase test set size to be more confident about our OUT-OF-SAMPLE ACCURACY of our model
+
+#As we add more IV's our Test Set's R2 does not always increase (can even be negative b/c our model can never
+# do worse than baseline on the TRAINING data, but CAN do worse than baseline on the TEST data)
+# - Since SSE + SST are the sums of squared terms, we know that both will be positive. Thus SSE/SST must always 
+#     be >= 0. This means it is NOT possible to have an out-of-sample R? value of 2.4 b/c 1 - positive # =  > 1
+# - However, all other values are valid (even negative ones!), since SSE can be more or less than SST, due to 
+#     the fact that this is an out-of-sample R?, not a model R?.
+
+#Model 4 does best on both the training set model's R2 and the test set's R2, but we need more data points in 
+# our test set to reach any real, confident conclusion
+
+
+#Wine expert Robert Parker predicted that the 1986 Bordeaux wine is VERY GOOD to SOMETIMES EXCEPTIONAL. On the 
+# other hand, Ashenfelter said the 1986 Bordeaux wine is MEDIOCRE + made the prediction that the 1989 Bordeaux 
+# would be the wine of the century + the 1990 Bordeaux would be even better.
+#In wine options, the 1989 Bordeaux sold for more than 2x the price of 1986 + the 1990 Bordeaux sold for even 
+# higher prices.
+#Later, Ashenfelter predicted that the 2000 + 2003 Bordeaux wines would be GREAT + Robert Parker stated the 
+# 2000 was the greatest vintage Bordeaux has ever produced, in agreement with Ashenfelter.
+
+#So what is the analytics edge in this case?
+# - What we have developed is a linear regression model, a simple but rather powerful model for predicting 
+#     quality of wines.
+# - It only used few variables + we have seen that it predicted wine prices quite well, + in fact, in many 
+#     cases, outperformed wine expert's opinions.
+#What is impressive, in this 1st introductory lecture to linear regression, is that an analytics approach that
+# uses data to build a model that improves decision making is effective in a traditionally QUALITATIVE problem.
+#When grapes are harvested, we'd have the temperature data, and then the age data when the wine is bottled.
+# - We can plug these data points into our best model to predict what price (+ quality) the wine will have.
