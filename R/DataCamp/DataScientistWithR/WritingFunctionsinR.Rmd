@@ -701,13 +701,95 @@ col_sd <- function(df) {
 }
 ```
 
-## What about column means?
+## Uh oh...time to write a function again
 
-What if instead of medians of every column you actually want means?
+We just copied and pasted the function col_median two times. That's a sure sign we need to write a function. How can we write a function that will take column summaries for any summary function we provide?
 
-Let's write a col_mean() function that returns the vector of column means.
+Let's look at a simpler example first. Consider the functions f1(), f2() and f3() that take a vector x and return deviations from the mean value raised to the powers 1, 2, and 3 respectively:
+
+f1 <- function(x) abs(x - mean(x)) ^ 1
+f2 <- function(x) abs(x - mean(x)) ^ 2
+f3 <- function(x) abs(x - mean(x)) ^ 3
+
+How could you remove the duplication in this set of function definitions?
+
+Hopefully, you would suggest writing a single function with two arguments: x and power. That way, one function reproduces all the functionality of f1(), f2() and f(3), and more.
+```{r}
+# Add a second argument called power
+f <- function(x, power) {
+    # Edit the body to return absolute deviations raised to power
+    abs(x - mean(x)) ^ power
+}
+```
+
+## Using a function as an argument
+
+This is similar to `sapply` and `lapply`
+You just saw that we can remove the duplication in our set of summary functions by requiring the function doing the summary as an input. This leads to creating the col_summary function:
+
+col_summary <- function(df, fun) {
+  output <- vector("numeric", length(df))
+  for (i in seq_along(df)) {
+    output[[i]] <- fun(df[[i]])
+  }
+  output
+}
+
+It may be kind of surprising that you can pass a function as an argument to another function, so let's verify first that it worked. We've found the column means and medians using our old col_mean() and col_median() functions. Your job is to repeat the calculations using col_summary() instead and verify that it works.
+
+Not only does col_summary() remove the duplication in the functions we've already written, it also allows us to apply any summary to the columns of a data frame. Verify this, by finding the column interquartile ranges using the function IQR(). (For more info, see ?IQR.)
 Instructions
 100xp
 
-    We have copied and pasted the col_median() function into the editor.
-    Create a col_mean() function by editing col_median() to find the column means instead.
+    Find the column medians of df by specifying median as the fun argument to col_summary().
+    Find the column means of df by specifying mean as the fun argument to col_summary().
+    Find the column interquartile ranges of df using col_summary().
+```{r}
+col_summary <- function(df, fun) {
+  output <- vector("numeric", length(df))
+  for (i in seq_along(df)) {
+    output[[i]] <- fun(df[[i]])
+  }
+  output
+}
+
+# Find the column medians using col_median() and col_summary()
+col_median(df)
+col_summary(df, median)
+
+# Find the column means using col_mean() and col_summary()
+col_mean(df)
+col_summary(df, mean)
+
+# Find the column IQRs using col_summary()
+col_summary(df, IQR)
+```
+
+# purrr
+
+## The map functions
+
+All the map functions in purrr take a vector, .x, as the first argument, then return .f applied to each element of .x. The type of object that is returned is determined by function suffix (the part after _):
+
+    map() returns a list or data frame
+    map_lgl() returns a logical vector
+    map_int() returns a integer vector
+    map_dbl() returns a double vector
+    map_chr() returns a character vector
+
+Let's repeat our column summaries using a map function instead of our col_summary() function.
+```{r}
+# Load the purrr package
+library(purrr)
+
+# Use map_dbl() to iterate over columns and find column means
+map_dbl(df, mean)
+
+# Use map_dbl() to column medians
+map_dbl(df, median)
+
+# Use map_dbl() to find column standard deviations
+map_dbl(df, sd)
+```
+
+Which map function shall we use? In our case, every summary we calculated returned a single numeric value, so we'll use map_dbl().
