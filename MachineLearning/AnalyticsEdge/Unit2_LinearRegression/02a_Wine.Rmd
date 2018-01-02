@@ -66,143 +66,126 @@ We can start wtih a linear regression model that uses the single predictor that 
 </ul>
 
 So, in this case, as we add predictors to the model, our R2 improves, but there are diminishing returns for each predictor added. But, it should be noted that not all predictors should be used, because the addition of each new predictor means we have more data in the model, and therefore we have a more complex/flexible. And, unfortunately, more flexible models means that they can fit to training data too well and perform poorly on new/out-of-sample observations, which is **overfitting** the data with the model. This can be occur when one is mislead by a high R2 value that occurs from making a model that fits *too* well to the data used to train the model, as well as the random noise of the training data. This model would have bad performance on unseen data (i.e. prediction of year 2013), since R2 can never decrease as we add more variables. (ELABORATE)
+
 ```{r}
 wine <- read.csv("../data/wine.csv")
 str(wine)
 summary(wine)
 ```
-1-variable linear regression model using AGST via linear model lm(DV ~ predictor, datasetToUse) function
-model1 <- lm(wine$Price ~ wine$AGST, data = wine)
-summary(model1)
-see description of function, residuals/error terms, coefficient estimates, error, t-value, p-value, R1, Adj. R2, etc.
-See that for each 0.6351 increase in AGST in units of AGST, price will increase by 1 unit of price
-AGST is also VERY significant, w/ an "okay" R2 and Adj. R2 (adjusted for  of predictor's used to  of data points in
-   the model to create system of checks and balances)
-   - as R2 increases w/ each predictor added, Adj. R2 adds a penalization factor if an added predictor does NOT improve the
-       model
+Now, let's create a one-variable linear regression model using `AGST`.
+```{r}
+agst_model <- lm(Price ~ AGST, data = wine)
+summary(agst_model)
+```
 
-Compute SSE for the model w/ out residuals that are stored in the vector --> model1$residuals
-model1$residuals
-see values for each residual. Compute SEE by taking the sum of each of these squares
-sse <- sum(model1$residuals**2) 
-SSE = 5.73 --> want to minimize this.
+Wee that for each increase of 0.6351 in units of `AGST`, the wine's `Price` will increase by 1 `Price` unit. We also see that `AGST` is also very significant (three \*'s), with an *okay* R2 and Adjusted R2 values. The adjusted R2 has a penalty on the R2 value for the number of predictors used to create the model in order to create system of checks and balances so that one cannot just keep adding predictors to raise R2. If an added predictor does *not* improve the model, there is a penalty assessed which will decrease the adjusted R2 value. Standard error, `Std. Err`, is a  measure of how likely it is that the associated coefficient will vary from the estimated value. The `t value` is the coefficient values divided by the standard error value. The larger the absolute value of the t value, the more likely the coefficient is to be significant. Therefore, we want larger values in this column. The final summary column `Pr(>|t)` is our **p-value**, a measure of how plausible it is that the coefficient is actually 0, given the data used to build the model (in other words, the probability that the null hypotheses of the coefficient value being 0 is true, given the data).
 
-Add Harvest Rain to the model
-model2 <- lm(Price ~ AGST + HarvestRain, data = wine)
-summary(model2)
-See that AGST's coefficient has increased, and HarvestRain's is slightly negative, while both are V. SIG.
-Both R2 and Adj. R2 have increased as well. 
-   - For each .60262 increase in AGST in units of AGST, Price will increase by 1 in units of Price
-   - For each -0.00457 decrease in HarvestRain in units of HarvestRain, Price will increase by 1.....
-Check the SSE
-sse2 <- sum(model2$residuals**2)
-so it's 2.97, an improvement
+Let's look at the the stored residuals of this model.
+```{r}
+agst_model$residuals
+```
 
-Add ALL predictor's
-model3 <- lm(Price ~ AGST + HarvestRain + WinterRain + Age + FrancePop, data = wine)
-summary(model3)
-See that only AGST and HarvestRain are SIG and they are V. SIG., while all coefficient's are very small.
- - R2 and Adj. R2 have increased, but the variables aren't sig.
- - coefficient of 0 = does NOT affect the DV --> REMOVE VARS THAT AREN'T SIGNIFICANTLY DIFF FROM 0
- - Std. Err = measure of how likely it is the coefficient will vary from the estimate value
- - T-value = Estimate/SE
-     - larger the ABSV of t-value, the MORE likely the coefficient is SIG
- - Pr(>|t) = how plausible it is that the coefficient is actually 0, given the data used to build the model
+We compute `SEE` by taking the sum of each of these values squared.
+```{r}
+(sse <- sum(agst_model$residuals**2))
+```
 
-sse3 <- sum(model3$residuals**2)
-SEE is now at its lowest/best yet
+We want to minimize this value.
 
-rainModel <- lm(Price ~ HarvestRain + WinterRain, data = wine)
-summary(rainModel)
+Let's add `HarvestRain` to the model.
+```{r}
+agst_hrain_model <- lm(Price ~ AGST + HarvestRain, data = wine)
+summary(agst_hrain_model)
+```
 
-Remove all COMPLETELY INSIG var FrancePop (wouldn't expect to impace wine price (expected quality) anyway)
-model4 <- lm(Price ~ AGST + HarvestRain + WinterRain + Age, data = wine)
+We see that `AGST`'s coefficient has increased from the previous model, and that `HarvestRain`'s is slightly negative, also noting that both predictors are very significant. We can also see that both R2 and Adjusted R2 have increased as well. 
+<ul>
+<li> For each .60262 increase in `AGST` units, `Price` will increase by 1 `Price` unit </li>
+<li> For each -0.00457 decrease in `HarvestRain` units, `Price` will increase by 1 `Price` unit  </li>
+</ul>
+
+Now check the new SSE
+```{r}
+(sse2 <- sum(agst_hrain_model$residuals**2))
+```
+
+Now our `SSE` is 2.97, which is a smaller value than the previous `SEE` = 5.73, which is an improvement since we want to minimize this.
+
+Now let's add *all* predictors to the model.
+```{r}
+fullModel <- lm(Price ~ ., data = wine)
+summary(fullModel)
+```
+
+Here, we see that only `AGST` and `HarvestRain` are significant, while all predictor coefficient values are quite small. The R2 and Adjusted R2 values have increased compared to the second model, but we must note that most predictors aren't significant. Remember, a coefficient value that is basically 0 means that the respective predictor value does *not* affect the outcome variable value. We want to remove predictors that are not significantly different than 0/have no effect on the outcome variable and are therefore pointless to have in the model.
+
+First, let's check the full model's `SSE`.
+```{r}
+(sse3 <- sum(fullModel$residuals**2))
+```
+
+The `SEE` is now at its lowest (i.e. best) value yet.
+
+Let's remove the insignificant predictor `FrancePop` (which we wouldn't really expect to impact wine price/quality anyway).
+```{r}
+model4 <- lm(Price ~ AGST + HarvestRain + WinterRain + Age, wine)
 summary(model4)
-See that all vars are now SIG, while only AGST + HarvRain remain V. SIG.
-All coefficient's are very small, except AGST, which has a decent impact on Price here
- - R2 has decreased while Adj. R2 has INCREASED, so this model is stronger
-So before, Age was NOT SIG, but is now SIG after removing FrancePop. Why?
+```
 
+We can see that all predictors are now significant, with `AGST` and `HarvRain` being the "most" significant. All of our predictor coefficient values are very small, except `AGST`, which implies it has a pretty large impact on the value of `Price`, relative to the other predictors. We should also note that before, `Age` was not significant, but now is so after removing FrancePop. Finally, we see that R2 has decreased compared to the full model, while the Adjusted R2 has actually *increased*, so we can be more confident that this model is stronger than the full model.
 
+## CORRELATION AND MULTICOLLINEARITY
 
-CORRELATION AND MULTICOLLINEARITY**********************
-Age and FrancePop were highly CORRELATED in a NEGATIVE MANNER
+Since `Age` was not significant, when `FrancePop` was included in the model but became significant after removing `FrancePop`, it suggests that `Age` and `FrancePop` were **correlated**.
+```{r}
 plot(wine$Age,wine$FrancePop)
-Makes sense b/c France's Population has increased w/ time (decreased w/ how old the wine is)
-
-Compute correlation of Winter Rain and Price
-cor(wine$WinterRain,wine$Price)
-It's 0.13665, so very slightly positive
 cor(wine$Age,wine$FrancePop)
-Corr = -.99, so Very highly negatively correlated
-Get correlations of ALL predictor's
+```
+Indeed, there is a strong negative correlation between these 2 predictors. This makes sense because France's population has increased with time. So, the older a wine is, the earlier in France's history it was bottled, and therefore the smaller the value of `FrancePop`.
+
+Let's look at the correlation of other predictors
+```{r}
 cor(wine)
+```
 
-So Age and FrancePop were highly CORRELATED, and caused MULTICOLLINEARITY problems in the model
-   - this refers to the situation when 2 INDEPENDANT var's are highly correlated (DV has nothing to do w/ it)
-   - High corr between an predictor + the DV is good b/c we're trying to predict which predictor's DO IN FACT affect the DV
+For example, we see that `WinterRain` and `Price` have an ever-so-slightly positive correlation. But, our very strong negative correlation between `Age` and `FrancePop` shows us that the 2 variables are highly correlated, which has caused a multicollinearity problem in the model. This occurs in a situation when two *predictors* are highly correlated (the outcome variable has nothing to do w/ it). A high correlation between a predictor and the outcome is typically good because we're trying to predict which predictors do, in fact, affect the outcome value.
 
-Due to possibilites of multicollinearity, ALWAYS REMOVE 1 predictor AT A TIME (BACKWARDS ELIMINATION)
-what is we removed BOTH Age + FrancePop b/c they were both INSIG + compare w/ model4
-   model4 <- lm(Price ~ AGST + HarvestRain + WinterRain + Age, data = wine)
-model5 <- lm(Price ~ AGST + HarvestRain + WinterRain, data = wine)
+Due to the possibility of multicollinearity occuring, we remove 1 predictor at a time in a process called **backwards elimination**. What happens if we remove `Age` from our most recent model?
+```{r}
+model5 <- lm(Price ~ AGST + HarvestRain + WinterRain, wine)
 summary(model4)
 summary(model5)
-We get a worse R2 and Adj. R2
+```
+We get *worse* R2 and Adjusted R2 values. We expect `Age` to be a significant predictor for the price of wine, since older wines are typically more expensive, while population measures wouldn't really have an effect on wine price.
 
-We removed FrancePop and not AGe b/c you'd expect wine to be significant for price of wine, since older wines
-   are typically more expensive, + population wouldn't really have an effect on wine price
+Multicollinearity reminds us that *coefficient's are only interpretable in the presence of other variables being used*. High correlations can even cause coefficients to have an unintuitive sign. There is no definitive cut-off value for what makes a correlation "too high"", but typically, a correlation coefficient value above 0.7 or below  -0.7 is cause for concern.
 
-Multicollinearity reminds us that coefficient's are only interpretable IN THE PRESENCE OF OTHER VARIABLES BEING USED.
- - High correlations can even cause coefficients to have an unintuitive sign.
-
-Do we have any other highly-correlated predictor's?
- There is no definitive cut-off value for what makes a correlation TOO high, but typically, correlation > 0.7
- or <  -0.7 is cause for concern.
-If you look back at all of the correlations we computed for data set: 
-cor(wine)
-Doesn't look like we have any other highly-correlated predictor's
-So we'll stick w/ model, using AGST, HarvestRain, WinterRain, and Age as predictor's
-
-
-
-MAKING PREDICTIONS
-Our wine model had R2 = 0.83, which tells us how accurate our model is on the data used to construct the model.
- So our model does a good job predicting the data it's seen.
-But we also want a model that does well on NEW data/data it's never seen before so we can use the model to 
- make predictions for LATER years.
-
-For this particular application, Bordeaux wine BUYERS PROFIT from being able to PREDICT QUALITY of a wine years
- BEFORE IT MATURES
-They know the values of the predictor's (age + weather), don't know the price the wine will eventually sell for.
- So it's important to build a model that does well at predicting data it's never seen before.
-Data used to build a model is often called the TRAINING DATA + new data = the TEST DATA
- ACCURACY OF A MODEL ON TEST DATA = OUT-OF-SAMPLE ACCURACY
+### MAKING PREDICTIONS
+Our final wine model had `R2 = 0.83`, which gives us a measure of how accurate our model is *on the data used to construct the model*, the **training data**. So, our model does a good job predicting the data it's already seen. But we also want a model that does well on *new* data that it's never seen before so that we can use the model to make predictions for wine prices in later years. For this particular application, Bordeaux wine buyers profit from being able to predict quality of a wine years before it actually matures. They know the values of the predictor, but don't know the price the wine will eventually sell for. So, it's important to build a model that does well at predicting data it's never seen before, the **test data**. We then hope to get a good **out-of-sample accuracy** on this data.
 
 Let's see how well our model performs on some test data in R.
-wine_test <- read.csv("wine_test.csv")
-str(wine_test) got 2 wines from 1979 + 1980 w/ prices of $6.95 and $6.50
-summary(wine_test)
+```{r}
+wine_test <- read.csv("../data/wine_test.csv")
+str(wine_test) 
+```
+So, we've got 2 wines from 1979 and 1980 with prices of \$6.95 and \$6.50, respectively. Now we will use our model on the new data to predict their prices and compare to the actual `Price` values.
+```{r}
+(wine_predictions <- predict(model4, wine_test))
+```
 
-use PREDICT() to use the model on the new data
-wine_predictions <- predict(model4,newdata=wine_test)
-For out 1st wine (1979), we predict Price = $6.77, and for our 2nd wine (1980), we predict Price = $6.69
- Wine1's predicted price is BELOW the actual by $0.18, and Wine2's is ABOVE by $0.19
+For our 1st wine (the 1979), we predicted `Price = $6.77`, and for our 2nd wine (the 1980), we predicted `Price = $6.69`. Wine 1's predicted `Price` is below the actual value by \$0.18, and Wine 2's is above the actual value by `$0.19`. It looks like our predictions are pretty good, and we can quantify this by computing the R2 for the test set by hand.
+<ul>
+<li> R2 = 1 - (SSE / SST) </li>
+<li> SSE = sum of (actual - predicted)^2 </li>
+<li> SST = sum of (actual - baseline average)^2 </li>
+</ul>
+```{r}
+sse_model4 = sum((wine_test$Price - wine_predictions)**2)
+sst_model4 = sum((wine_test$Price - mean(wine$Price))**2)
+(R2_test_model4 = 1 - (sse_model4/sst_model4))
+```
 
-It looks like our predictions are pretty good, and we can QUANTIFY THIS COMPUTING R2 FOR THE TEST SET
-   - R2 = 1 - (SSE / SST)
-   - SSE = sum of actual-predicted ^ 2
-   - SST = sum of acutal-ACTUALSaverageFromTRAINING ^ 2
-sse4 = sum((wine_test$Price - wine_predictions)**2)
-sst4 = sum((wine_test$Price - mean(wine$Price))**2)
-R2_predictions = 1 - (sse4/sst4)
-So our R2 = 0.7944278, which is pretty good, but note our test set is very small.
- We need to increase test set size to be more confident about our OUT-OF-SAMPLE ACCURACY of our model
-
-As we add more predictor's our Test Set's R2 does not always increase (can even be negative b/c our model can never
- do worse than baseline on the TRAINING data, but CAN do worse than baseline on the TEST data)
- - Since SSE + SST are the sums of squared terms, we know that both will be positive. Thus SSE/SST must always 
-     be >= 0. This means it is NOT possible to have an out-of-sample R? value of 2.4 b/c 1 - positive  =  > 1
+Our test set `R2 = 0.7944278`, which is pretty good, but we must note our test set is useless because its so small. We need to increase test set size to be more confident about the out-of-sample accuracy of our model. As we add more predictors, our test set's R2 will not always increase (it can even be negative because while our model can never do worse than baseline on the *training* data, it *can* do worse than baseline on the *test* data). This is because since SSE and SST are the sums of squared terms, we know that both of them will be positive. Thus (SSE/SST) must always greater than or equal to 0. This means it is not possible to have an out-of-sample R2 value of 2.4 b/c 1 - positive  =  > 1
  - However, all other values are valid (even negative ones!), since SSE can be more or less than SST, due to 
      the fact that this is an out-of-sample R?, not a model R?.
 
