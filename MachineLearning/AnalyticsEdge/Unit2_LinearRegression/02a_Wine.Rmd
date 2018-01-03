@@ -109,7 +109,7 @@ Now check the new SSE
 (sse2 <- sum(agst_hrain_model$residuals**2))
 ```
 
-Now our `SSE` is 2.97, which is a smaller value than the previous `SEE` = 5.73, which is an improvement since we want to minimize this.
+Now our `SSE` is 2.97, which is a smaller value than the previous `SEE` = 5.73, which is an improvement, as we want to minimize this value.
 
 Now let's add *all* predictors to the model.
 ```{r}
@@ -156,6 +156,7 @@ model5 <- lm(Price ~ AGST + HarvestRain + WinterRain, wine)
 summary(model4)
 summary(model5)
 ```
+
 We get *worse* R2 and Adjusted R2 values. We expect `Age` to be a significant predictor for the price of wine, since older wines are typically more expensive, while population measures wouldn't really have an effect on wine price.
 
 Multicollinearity reminds us that *coefficient's are only interpretable in the presence of other variables being used*. High correlations can even cause coefficients to have an unintuitive sign. There is no definitive cut-off value for what makes a correlation "too high"", but typically, a correlation coefficient value above 0.7 or below  -0.7 is cause for concern.
@@ -168,6 +169,7 @@ Let's see how well our model performs on some test data in R.
 wine_test <- read.csv("../data/wine_test.csv")
 str(wine_test) 
 ```
+
 So, we've got 2 wines from 1979 and 1980 with prices of \$6.95 and \$6.50, respectively. Now we will use our model on the new data to predict their prices and compare to the actual `Price` values.
 ```{r}
 (wine_predictions <- predict(model4, wine_test))
@@ -185,28 +187,10 @@ sst_model4 = sum((wine_test$Price - mean(wine$Price))**2)
 (R2_test_model4 = 1 - (sse_model4/sst_model4))
 ```
 
-Our test set `R2 = 0.7944278`, which is pretty good, but we must note our test set is useless because its so small. We need to increase test set size to be more confident about the out-of-sample accuracy of our model. As we add more predictors, our test set's R2 will not always increase (it can even be negative because while our model can never do worse than baseline on the *training* data, it *can* do worse than baseline on the *test* data). This is because since SSE and SST are the sums of squared terms, we know that both of them will be positive. Thus (SSE/SST) must always greater than or equal to 0. This means it is not possible to have an out-of-sample R2 value of 2.4 b/c 1 - positive  =  > 1
- - However, all other values are valid (even negative ones!), since SSE can be more or less than SST, due to 
-     the fact that this is an out-of-sample R?, not a model R?.
+Our test set `R2 = 0.7944278`, which is pretty good, but we must note our test set is useless because its so small. We need to increase test set size to be more confident about the out-of-sample accuracy of our model. As we add more predictors, our test set's R2 will not always increase (it can even be negative because while our model can never do worse than baseline on the *training* data, it *can* do worse than baseline on the *test* data). This is because since SSE and SST are the sums of squared terms, we know that both of them will be positive. Thus `SSE / SST` must always greater than or equal to 0. This means it is not possible to have an out-of-sample R2 value that is above 1 because 1 - a positive  value cannot be greater 1. However, *all other values are valid* (even negative ones!), since SSE can be either greater or less than SST, due to the fact that this is an *out*-of-sample R2, and not a model R2.
 
-Model 4 does best on both the training set model's R2 and the test set's R2, but we need more data points in 
- our test set to reach any real, confident conclusion
+Here, Model 4 does best on both the training set and the test set, as it has the highest R2 in both scenarios. But we need more data points in our test set to reach any real, confident conclusion
 
+In conclusions, wine expert Robert Parker predicted that the 1986 Bordeaux wine would be `VERY GOOD` to `SOMETIMES EXCEPTIONAL`. On the other hand, Ashenfelter said that the 1986 Bordeaux wine would be `MEDIOCRE` and made the prediction that the 1989 Bordeaux would be the wine of the century and that the 1990 Bordeaux would be even better. In wine options, the 1989 Bordeaux sold for more than 2x the price of 1986 and the 1990 Bordeaux sold for even higher prices. Later, Ashenfelter predicted that the 2000 and 2003 Bordeaux wines would be `GREAT` and Robert Parker stated that the 2000 was the greatest vintage Bordeaux has ever produced, in agreement with Ashenfelter.
 
-Wine expert Robert Parker predicted that the 1986 Bordeaux wine is VERY GOOD to SOMETIMES EXCEPTIONAL. On the 
- other hand, Ashenfelter said the 1986 Bordeaux wine is MEDIOCRE + made the prediction that the 1989 Bordeaux 
- would be the wine of the century + the 1990 Bordeaux would be even better.
-In wine options, the 1989 Bordeaux sold for more than 2x the price of 1986 + the 1990 Bordeaux sold for even 
- higher prices.
-Later, Ashenfelter predicted that the 2000 + 2003 Bordeaux wines would be GREAT + Robert Parker stated the 
- 2000 was the greatest vintage Bordeaux has ever produced, in agreement with Ashenfelter.
-
-So what is the analytics edge in this case?
- - What we have developed is a linear regression model, a simple but rather powerful model for predicting 
-     quality of wines.
- - It only used few variables + we have seen that it predicted wine prices quite well, + in fact, in many 
-     cases, outperformed wine expert's opinions.
-What is impressive, in this 1st introductory lecture to linear regression, is that an analytics approach that
- uses data to build a model that improves decision making is effective in a traditionally QUALITATIVE problem.
-When grapes are harvested, we'd have the temperature data, and then the age data when the wine is bottled.
- - We can plug these data points into our best model to predict what price (+ quality) the wine will have.
+The analytics edge in this case is that we've developed a simple but rather powerful model for linear regression predicting the quality of wines. It only used few variables and we've seen that it predicted wine prices quite well, + in fact, in many cases, outperformed wine expert's opinions. What is impressive is that an analytics approach that uses data to build a model that improves decision making is effective in a traditionally *qualitative* problem. When grapes are harvested, we'd have the temperature and rain data, and then the age data when the wine is bottled. We can plug these data points into our "best" model to predict what price (and quality) a wine will have.

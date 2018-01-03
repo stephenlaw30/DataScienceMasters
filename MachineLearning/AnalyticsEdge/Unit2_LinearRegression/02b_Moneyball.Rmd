@@ -1,0 +1,253 @@
+---
+title: "01b_USDA"
+output: html_document
+---
+# UNIT 2 - LINEAR REGRESSION
+
+## MONEYBALL - THE POWER OF SPORTS ANALYTICS
+
+### HOW MANY GAMES DOES A TEAM NEED TO WIN IN THE REGULAR SEASON TO MAKE THE PLAYOFFS?
+DePodesta's model = 95 wins
+ - Historically, if a team won at least 95 games, they almost always made the playoffs
+ - But 85 wins is likely to make the playoffs, but less certain to
+ - And 100+ wins is a guarantee of making the playoffs
+
+We need to figure out how many more runs a team needs os score than their opponen to win 95 games
+ - A's calculated +135 run differential to expect to win 95 games
+ Let's verify this w/ linear regression in R
+
+baseball <- read.csv("baseball.csv")
+str(baseball) 
+summary(baseball)
+data from all teams from 1962 to 2012 for all seasons w/ a full 162 games
+want to build the model that DePodesta used in 2002 so we can check if our model is accurate to his
+So we need data for all seasons prior to 2002
+moneyball <- subset(baseball,Year<2002)
+str(moneyball)
+summary(moneyball$Year)
+
+want to predict runs using run differential, which can be a new variable
+moneyball$RD <- moneyball$RS - moneyball$RA
+str(moneyball)
+
+visually check for a relationship between RD and wins
+plot(moneyball$RD,moneyball$W)
+see a strong positive linear relationship (as RD increases (more runs than opponent), wins increase)
+
+create the model
+model1 <- lm(W ~ RD, data=moneyball)
+summary(model1)
+see that RD has a small CoE in terms of magnitude, is VERY SIG, small SE, + we have a high R2 and Adj. R2
+so this model is strong to predict wins via RD
+
+confirm w/ DePodest's claims (+135 RD)
+ W = B0 + B1*X1 + E1
+ W = 80.881375 + (0.105766*RD) 
+ 80.881375 + (0.105766*RD) >= 95
+ 0.105766*RD = 14.11862
+ RD = 133.4892, so pretty close to Paul's claims
+
+
+So we know how to predict how many games a team will win based off of how many runs they've score + allowed.
+But how can we predict how many runs they'll score if for some reason we don't have this info?
+We can use batting stats to do this
+
+2 particular stats are very predictive of runs scored, OBP (% a player gets on base) + SLG (how far player gets
+   around the bases = measure of power)
+Most experts focused on BA (whih excludes walks), but the A's said OBP was more impt. b/c it doesn't matter HOW
+   a player got on base, just that they did
+model2 <- lm(RS ~ OBP + SLG + BA, data=moneyball)
+summary(model2)
+All IV's are SIG, w/ OBP + SLG being VERY SIG, and BA has a NEGATIVE CoE, and we have high R2 + Adj. R2
+This imploes that, all else held equal, as BA increases, RS would decrease, which is counterintuitive
+Could this be due to MULTICOLLINEARITY? Are these 3 batting stats highly correlated?
+model3 <- lm(RS ~ OBP + SLG, data=moneyball)
+summary(model3)
+Both var's are still VERY SIG, and both R2 and Adj. R2 went down a bit, but are still close to .93
+OBP also has a larger CoE than SLG, and since they're ALMOST on the SAME SCALE, its safe to say OBP has a 
+   greater impact on RS than SLG
+So, this model is SIMPLER (2 IV's), and has about the SAME R2, so THIS IS A BETTER MODEL
+ RS = -804.63 + 2737.77*OBP + 1584.91*SLG
+
+Do the same for RA using OOBP + OSLG, for opponent batting stats
+model4 <- lm(RA ~ OOBP + OSLG, data=moneyball)
+summary(model4)
+Both var's are VERY SIG, and both R2 and Adj. R2 are high, + OOBP has a greater impact on RA than OSLG
+ RA = -837.38 + 2913.60*OOBP + 1514.29*OSLG
+
+So, some simple models, using only a couple IV's, were helpful in answering some impt. baseball questions.
+How can we apply these models to predict if a team will make the playoffs?
+We'll predict how many games the A's will win in 2002, by 1st predicting how many runs they'll score + allow
+We don't know team stats, b/c we're predicting this BEFORE the 2002 season, + the team could be different than
+   it was last year
+So, we estimate stats using past player performance + assume that past performance strongly correlates w/ future
+   performance w/ few injuries in the season.
+Using player stats from 2001, we can predict player stats in 2002
+
+Pre-2002 --> A's had 24 batters who in 2001 had an OBP = 0.339 and SLG = 0.430
+ Our LR model for RS = -804.63 + 2737.77*OBP + 1584.91*SLG
+-804.63 + (2737.77*0.339) + (1584.91*0.430)
+this gives us 804.9853 predicted runs for 2002
+
+A's also had 17 pitchers who in 2001 had an OOBP = 0.307 and  OSLG = 0.373
+ Our LR model for RA = -837.38 + 2913.60*OOBP + 1514.29*OSLG
+-837.38 + 2913.60*0.307 + 1514.29*0.373
+We predict the A's will allow 621.9254 runs
+
+Now for wins, our model was W = 80.881375 + (0.105766*RD) 
+80.881375 + (0.105766*(804.9853-621.9254)) 
+We predict the A's will win ~100 games (100.2429)
+
+DePodesta used a similar approach to make predictions + it turns out both our + his predictions closely match 
+ actual performance.
+Our prediction for RS was 805  + Paul predicted between 800-820 + the 2002 A's actually scored 800 runs.
+For runs allowed, we predicted 622, Paul predicted between 650-670, + the  A's actually allowed 653 runs.
+For wins, we predicted they' would'd win 100 games, Paul predicted 93-97 wins, + they actually won 103 games.
+
+These predictions show us that by using publicly available data + simple analytics, we can predict very close 
+ to what actually happened before the season even started.
+The A's won a league record in 2002 by winning 20 games in a row + won 1 more game than the previous year, +
+ made it to the playoffs once again.
+
+
+Suppose you're the GM of a baseball team + you're selecting 2 players for your team w/ a budget of $1.5M + you 
+ have the choice between the following players:
+
+         Player Name	    OBP	  SLG	  Salary
+         Eric Chavez	    0.338	0.540	$1,400,000
+         Jeremy Giambi	  0.391	0.450	$1,065,000
+         Frank Menechino	0.369	0.374	$295,000
+         Greg Myers	    0.313	0.447	$800,000
+         Carlos Pena	    0.361	0.500	$300,000
+
+Given your budget + the player statistics, which TWO players would you select?
+eChavez <- -804.63 + (2737.77*0.338) + (1584.91*0.540)
+jGiambi <- -804.63 + (2737.77*0.391) + (1584.91*0.450)
+fMenechino <- -804.63 + (2737.77*0.369) + (1584.91*0.374)
+gMyers <- -804.63 + (2737.77*0.313) + (1584.91*0.447)
+cPena <- -804.63 + (2737.77*0.361) + (1584.91*0.500)
+
+Carlos Pena b/c he is predicted to score the 2nd most runs and is the cheapest, and then Giambi, who is 
+ predicted to score the most runs, and still allows you to come under budget
+
+
+Why isn't the goal of a baseball team to WIN the playoffs or WIN the World Series? Why just MAKE the playoffs?
+ Beane + Paul Depodesta see their job as making sure the team makes it to the playoffs, + after that, all bets 
+  are off.
+The A's made it to the playoffs 4 years in a row, 2000-2003, butdidn't win the WS
+In Moneyball, they say that "over a long season luck evens out, + skill shines through. But in a series of 3/5
+ or even 4/7, anything can happen."
+In other words, the playoffs suffer from the SAMPLE SIZE problem.
+ There are not enough games to make any statistical claims.
+
+The  of teams in the playoffs has changed over the years, So let's only use years w/ 8 teams in the playoffs, 
+ which was the  of teams in the playoffs in 2002, the year Moneyball discusses.
+We can compute the correlation between whether or not a team wins the WS-- a BINARY VARIABLE-- + the  of 
+ regular season wins, since we would expect teams w/ more wins to be more likely to win the WS
+
+This correlation is 0.03, which is very LOW
+So it turns out that winning regular season games gets you TO the playoffs, but in the playoffs, there're too 
+ few games for luck to even out.
+
+In 2012 + 2013, there were 10 teams in the MLB playoffs: 6 teams w/ the most wins in each division, + 4 wild 
+ card" teams. The playoffs start between the 4 wild card teams + the 2 teams that win proceed in the playoffs 
+  (8 teams remaining). Then, these teams are paired off + play a series of games. The 4 teams that win are then
+   paired + play to determine who will play in the World Series. 
+
+We can assign rankings to the teams as follows:
+  
+ Rank 1: the team that won the WS
+ Rank 2: the team that lost the WS
+ Rank 3: the 2 teams that lost to the teams in the WS
+ Rank 4: the 4 teams that made it past the wild card round, but lost to the above 4 teams
+ Rank 5: the 2 teams that lost the wild card round
+
+teamRank = c(1,2,3,3,4,4,4,4,5,5)
+
+We'll see how well these rankings correlate w/ regular season wins of the teams. In 2012, the ranking of the 
+ teams + their regular season wins were as follows:
+
+ Rank 1: San Francisco Giants (Wins = 94)
+ Rank 2: Detroit Tigers (Wins = 88)
+ Rank 3: New York Yankees (Wins = 95), St. Louis Cardinals (Wins = 88)
+ Rank 4: BAL Orioles (Wins = 93), OAK A's (Wins = 94), WAS Nationals (Wins = 98), CIN Reds (Wins = 97)
+ Rank 5: TEX Rangers (Wins = 93),  ATL Braves (Wins = 94) 
+
+wins2012 <- c(94,88,95,88,93,94,98,97,93,94)
+
+In 2013, the ranking of the teams and their regular season wins were as follows:
+  
+ Rank 1: BOS Red Sox (Wins = 97)
+ Rank 2: St. Louis Cardinals (Wins = 97)
+ Rank 3: Los Angeles Dodgers (Wins = 92), DET Tigers (Wins = 93)
+ Rank 4: TAM Rays (Wins = 92), OAK A's (Wins = 96), PIT Pirates (Wins = 94), ATL Braves (Wins = 96)
+ Rank 5: CLE Indians (Wins = 92), CIN Reds (Wins = 90) 
+
+wins2013 <- c(97,97,92,93,92,96,94,96,92,90)
+
+cor(teamRank,wins2012) --> 0.3477129
+cor(teamRank,wins2013) --> -0.6556945
+
+Since 1 correlation is positive + the other is negative, this means there does not seem to be a pattern between
+ regular season wins + winning the playoffs, so we wouldn't feel comfortable making a bet for this year given 
+ this data!
+
+Moneyball also discusses several other things, like how it is easier to predict professional success of college
+ players than high school players, that stealing bases, sacrifice bunting, + sacrifice flies are overrated, +
+ that pitching statistics do not accurately measure pitcher ability. Pitchers only control SO's, HR's, + walks.
+
+Where was baseball in 2002?
+ So before Moneyball techniques, analytic techniques, became more well-known, the A's were clearly an outlier 
+ for wins compared to payroll. The A's had 20 more wins than teams w/ equivalent payrolls + as many wins as 
+ teams like the Red Sox, who  have more than double the payroll.
+
+Where is baseball now?
+ The A's are still an efficient team, but only have about 10 more wins than teams w/ equivalent payrolls.
+ So specifically, there are fewer inefficiencies, b/c many of them were discovered after Moneyball was 
+ published.
+In fact, the use of analytics in general in baseball has now a name called Sabermetrics + of course, there has
+ been a lot of work done in the field.
+Baseball Prospectus is a website devoted to the analytics of baseball + new concepts were introduced, like the
+ value of a replacement player, VORP,+ defense independent between statistics, DIPS.
+ There's another book that has been written, The Extra 2%: How Wall Street Strategies Took a MLB Team from 
+ Worst to First, which dictates the story of the Tampa Bay Rays.
+And finally, analytics have been used in many game-time decisions in baseball, such as batting order, changing 
+ pitchers, et cetera.
+
+So what is happening with other baseball teams and other sports?
+ Nowadays, every major league baseball team has a statistics/analytics group.
+ The Red Sox implemented quantitative ideas + won the WS for the 1st time after 86 years in 2004
+ They in fact tried to hire Bean in 2003, who accepted for 1 day, but changed his mind + went back to the A's.
+
+Analytics are also used in other sports, although it is believed that more teams use statistical analysis than
+ is publicly known.
+
+what is the edge of using analytics?
+   Models allow managers to more accurately value players + minimize risk.
+Moneyball --> "In human behavior, there was always uncertainty + risk. The goal of the Oakland front office was
+ simply to minimize the risk. Their solution wasn't perfect. It was just better than rendering decisions by gut
+ feeling."
+
+the modelS we introduced are reasonably simple, + they involved regression ideas + didn't involve many IV's +
+ involved IV's that are not that sophisticated.
+Yet they led to significant success of the A's + generally, for teams that use the power of sports analytics.
+
+Sabermetric research tries to take a QUANTITATIVE approach to baseball. Predicting how many HR's the A's will 
+ hit next year is a very quantitative problem. 
+While the topics of correlation between scouting preditions + player performance or how manager attitude 
+   influences player performance could be an area of Sabermetric research, they are more QUALITATIVE
+
+While Moneyball made the use of analytics in sports very popular, baseball is not the only sport for which 
+   analytics is used. Analytics is currently used in almost every single sport
+
+The study of analytics in basketball, called APBRmetrics, is very popular + There have been many books written 
+ in this area, including "Pro Basketball Forecast" by John Hollinger + "Basketball on Paper" by Dean Oliver. 
+ There are also several websites dedicated to the study of basketball analytics, including 82games.com. 
+
+The soccer analytics community is currently growing, + new data is constantly being collected. Many argue that 
+ it is much harder to apply analytics to soccer, but there are several books + websites on the topic. 
+Check out "The Numbers Game: Why Everything You Know about Football is Wrong" by Chris Anderson + David Sally,
+ as well as the websites socceranalysts.com + soccermetrics.net.
+
+Analytics are used in hockey to track player performance and to better shape the composition of teams. 
+ Check out the websites hockeyanalytics.com + lighthousehockey.com.    
