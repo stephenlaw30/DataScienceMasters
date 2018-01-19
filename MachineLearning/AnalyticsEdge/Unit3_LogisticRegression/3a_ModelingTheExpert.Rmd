@@ -205,6 +205,7 @@ specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN 
 precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
 accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
 
+cat("Threshold = 0.5")
 cat("\nSensitivity (TP rate): ",sensitivity)
 cat("\nSpecificity (TN rate or Recall): ",specificity)
 #cat("\nPrecision (Positive Predictive Value): ",precision)
@@ -216,20 +217,21 @@ Let's look at what happens with a threshold value of 70%.
 (cm <- table(train$PoorCare, prediction_train > 0.7))
 ```
 
-For the above confusion matrix, we have 73 True Negatives, 8 True Positives, 1 False Positive, and 8 False Negatives, and from this we have
+For the above confusion matrix, we have 73 True Negatives, 8 True Positives, 1 False Positive, and 8 False Negatives, and from this we have:
 ```{r}
 sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
 specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
 precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
 accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
 
+cat("Threshold = 0.7")
 cat("\nSensitivity (TP rate): ",sensitivity)
 cat("\nSpecificity (TN rate or Recall): ",specificity)
 #cat("\nPrecision (Positive Predictive Value): ",precision)
 cat("\nAccuracy: ",accuracy)
 ```
 
-So, by increasing t, our Specificity/Recall increased while Sensitivity decreased, meaning we have less True Positives and/or more True Negatives.
+So, by increasing t, our Specificity/Recall increased while Sensitivity decreased, meaning we have less True Positives and/or more True Negatives. Our accuracy has also increased in this scenario.
 
 Now let's drop the threshold to 20%
 ```{r}
@@ -243,134 +245,112 @@ specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN 
 precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
 accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
 
+cat("Threshold = 0.2")
 cat("\nSensitivity (TP rate): ",sensitivity)
 cat("\nSpecificity (TN rate or Recall): ",specificity)
 #cat("\nPrecision (Positive Predictive Value): ",precision)
 cat("\nAccuracy: ",accuracy)
 ```
 
-So, by increasing t, our Specificity/Recall decreased while Sensitivity increased, meaning we have more True Positives and/or less True Negatives.
+So, by increasing t, our Specificity/Recall decreased while Sensitivity increased, meaning we have more True Positives and/or less True Negatives. Also, our accuracy decreased quite significantly compared to the higher threshold of .7.
 
 ### Decisions
 
-Which threshold should we pick?
-  - Picking a good threshold value is often challenging.
-  - Receiver Operator Characteristic (ROC) curve can help decide which t value is best.
-  - Sensitivity/TP rate of the model is shown on Y + FP Rate (i.e. 1 - specificity/TN Rate) is on X
-  - A line shows how these 2 outcome measures vary w/ different threshold values.
-An ROC curve always starts at (0, 0), which corresponds to t = 1.
-  - If you have t = 1, you will not catch ANY true (poor) cases --> sensitivity of 0.
-  - But you WILL correctly label of ALL false (good) cases --> get a FPR = 0 (TN = 1)
-ROC curve always ends at (1,1) which corresponds to a t value = 0
-  - If you have a t = 0, you catch ALL TRUE (poor) cases) --> a sensitivity = 1 
-  - but label all FALSE (good) cases as TRUE (poor) care cases too, meaning you get a FPR = 1 (TN = 0)
--T decreases as you move from (0,0) to (1,1).
-   Ex: At (0, 0.4), you're correctly labeling about 40% of true/poor cases w/ a very small FPR (med Y, low X)
-   On the other hand, @ (0.6, 0.9), you're correctly labeling about 90% of true/poor cases, but w/ a FPR = 60%.
-   In the middle, around (0.3, 0.8), you're correctly labeling about 80% of true/poor cases, w/ a 30% FPR
+Which threshold should we pick? Picking a good threshold value is often challenging. One thing that can help us decide which threshold value to use is a **Receiver Operator Characteristic (ROC) curve**. The Sensitivity/TP rate of the model is shown on y-axis and the FP Rate (i.e. 1 - specificity/TN Rate) is on the x-axis. A line is graphed on the plot shows how these 2 outcome measures would vary from using different threshold values. An ROC curve always starts at (0, 0), which corresponds to a value of t = 1. This is because if you have t = 1, you will not catch *any* true (poor) cases and will end up with a sensitivity of 0. But, in this case, you will also *correctly* label all of the *false* (good) cases and end up with a FP rate = 0 (or TN rate = 1). The ROC curve then always ends at (1,1) which corresponds to a t value = 0. If you have a value of t = 0, you catch all true (poor) cases to end up with a sensitivity = 1 but incorrectly label all false (good) cases too, meaning you get a FP rate = 1 (TN rate = 0).
 
-The ROC curve captures ALL THRESHOLDS SIMULTANEOUSLY.
-   - The higher the t value/closer to (0, 0) ==> the higher the SPEC and the lower the SENS
-   - The lower the t value/closer to (1,1) ==> the higher the SENS and lower the SPEC
+So, as t decreases, you move from (0,0) to (1,1) on the ROC plot. For example, at (0, 0.4), you're correctly labeling about 40% of true (poor) cases with a very small FP rate (a "medium" value on the y-axis and a "low" value on the x-axis). On the other hand, at (0.6, 0.9), you're correctly labeling about 90% of true (poor) cases, but with a FP rate of 60%. In the middle, around (0.3, 0.8), you're correctly labeling about 80% of true (poor) cases, with a 30% FP rate.
 
-Should select the best threshold for the TRADE-OFF YOU WANT TO MAKE.
-   - If more concerned w/ having a high specificity/low FPR, pick the threshold that maximizes the TPR while keeping 
-       FPR really low (COST OF FAILING TO DETECT POSITIVES)
-           - A threshold around (0.1, 0.5) on this ROC curve looks like a good choice in this case.
-   - On the other hand, if more concerned w/ having a high sensitivity/high TPR, pick a threshold that minimizes FPR 
-       but has a very high TPR (COST OF RAISING FALSE ALARMS)
-           - A threshold around (0.3, 0.8) looks like a good choice in this case.
+The ROC curve captures *all* thresholds simultaneously. The higher the t value/the closer to (0, 0) on the plot, the higher the specificity and the lower the sensitivity. Then, the lower the t value/the closer to (1,1) on the plot, the higher the sensitivity and lower the specificity.
+
+One should select the best threshold contigent on the trade-off one is willing to make. If you're more concerned with having a high specificity/a low FP rate, pick the threshold that maximizes the TP rate while keeping FP rate really low. This comes with a risk of failing to detect some positive cases. On the other hand, if you're more concerned with having a high sensitivity/a high TP rate, pick a threshold that minimizes FP rate but has a very high TP rate, and this hasa risk of raising false alarms.
 
 You can label the threshold values in R by color-coding the curve w/ a legend is shown on the right.
 We can also add specific threshold labels to points on the curve to help see which threshold value you want to use.
 
-install.packages("ROCR")
+#A threshold around (0.1, 0.5) on this ROC curve looks like a good choice in this case = high spec/low fp rate
+#A threshold around (0.3, 0.8) looks like a good choice in this case = high sens/high tp
+```{r}
+#install.packages("ROCR")
 library(ROCR)
-Use out training set predictions to create the ROC curve w/ the prediction() function from lib ROCR
-   - arg1 = the predictions from model, arg2 = TRUE outcomes of our data points, arg3 = label ordering
-ROCRpred <- prediction(qualityPredTrain, qualityTrain$PoorCare)
-now use performance() to define what to plot on X and Y of the ROC curve
-   - arg1 = a prediction object output (see above), x-axis, y-axis)
-ROCRperf <- performance(ROCRpred,measure = "tpr",x.measure = "fpr")
-Plot this output w/ colors + have t-values go from 0 to 1 in increments of 0.1 
-plot(ROCRperf,colorize=TRUE,print.cutoffs.at=seq(0,1,0.1),text.adj=c(-0.2,1.7))
-W/ this curve, we can determine which threshold value we want to use depending on our preferences as a decision-maker.
-   - Want to ID most critical patients w/ high confidence --> t = 0.7
-   - want to ID 1/2 of poor patients correctly w/ as few errors as possible --> t = 0.3
 
-1 of the things we should look for is that there might be multicollinearity in our model.
-   - The various IV's are correlated, + this might confuse the CoE's/betas in the model.
-Tests to address this involve checking the correlations of IV's
-   - If they're excessively high, this means there might be multicollinearity, + you have to potentially revisit the 
-       model, 
-   - Do the signs of the betas make sense. Is the coefficient beta positive or negative?
-       -If the sign agrees w/ intuition, then multicollinearity isn't a problem, but if intuition suggests a different 
-           sign, this might be a sign of multicollinearity.
+# prediction(model predictions, labels[, ordering])
+ROCRpred_train <- prediction(prediction_train, train$PoorCare)
 
-So how do we interpret the results + understand whether we have a good model or not?
- Area Under the Curve (AUC) shows an ABSOLUTE MEASURE OF QUALITY OF PREDICTION-- in this particular case, 0.775 = 77.5%
-   - Given that the perfect score = 100% + a 50% score = pure guessing (w/ 50% rate of success),
-So AUC gives an absolute measure of quality, + is less affected by various benchmarks.
-It illustrates how accurate the model is on a more absolute sense.
- - The maximum possible AUC = a perfect prediction = 1.0 
- - AUC = 0.5 --> it's pure guessing.
+# performance(prediction object output, x-axis values, y-axis values)
+ROCRperf <- performance(ROCRpred_train, x.measure = "fpr", measure = "tpr")
 
-Other outcome measures that are important for us to discuss is the confusion matrix.
-           Predict0 Predict1
-   Actual0   TN      FP      
-   Actual1   FN      TP
-Accuracy = (TP + TN)/n             Error Rate = (FP + FN)/n
-Sensitivity/TPR = TP/(TP + FN)     FN Error Rate = FN/(TP + FN)  or 1 - FNR
-Specificity/TNR = TN/(TN + FP)     FP Error Rate = FP/(TN + FP)  or 1 - TPR
+# Plot t-values ffrom 0 to 1 in increments of 0.1 
+plot(ROCRperf, colorize = T, print.cutoffs.at = seq(0,1,.1), text.adj = c(-.2,1.7))
+```
+With this curve, we can determine which threshold value we'd want to use depending on our preferences of a trade-off as a decision-maker. If we want to identify the most critical patients with a high confidence, we want a maximized TP rate/sensitivity while keeping the FP rate minmized. A good value of t for this loooks to be 0.7. Meanwhile, if we want to identify about half of the patients receiving poor care correctly while raising as few false alarms as possible (misidentifying as little cases as possible), a good value of t for this would be around 0.3 (TP rate is around 50%, with the smallest FP rate for this TP rate)
 
-Sensitivity =  of times we predict TRUE + it is indeed TRUE
-Specificity =  of times we predict FALSE + it is indeed FALSE
+###  Interpreting the Model
 
-So for quality of care, just like in linear regression, we want to make predictions on a test set to compute 
-   out-of-sample metrics.
+One of the most important things to look for when interpreting a model is that there might be **multicollinearity** in the model, wherein the various predictors are highly correlated which may "confuse" the coefficients/betas in the model. Tests to address this possible scenario involve checking and comparing the correlations between the predictors. If they're excessively high, this means there might be multicollinearity and you'd potentially have to revisit the model as well as make sure the coefficients and their signs make sense? If the sign agrees with intuition, then multicollinearity probably isn't a problem, but if intuition suggests a different sign, this might be a sign of multicollinearity.
 
-We develop a logistic regression model using data, but would like to make predictions out-of-sample.
-In our test set, we have 32 cases + make statements about the quality of a prediction out-of-sample w/:
-qualityPredTest <- predict(qualLogistic, type = "response", newdata = qualityTest)
-summary(qualityPredTest)
-table(qualityTest$PoorCare,qualityPredTest > 0.3)
-     FALSE TRUE
- 0    19    5        --> 24 cases are ACTUALLY GOOD
- 1     2    6        --> 8 cases are ACTUALLY POOR
+To interpret the model results and to try and understand whether we have a good model or not, we can look at the **Area Under the Curve (AUC)**, which shows an absolute measure of the quality of prediction, noting that a "perfect score" is 1 (or 100%), which is more to the right and upper portions of the plot, and a score of .5 (50% rate of success) is equivalent to purely guessing the classification. So, the AUC gives an absolute measure of quality, and is also less affected by various benchmarks while illustrating how accurate the model is on a more "absolute" sense. 
 
-21 PREDICTED GOOD, 11 PREDICTED POOR
+The area on the right of an AUC curve shows indicates areas closer to 1, a perfect prediction. 
 
-So we've got 19 correct good cases, 6 correct poor cases, 5 FN's, and 2 FP's
-Sens/TPR = 6/(6+2) = 6/8 = 0.75
-Spec/TNR = 19/(19+5) = 19/24 = 0.791     
-Accuracy = (19+6)/32 = 25/32 = 0.78125
+Other outcome measures that are important for us to discuss is the confusion matrix for out-of-sample cases. For quality of care, just like in linear regression, we want to make predictions on a test set to compute out-of-sample metrics. Remember, sensitivity is basically how much we predict `TRUE` for a case and it is *indeed* `TRUE` (TP rate), while specificity is basically how much we predict `FALSE` cases that turn out to *indeed* be `FALSE` (TN rate).
 
-Compute the test set predictions in R using original qualLogistic (Office Visits + Narcotics)
-model1_predictTest = predict(qualLogistic, type="response", newdata=qualityTest)
-Compute test set AUC w/ prediction(the model's predictions on test, actual DV outcomes of our test data)
-ROCRpredTest = prediction(model1_predictTest, qualityTest$PoorCare)
-auc = as.numeric(performance(ROCRpredTest, "auc")@y.values)
-What is the AUC of this model on the test set? --> 0.7994792 --> 80% OOS accuracy of prediction a poor vs. good case
+We've develop a logistic regression model using our data, but we'd now would like to make predictions on out-of-sample data. In our `test` set, we have 32 cases and we can make statements about the quality of a prediction out-of-sample with:
+```{r}
+prediction_test <- predict(log_model, type = "response", newdata = test)
+summary(prediction_test)
+# ID 1/2 of patients receiving poor care correctly while raising as few false alarms as possible
+(cm <- table(test$PoorCare, prediction_test > 0.3) )
+# check ROC curve above to see why .3 for t value
 
- Interpretation: Given a random patient from the dataset who ACTUALLY received POOR care + a random patient who 
-   ACTUALLY received GOOD care, the AUC = the % of time our model will classify which is which correctly.
+table(test$PoorCare)
+actualFalse <- cm[1] + cm[3]
+actualTrue <- cm[2] + cm[4]
 
-We built an expert-trained model by a physician that can accurately ID diabetic patients receiving low quality care.
- - We have observed that the OOS accuracy of the model was 78%.
-auc = as.numeric(performance(ROCRpred, "auc")@y.values) --> 0.7745946
- - But most importantly, the model ID's most patients receiving poor care, which is the major objective in the study.
-Logistic regression models provide PROBABILITIES of somebody receiving poor quality care + these probabilities can be
-   used to prioritize patients for intervention, a particularly useful outcome from the study.
-While the accuracy is reasonably high, 78%, it can be, of course, further improved.
-   In that respect, I expect that EMR's + not JUST claims could be used in the future to enhance predictive capability of
-     such models.
-A model like the one we built can be used to analyze literally millions of records, whereas a human can only accurately
-   analyze rather small amounts of info
-Clearly such a model allows significantly larger scalability, but it does NOT replace expert judgement.
-   However, models provide a way to translate expert judgement to a reproducible, testable prediction methodology that
-     has significantly higher scalability
-Of course, experts can continuously improve + refine the model, as we have seen.
-Finally, + quite importantly, models can integrate assessments of MULTIPLE experts into 1 final, unbiased, + 
-   unemotional prediction.
-Such methods of combining assessments + combining models is a tool we can use as a way of enhancing + improving 
- quantitative models.
+predictedFalse <- cm[1] + cm[2]
+predictedTrue <- cm[3] + cm[4]
+
+cat("\nPredicted False Cases: ",predictedFalse)
+cat("\nPredicted True Cases: ",predictedTrue)
+
+cat("\nActual False Cases: ",actualFalse)
+cat("\nActual True Cases: ",actualTrue)
+```
+
+So we've got 19 correct good (TN's) cases, 6 correct poor (TP's) cases, 5 incorrectly labeled good cases (TN's), and 2 incorrectly labeled poor cases (FP's).
+```{r}
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or Recall): ",specificity)
+#cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nAccuracy: ",accuracy)
+```
+
+Now look at the AUC for our original model with `OfficeVisits` and `Narcotics` on the test set.
+```{r}
+# prediction(model predictions, labels[, ordering])
+ROCRpred_test <- prediction(prediction_test, labels = test$PoorCare)
+
+# performance(prediction object output, x-axis values, y-axis values)
+ROCRperf_test <- performance(ROCRpred_test, x.measure = "fpr", measure = "tpr")
+
+# Plot t-values ffrom 0 to 1 in increments of 0.1 
+plot(ROCRperf_test, colorize = T, print.cutoffs.at = seq(0,1,.1), text.adj = c(-.2,1.7))
+
+# compute test set AUC with predictions on test set
+test_auc = as.numeric(performance(ROCRpred_test, "auc")@y.values)
+cat("Test Set AUC: ", test_auc)
+```
+
+So, this test set AUC of .799 means given a random patient from the dataset who actually received *poor* care, and a random patient from the dataset who actually received *good* care, our model will classify which is which correctly about 80% of the time.
+
+### Conclusion
+
+We've built a model trained by an expert physician that can identify diabetic patients receiving low quality care with an accuracy of about 79% on out-of-sample data. But most important to note, the model will identify most of the patients actually receiving poor care, which is the major objective of the study.
+
+These logistic regression models provide the **probabilities** of somebody receiving poor quality care, and these probabilities can be used to prioritize patients for intervention, a particularly useful outcome from the study. While the out-of-sample accuracy is reasonably high, 78%, it can be, of course, further improved. In that respect, EMR data + not *just* claims data could be used to enhance the predictive capability of such models.
+
+A model like the one we just built can be used to analyze millions of records, whereas a human can only accurately analyze rather small amounts of information. Clearly, such a model allows significantly larger scalability, but it's important to note that a model does *not* replace expert judgement. However, models *do* provide a way to translate expert judgement into a reproducible, testable prediction methodology that has significantly higher scalability, and, of course, experts can continuously improve and refine the models. Finally, and quite importantly, models can integrate assessments of *multiple* experts into one final, unbiased, and unemotional prediction. Such methods of combining assessments and combining models is a tool we can use as a way of enhancing and improving quantitative models.
