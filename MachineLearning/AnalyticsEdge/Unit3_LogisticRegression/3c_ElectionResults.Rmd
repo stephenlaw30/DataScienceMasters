@@ -1,0 +1,175 @@
+---
+title: "3c_ElectionPredictions"
+output: html_document
+---
+*********UNIT 3 - LOGISTIC REGRESSION*************
+
+*********ELECTION FORECASTING BEFORE ANY VOTES CAST - RECITATION - ************
+**Election forecasting** is the art and science of predicting the winner of an election before any votes are actually cast using polling data from likely voters. While in many countries the leader of the country is elected by receiving the largest number of votes, in the US it's significantly more complicated.
+
+Each state is assigned a number of electoral votes based on population. For example, in 2012, California had nearly 20x the number of electoral votes as the least populous states.
+ 's electoral votes are reassigned periodically based on changes of populations between states.
+W/in a given state in general, the system is "winner take all" = candidate who receives the most votes in a state gets 
+ all of its electoral votes.
+Across the entire country, the candidate who receives the most electoral votes wins the entire presidential election.
+Now while it seems like a somewhat subtle distinction, the electoral college vs. the simple popular vote model, it can 
+ have very significant consequences on the outcome of the election.
+   - Ex: Al Gore received more than 500k more votes than GWB in 2000, but GWB recieved 5 more electoral votes
+
+Our goal will be to use polling data collected from likely voters before the election to predict the winner in each 
+ state, + therefore to enable us to predict the winner of the entire election in the electoral college system.
+While election prediction has long attracted some attention, there's been a particular interest in the problem for the
+ '12 presidential election, when then-NYT columnist Nate Silver took on the task of predicting the winner in each state.
+
+we're going to use data from RealClearPolitics.com --> basically represents polling data collected in the months 
+ leading up to the 2004, 2008, + 2012 US presidential elections.
+Each row = a state in a particular election year + the DV, Republican, is a binary (1 = Republican won that state)
+IV's are related to polling data in that state (Rasmussen + SurveyUSA are related to 2 major polls that assigned across 
+ many different states + represent the % of voters who said they were likely to vote Republican - the % who said they 
+ were likely to vote Democrat.
+   -Ex: SurveyUSA value of -6 --> 6% more voters said they were likely to vote Democrat
+2 additional variables capture polling data from a wider range of polls, as Rasmussen + SurveyUSA are definitely not 
+ the only polls run on a state by state basis.
+DiffCount =  of all the polls leading up to the election that predicted a Republican winner in the state minus the 
+ of polls that predicted a Democratic winner.
+PropR (proportion Republican) =  proportion of all those polls leading up to the election that predicted a Republican 
+
+polling <- read.csv("PollingData.csv")
+str(polling)
+head(polling)
+summary(polling)
+Why only 145 obs if we expect 150? (50 states + 3 elections)
+table(polling$Year)
+Missing 5 states in 2012, b/c pollsters were so sure of the winner, they didn't bother with these 5 states
+
+How do we deal w/ the missing data in Rasmussen + SUrveyUSA
+**********DEALING W/ MISSING DATA*****************
+ - delete missing obs
+   - throws away more than 50% of our obvs/data 
+   - want to predict the outcome for ALL states, not just those who reported
+ - delete variables w/ missing obs
+   - need the data from these variables
+ - fill missing data points w/ average values
+   - Average value would be close to 0 (tie between R + D)
+   - If othe rpolls favored 1 candidate, the missing one probably did too (ASSUMPTION)
+
+MULTIPLE IMPUTATION = fill in missing values based on NON-missing values
+   - if Rasmussen is very negative, we expect a missing SurveyUSA value to be negative
+   - results will differ in different runs if we don't set.seed()
+   - this is a mathematically sophisticated approach, but the Multiple Imputation by Chained Equations (mice) package
+       makes it easy
+install.packages("mice")
+library("mice")
+
+So for our multiple imputation to be useful, we have to be able to find out the values of our missing variables w/out
+ using the outcome of the DV, Republican.
+Limit our data frame to just 4 four polling-related variables before actually perform multiple imputation.
+simple <- polling[c("Rasmussen","SurveyUSA","DiffCount","PropR")]
+summary(simple)
+
+set.seed(144)
+
+imputedDataFrame <- (complete(mice(simple)))
+The output here shows us that 5 rounds of IMPUTATION have been run, + now all of the variables have been filled in if 
+   you check 
+summary(imputedDataFrame)
+
+Last step in imputation process = copy the new Rasmussen + SurveyUSA variables back into original data frame
+polling$Rasmussen <- imputedDataFrame$Rasmussen
+polling$SurveyUSA <- imputedDataFrame$SurveyUSA
+summary(polling)
+
+split data into training (2004-08) and testing (2012)
+trainPolling <- subset(polling,Year<2012)
+testPolling <- subset(polling,Year==2012)
+str(trainPolling)
+str(testPolling)
+
+Now understand the prediction of the baseline model against which to compare a later logistic regression model.
+table(trainPolling$Republican)
+see 53 republican states +  47 democrat states
+
+Our simple baseline model is ALWAYS GOING TO PREDICT THE MORE COMMMON OUTCOME = Rep's are going to win the state.
+Our simple baseline model has accuracy = 53% on the training set (53/100), unfortunately, a pretty weak model.
+Since the baseline always predicts the most common outcome, it always predicts Rep, even for a very landslide Dem 
+ state, where the Dem was polling by 15% or 20% ahead of the Rep, so nobody would consider this a credible model.
+So we need to think of a *smarter* baseline model against which we can compare our logistic regressions
+A reasonable smart baseline= just take 1 of the polls (Rasmussen) + make a prediction based on who the poll said was 
+ winning in the state.
+   -EX: If Rep is polling ahead, the Rasmussen smart baseline would just pick the Rep to be the winner + vice versa, + 
+     if tied, the model would not know which one to select.
+
+To compute this smart baseline, use sign() which returns 1 if passed a (+), -1 if passed a (-), and 0 if passed 0
+ Pass Rasmussen into sign, whenever the Rep was winning, return 1 = Rep is predicted to win.
+Compute this prediction for our entire training set.
+table(sign(trainPolling$Rasmussen))
+Smart baseline predicted Rep in 56 out our 100 instances, Dem for 42, and a tie for 2
+
+What we really want to do is to see the breakdown of how the smart baseline model does compared to the actual result
+table(trainPolling$Republican,sign(trainPolling$Rasmussen))
+42 TN's, 52 TP's, 0 FN's, 4 FP's, + 2 inconclusive observations
+accuracy = 94/100 = 94% = this model is much better than the native, standard baseline model (53% acc + always 
+ predicts Rep)
+This is a much more reasonable baseline model to carry forward + against which compare a logistic regression
+
+Before building model, consider multicollinearity in the IV's
+Would expect so, b/c they're all measuring the same thing (how strong the Rep is performing in the state)
+One of our IV'S (State) is a char col, so we need to ignore it in cor()
+cor(trainPolling[c("Year","Rasmussen", "SurveyUSA", "DiffCount", "PropR", "Republican")])
+See that Rasmussen, SurveyUSA, DiffCount, PropR, and Republican all have high correlations 
+
+Let's build a log. reg. model w/ just 1 var, the most highly-correlated w/ Rep = PropR
+pollModel1 <- glm(Republican ~ PropR, data = trainPolling, family = "binomial")
+summary(pollModel1)
+See PropR is VERY SIG, w/ a (+) CoE, and AIC = 19.772 = reasonable model --> see how it does against train data
+pollmodel1_predictTrain = predict(pollModel1, type="response")
+see how it performs w/ t = 0.5 --> If P(Rep) >= 1/2, then we predict Rep --> table(realValues,predictions > t)
+table(trainPolling$Republican, pollmodel1_predictTrain > 0.5)
+42 FN's, 51 TP's, 2 FP's, 2 FN's   ACC = 96% --> about same as baseline, but a bit better
+
+Try to improve performance by adding another var using one w/ a lower correlation so there's no multicollinearity + 
+ they work better together to predict outcomes correct;y
+cor(trainPolling[c("Rasmussen", "SurveyUSA", "PropR", "DiffCount", "Republican")])
+Seems DiffCount and Rasmussen have the lowers (~0.5)
+pollModel2 <- glm(Republican ~ DiffCount + Rasmussen, data = trainPolling, family = "binomial")
+pollModel2_predictTrain = predict(pollModel2, type="response")
+table(trainPolling$Republican, pollModel2_predictTrain >= 0.5)
+45 TN's, 52 TP's, 2 FP's, 1 FN w/ ACC = 97%, better again
+
+check w/ SurveyUSA as well, just in case
+pollModel3 <- glm(Republican ~ DiffCount + SurveyUSA, data = trainPolling, family = "binomial")
+pollModel3_predictTrain = predict(pollModel3, type="response")
+table(trainPolling$Republican, pollModel3_predictTrain >= 0.5)
+44 TN's, 51 TP's, 3 FP's, 2 FN w/ ACC = 95% --> model w/ Rasmussed + DiffCount is best
+
+summary(pollModel2)  AIC = 16.546
+summary(pollModel3)  AIC = 21.374
+BUT NEITHER VARIABLE IS SIG HERE
+
+Now evaluate the 1 and 2 variable models on the testing set
+Compute smart baseline for the test
+table(testPolling$Republican,sign(testPolling$Rasmussen))
+ 18 TN's, 21 TP's, 4 FP's, and 2 inconclusives ==> ACC = 74%
+will compare our log reg models against this
+
+create test set predictions w/ predict(model, data, prob)
+pollModel2_predictTest = predict(pollModel2, newdata = testPolling, type="response")
+table(testPolling$Republican, pollModel2_predictTest >= 0.5)
+So we have 23 TN's, 21 TP's, 1 FP = ACC = 98%
+
+Could've tried changing t from 0.5 to other values + computed out an ROC curve, but that doesn't quite much sense in 
+ this setting, where we're just trying to accurately predict the outcome of each state + we don't care more about 1 
+   sort of error (predicted Rep + it was actually Dem) than the other (predicted Dem and it was actually Rep)
+
+check out the 1 mistake (predicted Rep, Dem won)
+subset(testPolling, pollModel2_predictTest > 0.5 & Republican == 0)
+     State Year Rasmussen SurveyUSA DiffCount     PropR Republican
+ 24 Florida 2012         2         0         6 0.6666667          0
+
+Ramussen had Rep w/ a 2% lead, SurveryUSA said who knows, DiffCount said 6 more polls = Rep, and PropR said Rep 2/3 of
+ polls predicted Rep, while all the while the Rep didn't win
+
+So models are not magic, + given this sort of data, it's pretty unsurprising our model actually didn't get Florida
+ correct in this case + made the mistake.
+However, overall, it seems to be outperforming the smart baseline we selected, + so we think maybe this would be a
+ nice model to use in the election prediction.

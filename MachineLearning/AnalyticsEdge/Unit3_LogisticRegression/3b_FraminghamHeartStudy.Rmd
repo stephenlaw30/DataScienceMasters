@@ -1,0 +1,189 @@
+---
+title: "Framingham Heart Study"
+author: "Steve Newns"
+date: "November 5, 2017"
+output: html_document
+---
+# UNIT 3 - LOGISTIC REGRESSION
+
+## FRAMINGHAM HEART STUDY - EVALUATING RISK FACTORS TO SAVE LIVES
+
+The Framingham Heart Study is one of the most important epidemiological studies ever conducted, and whose underlying analytics led to our current understanding of cardiovascular disease.
+
+For example, President FDR's BP was 140/100. Today, healthy BP is considered to be less than 120/80. So therefore, a BP reading of 140/100 in today's world is considered high BP. 1 year before death, FDR's BP was 210/120, or in **hypertensive crisis**, wherein emergency care is needed. On the other hand, FDR's personal physician said he had a moderate degree of atherosclerosis, but no more than normal for a man of his age. 2 months before death, his BP was 260/150, and on the day of his death, was 300/190.
+
+There were early misconceptions in the 1st half of the 20th century about BP. High BP (essentially hypertension) was actually considered *important* to force blood through arteries and it was considered harmful to lower BP. Today, of course, we know better.
+
+Daniel Levy, the Framingham Heart Study director was quoted as saying: "Today, presidential BP number's like FDR's would send the country's leading doctors racing down hallways, whisking the nation's leader into the cardiac care unit of Bethesda Naval Hospital."
+
+In the Late 1940s, the US government set out to better understand cardiovascular disease by tracking a large cohort of initially healthy patients over their lifetimes. Framingham, Massachusetts was chosen to be the site for the study because it had an appropriate size (not too large, not too small) with a stable population, and with doctors and residents who were quite cooperative.
+
+The FHS started in 1948, including 5,209 patients, aged 30-59, who were given a questionnaire and an exam every 2 years. Physical characteristics, behavioral characteristics, as well as test results were recorded. Exams and questions expanded over time, but the key point of the study was to record and analyze the trajectory of the health of the patients was followed during their entire lifespan.
+
+## Logistic Regression 
+
+We'll be using analytical models to try to ID factors that can be controlled to prevent heart disease. The first step is to ID the risk factors (predictors) and then, using data, create a logistic regression model to predict the chances of heart disease based on the risk factors. Using more data, we'll then validate our model to make sure it performs well out-of-sample, or on different populations than the training set population. Lastly, we'll discuss how medical interventions can be defined using the model.
+
+We'll be predicting the **10-year risk of coronary heart disease (CHD)**, the subject of an important 1998 paper introducing the **Framingham Risk Score** (one of the most influential applications of the Framingham Heart Study data). We'll use logistic regression to create a similar model to this paper.
+
+**CHD** is disease of the blood vessels supplying the heart and is one specific type of heart disease, the leading cause of death worldwide since 1921. In 2008, 7.3M people died from CHD. But even though numbers of deaths due to CHD is still very high, age-adjusted death rates have actually declined about 60% since 1950, in part due to earlier detection and monitoring partly thanks of the Framingham Heart Study.
+
+Before building a logistic regression model, we need to ID the predictors we want to use. When predicting the risk of a disease, we want to ID **risk factors**, which are variables that increase the chances of developing a disease. IDing risk factors is the key to successful prediction of CHD.
+
+We'll focus on risk factors found in data from an anonymized version of the original data collection for the Framingham Heart Study. This data includes several demographic, behavioral, and medical history risk factors, as well as risk factors from the first physical exam of the patient.
+
+```{r}
+library(tidyverse)
+library(caTools)
+library(ggplot2)
+library(ROCR) # auc, rocr curve
+
+fram <- read.csv("../data/framingham.csv")
+str(fram)
+```
+
+Now we want to split the data into training and testing sets, but also make sure the response is well-balanced in each piece. We will make it such that 75% of patients in both the training + test sets have a value of `1` for `TenYearCHD`, making sure the test set is representative of the training set.
+
+Since we have a lot of data (> 4k obs), we can afford to put less data in training. This will increase our confidence in the ability of model to extend to new data since we'll have a large amount of data in `test`, but still enough data in `training` to create a model. A good rule of thumb here would be to put between 50-80% of the original data into `training`.
+
+```{r}
+set.seed(1000)
+spl <- sample.split(fram$TenYearCHD, SplitRatio = 0.65) # 65% of TenYearCHD = 1 in both sets
+trainFram <- subset(fram, spl==T)
+testFram <- subset(fram, spl==F)
+```
+
+Now we can build a full model with all predictors, just to start out with.
+```{r}
+fullModel <- glm(TenYearCHD ~ ., data = trainFram, family = binomial)
+summary(fullModel)
+```
+We can see that `age` and being `male` are very significant predictors of `TenYearCHD`, while `totChol`, `glucose`, and then `sysBP` being less so, and then `cigsPerDay`, `prevalentStroke` being *almost* significant. We can also notice that all the significant variables have a positive coefficient. This indicates that a one-unit increase in either of these would have some increase in risk of CHD in ten years time.
+
+We also have a high **AIC** (measurement of the relative quality of a model compared to other models based on the same data) value of 1824. Since smaller values of this relative model goodness of fit score are better, it appears this model isn't that good of a fit.
+
+But let's make predictions just to see.
+```{r}
+predictFram_Test <- predict(fullModel, type = "response", newdata = testFram)
+summary(predictFram_Test)
+hist(predictFram_Test)
+```
+
+Looks like we have some pretty low probabilities, for the most part.
+
+Now we can create a **confusion matrix** with the **threshold value** of 0.5. This means that if a prediction has a value > 0.5 (an estimated 10-year CHD risk of greater than 50%), we'd classify it as a `1` for `TenYearCHD`.
+```{r}
+(cm <- table(testFram$TenYearCHD,predictFram_Test > 0.5)) # (actuals, predicted > t)
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # true negative rate = TN / (TN + FP)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
+cat("\nAccuracy: ",accuracy)
+```
+
+With a threshold of 50% (`t = 0.5`) we predict `True` for `TenYearCHD` very rarely. In other words, this model rarely predicts a 10 year CHD risk being greater than 50%.
+
+We must now compare our prediction's accuracy to a **baseline accuracy**. The most frequent outcome in our case for the actual values of `TenYearCHD` is `0`, so a good baseline method would be to *always* predict `0`. Therefore, the value for the baseline accuracy of this model would be total counts of 0 for `TenYearCHD` divided by the total sample size.
+```{r}
+baseline_accuracy <- (cm[3]+cm[1]) / sum(cm) 
+cat("\nBaseline Accuracy: ",baseline_accuracy)
+```
+So, our "full" model's accuracy is better than baseline, but just barely. But is our model still valuable if we modify the threshold?
+
+## AUC
+
+We can compute our out-of-sample test set AUC.
+```{r}
+ROCRpredictFram_Test <- prediction(predictFram_Test,testFram$TenYearCHD)
+AUCpredictFram_Test <- as.numeric(performance(ROCRpredictFram_Test, "auc")@y.values)
+cat("\nTest Set AUC: ",AUCpredictFram_Test)
+```
+This value tells us that we have a 74% out-of-sample accuracy of correctly predicting having `10yrCHD` risk or not. From this we can infer that our model can differentiate between low and high risk patients well.
+
+#SUMMMARY
+
+Our basic model rarely predicted a `10yrCHD` risk of over 50%, so the model's accuracy was close to the baseline accuracy. Our model also can differentiate between low and high risk patients well, with an Out-Of-Sample AUC of 74%. Some of the significant predictors suggest interventions to possibly be taken to prevent CHD. Our model suggested that increases in smoking, cholesterol, Systolic BP, and glucose all increase risk of `10yrCHD`.
+
+So far, we have used INTERNVAL VALIDATION to test our models = we took data from 1 set of patients + then
+ split them into a training set + a testing set. 
+While this confirms our model is good at making predictions for patients in Framingham, it's unclear if 
+ the model generalizes to other populations.
+Framingham's cohort of patients = white, middle class adults.
+ To be sure the model extends to other types of patients, need to test on other populations = EXTERNAL
+   VALIDATION
+
+There have been many studies to test the Framingham model from its influential 1998 paper on diverse 
+ cohorts.
+   - Atherosclerosis Risk in Communites (ARIC) = White + Black population
+   - Honolulu Heart Program (HHS) = Japanese-American population
+   - Puerto Rico Heart Health Program = Hispanic population
+   - Strong Heart Study = Native American population
+Researchers for each study collected the same risk factors used in the original study, predicted CHD 
+ using the Framingham model, + then analyzed how accurate the model was for that population.
+For some populations, the Framingham model was accurate.
+ - ARIC study = tested model w/ black men ==> For the most part, the predictions were accurate, but 
+     there was 1 group for which the model UNDER-predicted the risk + 1 for which it OVER-predicted 
+     the risk.
+But for other populations, the Framingham model was not as accurate.
+ - HHS study = Japanese-American = Framingham model systematically OVER-predicts a risk of CHD.
+     - The model can be recalibrated for this population by scaling down predictions, which changes 
+         predicted risk but not the ORDER of the predictions.
+     - High-risk patients still have higher predictions than lower risk patients.
+     - This allows the model to have more accurate risk estimates for populations not included in the 
+         original group of patients.
+
+For models that'll be used on different populations than the one used to create the model, external 
+ validation is CRITICAL
+
+******************************QUIZ***************************************
+For which of the following models should external validation be used? Consider both the population USED 
+ to train the model + the population that the model will be used ON
+   - Model to predict obesity risk w/ data from a random sample of California residents + we want to use
+       the model to predict the obesity risk of all US residents = YES
+   - Model to predict stress of MIT students w/ data from a random sample of MIT students + we want to 
+       use the model to predict the stress level of all MIT students = NO = SAME POP FOR TRAIN + USAGE
+   - Model to predict probability of a runner winning a marathon w/ data from all runners in the Boston 
+       Marathon + we want to predict probability of winning for all people who run marathons = YES
+
+The 1st intervention suggested by the model developed for the Framingham had to do w/ drugs to lower BP
+ - In FDR's time, hypertension drugs were too toxic for practical use, but in the 1950s, diuretic 
+     chlorothiazide was developed + the Framingham Heart Study gave Ed Freis evidence needed to argue 
+     for testing the effects of BP drugs.
+ - The Veterans Administration Trial was conducted, a randomized, double blind clinical trial, that 
+     found decreased risk of CHD w/ BP drugs
+ - Now, the market for diuretics worldwide is more than a $1B
+Another intervention had to do w/ cholesterol.
+ - Despite Framingham results, early cholesterol drugs were too toxic for practical use, but in the '70s,
+     the first statins were developed.
+ - A study of 4,444 patients w/ CHD revealed that statins cause a 37% risk reduction of a 2nd heart 
+     attack.
+ - A study of 6,595 patients w/ high CHOL revealed that statins cause a 32% risk reduction of CVD deaths
+ - Now, the market for statins worldwide is more than $20B
+Smoking would be the most dramatically affected variable by a behavorial intervention b/c it is the 
+ variable the patient has the most control over
+
+Altogether, there has been 2.4k studies written using Framingham Study data.
+ - During the years, many other risk factors were evaluated = Obesity, exercise, psychological, + social issues.
+ - In fact, the Texas Heart Institute Journal named the Framingham Heart Study as the 1 of top 10 
+   cardiology advances of the 20th century.
+In addition to the study, there is an online tool that assesses your 10yr risk of having a heart attack
+   - input age, gender, total CHOL, HDL CHOL, smoke or not, SysBP, + it calculates 10yr risk.
+
+Currently, we are in the 3rd generation of patients (started in '02) w/ a 2nd generation study of people
+ who enrolled in 1971,
+   - This enables the study to examine FAMILY HISTORY as a risk factor.
+More diverse cohorts started in 1994 + 2003.
+In addition to the classical measures we have used so far, social network analysis of participants is 
+ also now utilized.
+And additionally + quite importantly, a genome-wide association study is underway, linking genetics to 
+ heart conditions as a risk factor.
+Of course, there are still many challenges are related to funding (Funding cuts in '69 nearly closed the
+ study + the 2013 sequester was threatening to close the study as well)
+A very important impact of Framingham is the development of clinical decision rules.
+ - The early work on the study paved the way for clinical decision rules as is done today.
+From 1960s to today, more than 70k prediction/clinical decision rules have been published across 
+ medicine, + the rate of publication is increasing.
+Clinical decision rules are developed using patient + disease characteristics, + then we observe
+ test results from patients to assess the effectiveness of such rules.
