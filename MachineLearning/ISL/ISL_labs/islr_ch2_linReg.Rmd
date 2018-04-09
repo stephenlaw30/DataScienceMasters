@@ -1,0 +1,305 @@
+---
+title: "ISLR_Lab2"
+output: html_document
+---
+
+## Basic R
+
+```{r, create and save a pdf, message=F}
+x <- rnorm(100)
+y <- rnorm(100)
+
+# create pdf of plot
+pdf("Figure1.pdf")
+plot(x,y)
+dev.off() # signifies done plotting
+```
+
+**Contour plots** represent 3D data, like a topographical map
+
+```{r create contour plot, message=F}
+x <- seq(-pi,pi,length=50)
+y <- x
+
+# outer product of arrays = outer(vector1,vector2,function to perform on outer products)
+f <- outer(x,y, function(x,y) cos(y)/(1*x^2))
+
+# plot contour(x,y,z)
+contour(x,y,f)
+```
+
+```{r variations of contour plots}
+plot.new()
+contour(x,y,f, nlevels = 45, add = T)
+
+#plot.new()
+f2 <- (f-t(f))/2
+contour(x,y,f2, nlevels = 15)
+```
+
+Can also develop a similar plot, a **heatmap**,  with color-coded values for `z`.
+
+```{r}
+image(x,y,f2)
+```
+
+We can also create 3D plots with `persp()`, via its arguments `theta` and `phi`, which control the angles at which the plot is viewed
+```{r}
+persp(x,y,f2)
+persp(x,y,f2,theta=30)
+persp(x,y,f2,theta=30,phi=20)
+persp(x,y,f2,theta=30,phi=70)
+persp(x,y,f2,theta=30,phi=40)
+```
+
+Here's some more plots
+```{r, message=F, warning=F,}
+library(ISLR )
+fix(Auto) # view data in another window as spreadsheet
+
+attach(Auto) # don't have to use '$' operator for accessing cols
+cylinders <- as.factor(cylinders)
+plot(cylinders, mpg, col="red", xlab="cylinders", ylab="mpg")
+plot(cylinders, mpg, col="red", varwidth=T, xlab="cylinders", ylab="mpg")
+plot(cylinders, mpg, col="red", varwidth=T, xlab="cylinders", ylab="mpg", horizontal=T)
+```
+
+```{r}
+hist(mpg,col=2,breaks=15) # col=2 same as red
+```
+
+```{r}
+# create scatterplot matrix
+pairs(Auto)
+```
+
+```{r}
+# create smaller scatterplot matrix
+pairs(~ mpg+displacement+horsepower+weight+acceleration, Auto)
+```
+
+`identify(x,y,variable)` provides a useful interactive method for identifying value for a particular variable for on a plot. Clicking on a given point in the plot causes R to print the value of the variable of interest. Right-clicking on the plot will exit `identify()` function (control-click on a Mac). The numbers printed under `identify()` correspond to the rows for the selected points
+```{r}
+plot(horsepower,mpg)
+identify(horsepower,mpg,name)
+```
+
+### 2.4 Exercises
+####Conceptual
+<ol>
+<li> For each of parts (a) through (d), indicate whether we'd generally expect the performance of a flexible statistical learning method to be better or worse than an inflexible method. Justify your answer.
+<ul>
+<li> **The sample size n is extremely large, and the number of predictors p is small** = We'd expect a flexible learning method to be better with a larger sample size, as there wuold be more data points for it to use in training and it will fit the data closer. </li>
+<li> **The number of predictors p is extremely large, and the number of observations n is small** We'd expect a flexible learning method to be worse with a large amount of predictors, as we'd tend to overfit to the small number of observations in *n*. </li>
+<li> **The relationship between the predictors and response is highly non-linear.** = We'd expect a more flexible method to better fit the non-linear true structure of f, as we'd have more degrees of freedom. </li> 
+<li> **The variance of the error terms, i.e. σ2 = Var(), is extremely high** = We'd expect a more flexible approach to do worse, as it would tend to take into account the noise in the errors that is signaled via a higher variance </li>
+</ul>
+<li> Explain whether each scenario is a classification or regression problem, and indicate whether we are most interested in inference or prediction. Finally, provide n and p.
+<ul>
+<li> **We collect a set of data on the top 500 firms in the US. For each firm we record profit, number of employees, industry and the CEO salary. We are interested in understanding which factors affect CEO salary** = This is a regression, and are more interested in inference </li>
+<li> **We are considering launching a new product and wish to know whether it will be a success or a failure. We collect data on 20 similar products that were previously launched. For each product we have recorded whether it was a success or failure, price charged for the product, marketing budget, competition price, and ten other variables.** = This is a classification, and we are interested in prediction. </li>
+<li> **We are interest in predicting the % change in the USD/Euro. Hence we collect weekly data for all of 2012. For each week we record the % change in the USD/Euro, the % change in the US market, the % change in the British market, and the % change in the German market** = This is a regression and we're interested in prediction </li>
+</ul>
+<li> We now revisit the bias-variance decomposition.
+<ul>
+<li> Provide a sketch of typical (squared) bias, variance, training error, test error, and Bayes (or irreducible) error curves, on a single plot, as we go from less flexible statistical learning methods
+towards more flexible approaches. The x-axis should represented the amount of flexibility in the method, and the y-axis should represent the values for each curve. There should be five curves. Make sure to label each one </li>
+```{r}
+plot.new()
+```
+<li> **Explain why each of the five curves has the shape displayed in part (a)** </li>
+</ul>
+<li> You will now think of some real-life applications for statistical learning.
+<ul><li> **Describe three real-life applications in which classification might be useful. Describe the response, as well as the predictors. Is the goal of each application inference or prediction? Explain your answer** </li>
+<li> **Describe three real-life applications in which regression might be useful. Describe the response, as well as the predictors. Is the goal of each application inference or prediction? Explain your answer.** </li>
+<li> **Describe three real-life applications in which cluster analysis might be useful.** </li>
+</ul>
+<li> **What are the advantages and disadvantages of a very flexible (vs. a less flexible) approach for regression or classification? Under what circumstances might a more flexible approach be preferred to a less flexible approach? When might a less flexible approach be preferred?** </li>
+<li> **Describe the differences between a parametric and a non-parametric statistical learning approach. What are the advantages of a parametric approach to regression or classification (as opposed to a nonparametric approach)? What are its disadvantages?** </li>
+<li> **The table below provides a training data set containing six observations, three predictors, and one qualitative response variable.** </li>
+Obs. X1 X2 X3 Y
+1 0 3 0 Red
+2 2 0 0 Red
+3 0 1 3 Red
+4 0 1 2 Green
+5 −1 0 1 Green
+6 1 1 1 Red
+<li>**Suppose we wish to use this data set to make a prediction for Y when X1 = X2 = X3 = 0 using K-nearest neighbors.** </li>
+<ul>
+<li> **Compute the Euclidean distance between each observation and the test point, X1 = X2 = X3 = 0.** </li>
+<li> **What is our prediction with K = 1? Why?** </li>
+<li> **What is our prediction with K = 3? Why?** </li>
+<li> **If the Bayes decision boundary in this problem is highly nonlinear, then would we expect the best value for K to be large or small? Why?** </li>
+</ul>
+
+#### Applied
+8. This exercise relates to the College data set, which can be found in
+the file College.csv. It contains a number of variables for 777 different
+universities and colleges in the US. The variables are
+• Private : Public/private indicator
+• Apps : Number of applications received
+• Accept : Number of applicants accepted
+• Enroll : Number of new students enrolled
+• Top10perc : New students from top 10 % of high school class
+• Top25perc : New students from top 25 % of high school class
+• F.Undergrad : Number of full-time undergraduates
+• P.Undergrad : Number of part-time undergraduates
+• Outstate : Out-of-state tuition
+• Room.Board : Room and board costs
+• Books : Estimated book costs
+• Personal : Estimated personal spending
+• PhD : Percent of faculty with Ph.D.’s
+• Terminal : Percent of faculty with terminal degree
+• S.F.Ratio : Student/faculty ratio
+• perc.alumni : Percent of alumni who donate
+• Expend : Instructional expenditure per student
+• Grad.Rate : Graduation rate
+Before reading the data into R, it can be viewed in Excel or a text
+editor.
+(a) Use the read.csv() function to read the data into R. Call the
+loaded data college. Make sure that you have the directory set
+to the correct location for the data.
+(b) Look at the data using the fix() function. You should notice
+that the first column is just the name of each university. We don’t
+really want R to treat this as data. However, it may be handy to
+have these names for later. Try the following commands:
+2.4 Exercises 55
+> rownames (college )=college [,1]
+> fix(college)
+You should see that there is now a row.names column with the
+name of each university recorded. This means that R has given
+each row a name corresponding to the appropriate university. R
+will not try to perform calculations on the row names. However,
+we still need to eliminate the first column in the data where the
+names are stored. Try
+> college =college [,-1]
+> fix(college)
+Now you should see that the first data column is Private. Note
+that another column labeled row.names now appears before the
+Private column. However, this is not a data column but rather
+the name that R is giving to each row.
+(c) i. Use the summary() function to produce a numerical summary
+of the variables in the data set.
+ii. Use the pairs() function to produce a scatterplot matrix of
+the first ten columns or variables of the data. Recall that
+you can reference the first ten columns of a matrix A using
+A[,1:10].
+iii. Use the plot() function to produce side-by-side boxplots of
+Outstate versus Private.
+iv. Create a new qualitative variable, called Elite, by binning
+the Top10perc variable. We are going to divide universities
+into two groups based on whether or not the proportion
+of students coming from the top 10 % of their high school
+classes exceeds 50 %.
+> Elite=rep("No",nrow(college ))
+> Elite[college$Top10perc >50]=" Yes"
+> Elite=as.factor(Elite)
+> college=data.frame(college , Elite)
+Use the summary() function to see how many elite universities
+there are. Now use the plot() function to produce
+side-by-side boxplots of Outstate versus Elite.
+v. Use the hist() function to produce some histograms with
+differing numbers of bins for a few of the quantitative variables.
+You may find the command par(mfrow=c(2,2)) useful:
+it will divide the print window into four regions so that four
+plots can be made simultaneously. Modifying the arguments
+to this function will divide the screen in other ways.
+vi. Continue exploring the data, and provide a brief summary
+of what you discover.
+56 2. Statistical Learning
+9. This exercise involves the Auto data set studied in the lab. Make sure
+that the missing values have been removed from the data.
+(a) Which of the predictors are quantitative, and which are qualitative?
+(b) What is the range of each quantitative predictor? You can answer
+this using the range() function. range()
+(c) What is the mean and standard deviation of each quantitative
+predictor?
+(d) Now remove the 10th through 85th observations. What is the
+range, mean, and standard deviation of each predictor in the
+subset of the data that remains?
+(e) Using the full data set, investigate the predictors graphically,
+using scatterplots or other tools of your choice. Create some plots
+highlighting the relationships among the predictors. Comment
+on your findings.
+(f) Suppose that we wish to predict gas mileage (mpg) on the basis
+of the other variables. Do your plots suggest that any of the
+other variables might be useful in predicting mpg? Justify your
+answer.
+10. This exercise involves the Boston housing data set.
+(a) To begin, load in the Boston data set. The Boston data set is
+part of the MASS library in R.
+> library(MASS)
+Now the data set is contained in the object Boston.
+> Boston
+Read about the data set:
+> ?Boston
+How many rows are in this data set? How many columns? What
+do the rows and columns represent?
+(b) Make some pairwise scatterplots of the predictors (columns) in
+this data set. Describe your findings.
+(c) Are any of the predictors associated with per capita crime rate?
+If so, explain the relationship.
+(d) Do any of the suburbs of Boston appear to have particularly
+high crime rates? Tax rates? Pupil-teacher ratios? Comment on
+the range of each predictor.
+(e) How many of the suburbs in this data set bound the Charles
+river?
+2.4 Exercises 57
+(f) What is the median pupil-teacher ratio among the towns in this
+data set?
+(g) Which suburb of Boston has lowest median value of owneroccupied
+homes? What are the values of the other predictors
+for that suburb, and how do those values compare to the overall
+ranges for those predictors? Comment on your findings.
+(h) In this data set, how many of the suburbs average more than
+seven rooms per dwelling? More than eight rooms per dwelling?
+Comment on the suburbs that average more than eight rooms
+per dwelling
+
+
+
+develop an accurate modelthat can be used to predict sales on the basis of the different 
+##    channels' advertising budgets.'
+
+ads <- read.csv('Advertising.csv')
+head(ads)
+
+library(dplyr)
+library(ggplot2)
+
+glimpse(ads)
+
+'Quantitative response variable Y = Sales with 3 predictors (channels) + we assume some relationship written as
+  Y = f(X) + E where f(X) is a function of the values of the channels and E = epsilon/error w/ mean = 0 and is 
+  independent of X
+
+We are estimating Y based on given X values/points. The errors in our predictions vs. actual values should have
+   a mean = 0.
+
+Statistical learning refers to a set of approaches for estimating f.'
+
+tv_sales <- ggplot(ads) + geom_point(aes(TV,Sales)) # most condensed plot
+nwsppr_sales <- ggplot(ads) + geom_point(aes(Newspaper,Sales)) # most scattered plot
+radio_sales <- ggplot(ads) + geom_point(aes(Radio,Sales))
+
+'2 main reasons to estimate f:
+  - prediction
+    - may have x values readily available, but cannot easily obtain y values
+    - since E averages to 0, we can predict with w/ y_hat = f_hat(x)
+    - f_hat is usually a black box, provided it yields accurate predictions for y
+    - accuracy of y_hat in relation to y depends on REDUCIBLE ERROR and IRREDUCIBLE ERROR
+    - f_hat will generally not be a perfect estimate of f, and the error in this estimate 
+        is REDUCIBLE
+    - We can potentially improve the accuracy of f_hat via the most appropriate statisical
+        learning technique
+    - Even if we found the "perfect" estimate, we would still have error because Y is also
+         a function of E, which cannot be predicted with X, by definition
+    - Therefore variability in E also affects prediction accuracy, and is the IRREDUCIBLE 
+        error
+    - E may contain unmeasures variables useful in predicting Y, and since we do not 
+      measure them, we cannot use them in f to predict Y
+    - E may also carry unmeasurable variation (variation in drug manufacturing or in how
+         a patient is feeling may vary the risk of an adverse reaction)
+    - E(Y - Y_hat)^2
+  - inference
+'
