@@ -72,3 +72,32 @@ likelihoodVals <- sapply(muVals, function(mu){
 plot(muVals,likelihoodVals,type="l")
 lines(range(muVals[likelihoodVals>=1/8]),c(1/8,1/8))
 lines(range(muVals[likelihoodVals>=1/16]),c(1/16,1/16))
+
+
+
+
+
+
+
+
+data(islands)
+hist(islands)
+hist(log10(islands))
+
+stem(log10(islands))
+
+dotchart(log10(islands))
+
+data(InsectSprays)
+attach(InsectSprays)
+plot(c(.5,6.5), range(count))
+sprayTypes <- unique(spray)
+for (i in 1:length(sprayTypes)) {
+  y <- count[spray==sprayTypes[i]]
+  n <- sum(spray==sprayTypes[i])
+  points(jitter(rep(i,n),amount=.1),y)
+  lines(i + c(.12,.28),rep(mean(y),2),lwd=3)
+  # CI
+  lines(rep(i + .2, 2),
+        mean(y) + c(-1.96,1.96)*sd(y)/sqrt(n))
+}
