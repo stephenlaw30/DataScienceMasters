@@ -158,18 +158,18 @@ We've computed the table of + then immediately applied the graphical function, `
 
 6.  Create a numerical summary for `stolen_bases` and `wins`, and compute the interquartile range for each. 
 ```{r}
-favstats(mlb11$stolen_bases)
-favstats(mlb11$stolen_bases)$max - favstats(mlb11$stolen_bases)$min 
+#favstats(mlb11$stolen_bases)
+#favstats(mlb11$stolen_bases)$max - fav_stats(mlb11$stolen_bases)$min 
 
-favstats(mlb11$wins)
-favstats(mlb11$wins)$max - favstats(mlb11$wins)$min
+#favstats(mlb11$wins)
+#favstats(mlb11$wins)$max - favstats(mlb11$wins)$min
 ```
 
 7.  Compute the relative frequency distribution for teams with at least 90 `wins`. How many teams reached 90 wins?  
 ```{r}
 mlb11$HighW <- mlb11$wins >= 90
 length(mlb11$HighW)
-tally(~ HighW, data=mlb11)
+#tally(~ HighW, data=mlb11)
 ```
 
 `tally` can be used to tabulate any number of variables that you provide.  
@@ -177,14 +177,14 @@ tally(~ HighW, data=mlb11)
 8.  What is shown in the following table?  How many teams won 90 or more games and hit at least 200 home runs? 
 ```{r table-smoke-gender, eval=FALSE}
 mlb11$HighWins <- mlb11$wins >=90
-tally(HighWins ~ HighHR, data=mlb11, format="count")
+#tally(HighWins ~ HighHR, data=mlb11, format="count")
 ```
 The above shows the number of teams that had at least 90 wins *and* at least 200 home runs in a matrix. Only 3 teams had done so.
 
 
 9.  Describe the center, shape, and spread of the `stolen_bases` variable, using an appropriate plot and the appropriate metrics.
 ```{r}  
-fav_stats(mlb11$stolen_bases)
+#fav_stats(mlb11$stolen_bases)
 hist(mlb11$stolen_bases)
 ```
 
