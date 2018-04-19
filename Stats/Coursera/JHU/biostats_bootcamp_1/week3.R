@@ -101,3 +101,68 @@ for (i in 1:length(sprayTypes)) {
   lines(rep(i + .2, 2),
         mean(y) + c(-1.96,1.96)*sd(y)/sqrt(n))
 }
+
+############  QUIZ
+
+## Create CI for variance
+n_w <- 8
+n_ctrl<- 8
+mean_w <- 6
+mean_ctrl <- 4
+var_w <- 3 
+var_ctrl <- 5
+df <- sum(n_w,n_ctrl)-2
+std_pooled_var_estimator <- ((n_w - 1)*var_w + (n_ctrl - 1)*var_ctrl)/df
+## grab quantiles for 95% CI
+qtiles <- qt(p=.975,df=df)
+# compute CI bouds
+(lo <- (mean_w - mean_ctrl) - qtiles*sqrt(std_pooled_var_estimator*((1/n_w)+(1/n_ctrl))))
+(hi <- (mean_w - mean_ctrl) + qtiles*sqrt(std_pooled_var_estimator*((1/n_w)+(1/n_ctrl))))
+
+#install.packages("boot")
+temp <- expand.grid(c(1, 3, 7), c(1, 3, 7), c(1, 3, 7))
+table(apply(temp, 1, median))
+
+## 
+unif <- dunif(runif(10000),min=0,max=1)
+exp <- dexp(rexp(10000),rate=1)
+qqplot(x=unif,y=exp)
+
+## Create CI for variance
+x_bar <- 1100
+s <- 30
+sample_var <- s**2
+n <- 9
+stdErr <- s/sqrt(n)
+alpha <- .05
+## grab quantiles
+qtiles <- qt(p =1-alpha/2, df = n-1)
+## rev() = reverse elements due to order of returned qtiles
+(lo <- x_bar - qtiles*stdErr)
+(hi <- x_bar + qtiles*stdErr)
+
+
+x_bar <- -2
+n <- 9
+alpha <- .05
+## grab quantiles
+qtiles <- qt(p =1-alpha/2, df = n-1)
+## rev() = reverse elements due to order of returned qtiles
+(x_bar/qtiles)*sqrt(n)
+
+
+
+## Create CI for variance
+n_new <- 10
+n_old<- 10
+mean_new <- 3
+mean_old <- 5
+var_new <- .6 
+var_old <- .68
+df <- sum(n_new,n_old)-2
+std_pooled_var_estimator <- ((n_new - 1)*var_new + (n_old - 1)*var_old)/df
+## grab quantiles for 95% CI
+qtiles <- qt(p=.975,df=df)
+# compute CI bouds
+(lo <- (mean_new - mean_old) - qtiles*sqrt(std_pooled_var_estimator*((1/n_new)+(1/n_old))))
+(hi <- (mean_new - mean_old) + qtiles*sqrt(std_pooled_var_estimator*((1/n_new)+(1/n_old))))
