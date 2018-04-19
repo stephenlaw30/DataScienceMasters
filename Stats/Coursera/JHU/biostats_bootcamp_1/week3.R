@@ -166,3 +166,7 @@ qtiles <- qt(p=.975,df=df)
 # compute CI bouds
 (lo <- (mean_new - mean_old) - qtiles*sqrt(std_pooled_var_estimator*((1/n_new)+(1/n_old))))
 (hi <- (mean_new - mean_old) + qtiles*sqrt(std_pooled_var_estimator*((1/n_new)+(1/n_old))))
+
+#install.packages("boot")
+temp <- expand.grid(c(1, 3), c(1, 3))
+table(apply(temp, 1, mean))
