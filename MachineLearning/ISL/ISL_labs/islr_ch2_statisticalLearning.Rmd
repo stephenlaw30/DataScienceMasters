@@ -9,7 +9,7 @@ output: html_document
 x <- rnorm(100)
 y <- rnorm(100)
 
-# create pdf of plot
+# create and save pdf of plot
 pdf("Figure1_scatter.pdf")
 plot(x,y)
 dev.off() # signifies done plotting
@@ -29,6 +29,7 @@ contour(x,y,f)
 ```
 
 ```{r variations of contour plots}
+par(mfrow=c(1,2))
 plot.new()
 contour(x,y,f, nlevels = 45, add = T)
 
@@ -45,6 +46,7 @@ image(x,y,f2)
 
 Can also create 3D plots with `persp()`, via its arguments `theta`, `phi`, which control angles at which plot is viewed
 ```{r}
+par(mfrow=c(2,3))
 persp(x,y,f2)
 persp(x,y,f2,theta=30)
 persp(x,y,f2,theta=30,phi=20)
@@ -55,8 +57,9 @@ persp(x,y,f2,theta=30,phi=40)
 Here's some more plots
 ```{r, message=F, warning=F}
 library(ISLR)
-fix(Auto) # view data in another window as spreadsheet
+# fix(Auto) # view data in another window as spreadsheet
 
+par(mfrow=c(1,3))
 attach(Auto) # don't have to use '$' operator for accessing cols
 cylinders <- as.factor(cylinders)
 plot(cylinders, mpg, col="red", xlab="cylinders", ylab="mpg")
@@ -87,97 +90,107 @@ identify(horsepower,mpg,name)
 ### 2.4 Exercises
 ####Conceptual
 <ol>
-<li> For each of parts (a) through (d), indicate whether we'd generally expect the performance of a flexible statistical learning method to be better or worse than an inflexible method. Justify your answer.
-
-<ul>
-<li> **If the sample size n is extremely large, and the number of predictors p is small** = Expect a flexible learning method to be *better with a larger sample size*, as there would be *more data points* for it *to use in training* and it *will fit the data closer*. </li>
-
-<li> **If the number of predictors p is extremely large, and the number of observations n is small** We'd expect a flexible learning method to be *worse with a large amount of predictors*, as we'd tend to *overfit to the small number of observations* in *n*. </li>
-
-<li> **If the relationship between the predictors and response is highly non-linear.** = We'd expect a more flexible method to *better fit the non-linear true structure of f*, as we'd have *more degrees of freedom*. </li> 
-
-<li> **If the variance of the error terms,(*sigma_squared2 = Var(epsilon)*), is extremely high** = We'd expect a more flexible approach to *do worse*, as it would *tend to take into account the noise in the errors* that is *signaled via a higher variance* </li>
-</ul>
-
-<li> Explain whether each scenario is a classification or regression problem, and indicate whether we are most interested in inference or prediction. Finally, provide n and p.
-
-<ul>
-<li> **We collect a set of data on the top 500 firms in the US. For each firm we record profit, number of employees, industry and the CEO salary. We are interested in understanding which factors affect CEO salary** = This is a regression, and are more interested in inference </li>
-
-<li> **We are considering launching a new product and wish to know whether it will be a success or a failure. We collect data on 20 similar products that were previously launched. For each product we have recorded whether it was a success or failure, price charged for the product, marketing budget, competition price, and ten other variables.** = This is a classification, and we are interested in prediction. </li>
-
-<li> **We are interest in predicting the % change in the USD/Euro. Hence we collect weekly data for all of 2012. For each week we record the % change in the USD/Euro, the % change in the US market, the % change in the British market, and the % change in the German market** = This is a regression and we're interested in prediction </li>
-</ul>
-
+<li> For each of parts (a) through (d), indicate whether we'd generally expect the performance of a flexible statistical learning method to be better or worse than an inflexible method. Justify your answer.</li>
+  <ul>
+  <li> **If the sample size n is extremely large, and the number of predictors p is small** = Expect a flexible learning method to be *better with a larger sample size*, as there would be *more data points* for it *to use in training* and it *will fit the data closer*. </li>
+  <li> **If the number of predictors p is extremely large, and the number of observations n is small** We'd expect a flexible learning method to be *worse with a large amount of predictors*, as we'd tend to *overfit to the small number of observations* in *n*. </li>
+  <li> **If the relationship between the predictors and response is highly non-linear.** = We'd expect a more flexible method to *better fit the non-linear true structure of f*, as we'd have *more degrees of freedom*. </li> 
+  <li> **If the variance of the error terms,(*sigma_squared2 = Var(epsilon)*), is extremely high** = We'd expect a more flexible approach to *do worse*, as it would *tend to take into account the noise in the errors* that is *signaled via a higher variance* </li>
+  </ul>
+<li> Explain whether each scenario is a classification or regression problem, and indicate whether we are most interested in inference or prediction. Finally, provide n and p. </li>
+  <ul>
+  <li> **We collect a set of data on the top 500 firms in the US. For each firm we record profit, number of employees, industry and the CEO salary. We are interested in understanding which factors affect CEO salary** = This is a regression, and are more interested in inference </li>
+  <li> **We are considering launching a new product and wish to know whether it will be a success or a failure. We collect data on 20 similar products that were previously launched. For each product we have recorded whether it was a success or failure, price charged for the product, marketing budget, competition price, and ten other variables.** = This is a classification, and we are interested in prediction. </li>
+  <li> **We are interest in predicting the % change in the USD/Euro. Hence we collect weekly data for all of 2012. For each week we record the % change in the USD/Euro, the % change in the US market, the % change in the British market, and the % change in the German market** = This is a regression and we're interested in prediction </li>
+  </ul>
 <li> We now revisit the bias-variance decomposition.
-<ul>
-<li> Provide a sketch of typical (squared) bias, variance, training error, test error, and Bayes (or irreducible) error curves, on a single plot, as we go from less flexible statistical learning methods
-towards more flexible approaches. The x-axis should represented the amount of flexibility in the method, and the y-axis should represent the values for each curve. There should be five curves. Make sure to label each one </li>
+  <ul>
+  <li> Provide a sketch of typical (squared) bias, variance, training error, test error, and Bayes (or irreducible) error curves, on a single plot, as we go from less flexible statistical learning methods towards more flexible approaches. The x-axis should represented the amount of flexibility in the method, and the y-axis should represent the values for each curve. There should be five curves. Make sure to label each one </li>
 ```{r}
 plot.new()
 ```
-
-<li> **Explain why each of the five curves has the shape displayed in part (a)** </li>
+  <li> **Explain why each of the five curves has the shape displayed in part (a)** </li>
   <ul>
   <li> **Squared Bias** (error introduced by approximating a real-life problem) = decreases as flexibility increases b/c we're now less biased to our model </li>
   <li> **Variance** (amount by which *f^* would change if estimated w/ different training set) = increases as flexibility increases b/c we're now more sensitive to varieties of data (should not vary too much between training sets + high variance = changing any DP may cause *f^* to change considerably) </li>
+  <ul>
   <li> NOTE:  relative rate of change of bias + variance determines whether test MSE increases or decreases </li>
   <li> increase flexibility of a class of methods == bias tends to initially decrease faster than variance increases + consequently, expected test MSE declines. </li>
-  <li> However, at some point increasing flexibility has little impact on bias but starts to significantly increase
-  variance +  test MSE increases. </li>
+  <li> However, at some point increasing flexibility has little impact on bias but starts to significantly increase variance +  test MSE increases. </li>
+  </ul>
   <li> **Bayes/Irreducible Error, Var(Epsilon)** = horizontal dashed line representinge lowest achievable test MSE among all possible methods </li>
   <li> **Test Error** = initially decrease, hits minimum at best match of low variance + low bias, starts to increase again as we start to overfit (awlays a U-shape) </li>
   <li> **Training Error** = Decrease, plateau, start to decrease again as we overfit </li>
+  <ul>
   <li> always expect trainMSE < testMSE since statistical learning methods aim to reduce trainMSE </li>
+  </ul>
   <li> **overfitting** = large testMSE + low trainMSE resulting from a method finding patterns in noise of training set that are not present in true properties of the test set or the unknown `f` </li>
   </ul>
-</ul></ul>
-<li> You will now think of some real-life applications for statistical learning.
+</ul>
+<br>
 
-<ul><li> **Describe three real-life applications in which classification might be useful. Describe the response, as well as the predictors. Is the goal of each application inference or prediction? Explain your answer** 
+<li> You will now think of some real-life applications for statistical learning. </li>
   <ul>
-    <li> predicting churn or not with predictors = balance, account age, number of cards, credit limit, student status, etc. w/ goal of prediction </li>
-    <li> determing which factors affect churn probability with predictors = balance, account age, number of cards, credit limit, student status, etc. w/ goal of inference </li>
-    <li> predicting which factors affect playoff chances of a hockey team with predictors = wins, goals, shooting%, save%, shot chances, quality of competition, etc. w/ goal of inference </li>
-  </ul></li>
-  
-<li> **Describe three real-life applications in which regression might be useful. Describe the response, as well as the predictors. Is the goal of each application inference or prediction? Explain your answer.** </li>
+  <li> **Describe three real-life applications in which classification might be useful. Describe the response, as well as the predictors. Is the goal of each application inference or prediction? Explain your answer** </li>
   <ul>
-    <li> predicting future wins of a hockey team using predictors = wins, losses, corsi, goals, shooting%, save%, shot chances, quality of competition, etc. from past seasons w/ goal of prediction  </li>
-    <li> determing which factors affect wins of a hockey team using predictors = wins, losses, corsi, goals, shooting%, save%, shot chances, quality of competition, etc. from past seasons w/ goal of inference </li>
-    <li> predicting profit with predictors = number of produces, sales, costs, past profits, budgets, stores, dates, etc. w/ goal of prediction </li>
-  </ul></li>
+  <li> predicting churn or not with predictors = balance, account age, number of cards, credit limit, student status, etc. w/ goal of prediction </li>
+  <li> determing which factors affect churn probability with predictors = balance, account age, number of cards, credit limit, student status, etc. w/ goal of inference </li>
+  <li> predicting which factors affect playoff chances of a hockey team with predictors = wins, goals, shooting%, save%, shot chances, quality of competition, etc. w/ goal of inference </li>
+  </ul>
+  <li> **Describe three real-life applications in which regression might be useful. Describe the response, as well as the predictors. Is the goal of each application inference or prediction? Explain your answer.** </li>
+  <ul>
+  <li> predicting future wins of a hockey team using predictors = wins, losses, corsi, goals, shooting%, save%, shot chances, quality of competition, etc. from past seasons w/ goal of prediction  </li>
+  <li> determing which factors affect wins of a hockey team using predictors = wins, losses, corsi, goals, shooting%, save%, shot chances, quality of competition, etc. from past seasons w/ goal of inference </li>
+  <li> predicting profit with predictors = number of produces, sales, costs, past profits, budgets, stores, dates, etc. w/ goal of prediction </li>
+  </ul>
 <li> **Describe three real-life applications in which cluster analysis might be useful.** </li>
   <ul>
-    <li> market-basket analyis/customer segmentation for product recommendations </li>
-    <li> determining different groups of customers for a different styles of products from a company </li>
-    <li> Finding similar pictures/videos of different subject matters (dogs, cars, trees, cats, etc.) </li>
+  <li> market-basket analyis/customer segmentation for product recommendations </li>
+  <li> determining different groups of customers for a different styles of products from a company </li>
+  <li> Finding similar pictures/videos of different subject matters (dogs, cars, trees, cats, etc.) </li>
   </ul>
-</li>
-</ul>
+  </ul>
 
+<br>
 <li> **What are the advantages and disadvantages of a very flexible (vs. a less flexible) approach for regression or classification? Under what circumstances might a more flexible approach be preferred to a less flexible approach? When might a less flexible approach be preferred?**</li>
-  * advantages of very flexible vs less flexible = decreased bias, possible better fit to non-linear models, preferable for prediction vs. interpretability (vs. less flexible when caring about inference)
-    * linear models = relatively simple and interpretable inference, but may not yield as accurate predictions as some         other approaches. 
-    *  highly non-linear approaches can potentially provide quite accurate predictions for Y but @ expense of a less          interpretable model
-  * disadvantages of very flexible vs less flexible = increased variance bias, possible worse fit to linear models, requires greater number of data points, models noise (overfit)
+  <ul>
+  <li> advantages of very flexible vs less flexible = decreased bias, possible better fit to non-linear models, preferable for prediction vs. interpretability (vs. less flexible when caring about inference) </li>
+  <ul>
+  <li> linear models = relatively simple + interpretable inference, but may not yield as accurate predictions as some other approaches </li>
+  <li> highly non-linear approaches can potentially provide quite accurate predictions for Y but @ expense of a less          interpretable model </li>
+  </ul>
+  <li> disadvantages of very flexible vs less flexible = increased variance bias, possible worse fit to linear models, requires greater number of data points, models noise (overfit) </li>
+  </ul>
   
+<br>
 <li> **Describe the differences between a parametric and a non-parametric statistical learning approach. What are the advantages of a parametric approach to regression or classification (as opposed to a nonparametric approach)? What are its disadvantages?** </li>
-  * **Parametric** = makes assumptions about the underlying distribution of the data + reduces problem of estimating `f`      down to one of estimating a set of parameters
-    * two-step model-based approach = 1) make assumption about functional form/shape of `f` (i.e. `f` is linear) +          select model to estimate paramters 2) fit the model to estimate chosen model's parameters
-      * assume linear relationship = only need to estimate coefficients of predictors
-    *  generally much easier to estimate a set of parameters than to fit an entirely arbitrary function `f`
-    * potential disadvantage = model we choose will usually not match true unknown form of `f`. 
-      * If too far from true `f`, estimate will be poor (can try to address this by choosing flexible models that can         fit many different possible functional forms for f, but in general, more flexible models require estimating
-        greater number of parameters + these more complex models can lead overfitting (follow errors, or noise, too
-        closely) 
-  * **Non-Parametric** = makes no/little assumptions about the underlying distribution of the data/do not make explicit assumptions about functional form of `f`
-    * Instead seek an estimate of f that gets as close to the DP' as possible w/out being too rough/wiggly
-    * advantage: by avoiding assumptions of functional forms for `f` = have potential to accurately fit wider range of
-      possible shapes for f
-    * a major disadvantage =  do not reduce problem of estimating `f` to a small # of parameters so a very large # of
-        observations (far more typically needed for a parametric approach) is required to obtain accurate `f` estimate
-    * can still overfit
+  <ul> 
+  <li> **Parametric** = makes assumptions about the underlying distribution of the data + reduces problem of estimating `f` down to one of estimating a set of parameters </li>
+  <ul>
+  <li> two-step model-based approach: </li>
+  <ol>
+  <li> make assumption about functional form/shape of `f` (i.e. `f` is linear) </li>
+  <li> select model to estimate paramters </li>
+  <li> fit the model to estimate chosen model's parameters </li>
+  <ul>
+  <li> assume linear relationship = only need to estimate coefficients of predictors </li>
+  </ul>
+  </ol>
+  <li> generally much easier to estimate a set of parameters than to fit an entirely arbitrary function `f` </li>
+  <li> potential disadvantage = model we choose will usually not match true unknown form of `f`.</li>
+  <ul>
+  <li> If too far from true `f`, estimate will be poor (can try to address this by choosing flexible models that can fit many different possible functional forms for f, but in general, more flexible models require estimating greater number of parameters + these more complex models can lead overfitting (follow errors, or noise, too closely) </li>
+  </ul>
+  </ul>
+  <li> **Non-Parametric** = makes no/little assumptions about the underlying distribution of the data/do not make explicit assumptions about functional form of `f` </li>
+  <ul>
+  <li> Instead seek an estimate of f that gets as close to the DP' as possible w/out being too rough/wiggly </li>
+  <li> advantage: by avoiding assumptions of functional forms for `f` = have potential to accurately fit wider range of possible shapes for f </li>
+  <li> a major disadvantage =  do not reduce problem of estimating `f` to a small # of parameters so a very large # of observations (far more typically needed for a parametric approach) is required to obtain accurate `f` estimate </li>
+  <li> can still overfit </li>
+  </ul>
+  </ul>
+<br>
 <li> **The table below provides a training data set containing six observations, three predictors, and one qualitative response variable.** </li>
 ```{r}
 x1 <- c(0,-2,0,0,-1,1)
@@ -186,7 +199,8 @@ x3 <- c(0,0,3,2,1,1)
 Y <- c("R","R","R","G","G","R")
 (df <- data.frame(x1,x2,x3,Y))
 ```
-<li>**Suppose we wish to use this data set to make a prediction for Y when X1 = X2 = X3 = 0 using K-nearest neighbors.** </li>
+  <ul>
+  <li>**Suppose we wish to use this data set to make a prediction for Y when X1 = X2 = X3 = 0 using K-nearest neighbors.** </li>
   <ul>
   <li> **Compute the Euclidean distance between each observation and the test point, X1 = X2 = X3 = 0.** </li>
 ```{r}
@@ -204,49 +218,50 @@ euc.dist(df[6,1],df[6,2],df[6,3])
   <li> **What is our prediction with K = 3? Why?** = K=3 gives a prediction of `R`, as the lowest Euclidean distances come from `G`, `R`, `R`, so the majority of neighbors are in the class `R`, and that is the class to which we assign the test point. </li>
   <li> **If the Bayes decision boundary in this problem is highly nonlinear, then would we expect the best value for K to be large or small? Why?** = We'd expect a lower K since this provides a more flexible decision Boundary, since as K grows the decision boundary becomes less flexible/more linear (level of flexibility = inversely proportional to K in KNN, + to fit non-linear decision boundaries, we need a more-flexible approach)  </li>
   </ul>
+  </ul>
+</ol>
 
 #### Applied
-8. This exercise relates to the `College` data set from the `ISLR` package, which contains a # of variables for 777 different universities and colleges in the US. The variables are:
-<ul>
-<li> **Private** : Public/private indicator </li>
-<li> **Apps** : Number of applications received </li>
-<li> **Accept** : Number of applicants accepted </li>
-<li> **Enroll** : Number of new students enrolled </li>
-<li> **Top10perc** : New students from top 10 % of high school class </li>
-<li> **Top25perc** : New students from top 25 % of high school class </li>
-<li> **F.Undergrad** : Number of full-time undergraduates </li>
-<li> **P.Undergrad** : Number of part-time undergraduates </li>
-<li> **Outstate** : Out-of-state tuition </li>
-<li> **Room.Board** : Room and board costs </li>
-<li> **Books** : Estimated book costs </li>
-<li> **Personal** : Estimated personal spending </li>
-<li> **PhD** : Percent of faculty with Ph.D's </li>
-<li> **Terminal** : Percent of faculty with terminal degree </li>
-<li> **S.F.Ratio** : Student/faculty ratio </li>
-<li> **perc.alumni** : Percent of alumni who donate </li>
-<li> **Expend** : Instructional expenditure per student </li>
-<li> **Grad.Rate** : Graduation rate </li>
-</ul>
-
+<ol>
+<li> This exercise relates to the `College` data set from the `ISLR` package, which contains a # of variables for 777 different universities and colleges in the US. The variables are: </li>
+  <ul>
+  <li> **Private** : Public/private indicator </li>
+  <li> **Apps** : Number of applications received </li>
+  <li> **Accept** : Number of applicants accepted </li>
+  <li> **Enroll** : Number of new students enrolled </li>
+  <li> **Top10perc** : New students from top 10 % of high school class </li>
+  <li> **Top25perc** : New students from top 25 % of high school class </li>
+  <li> **F.Undergrad** : Number of full-time undergraduates </li>
+  <li> **P.Undergrad** : Number of part-time undergraduates </li>
+  <li> **Outstate** : Out-of-state tuition </li>
+  <li> **Room.Board** : Room and board costs </li>
+  <li> **Books** : Estimated book costs </li>
+  <li> **Personal** : Estimated personal spending </li>
+  <li> **PhD** : Percent of faculty with Ph.D's </li>
+  <li> **Terminal** : Percent of faculty with terminal degree </li>
+  <li> **S.F.Ratio** : Student/faculty ratio </li>
+  <li> **perc.alumni** : Percent of alumni who donate </li>
+  <li> **Expend** : Instructional expenditure per student </li>
+  <li> **Grad.Rate** : Graduation rate </li>
 ```{r}
 head(College) # from ISLR package
 ```
 
-Notice the 1st column = name of each university. We don't really want R to treat this as data. However, it may be handy to have these names for later. Try the following commands:
+  <li> Notice the 1st column = name of each university. We don't really want R to treat this as data. However, it may be handy to have these names for later. Try the following commands: </li>
 ```{r}
 # rownames(College) <- College [,1] # use 1st col as rownames
 #^^^^^^ALREADY DONE VIA PACKAGE ISLR
 head(College)
 ```
-R has given each row a name corresponding to the appropriate university. R will not try to perform calculations on the row names. However, we still need to eliminate the first column in the data where the names are stored
+<li>R has given each row a name corresponding to the appropriate university. R will not try to perform calculations on the row names. However, we still need to eliminate the first column in the data where the names are stored </li>
 ```{r}
 #college =college [,-1]
 #head(college)
 ```
-Now 1st data column should be `Private`
+  <li> Now 1st data column should be `Private` </li>
 
-Use `summary()` to produce a numerical summary of the variables in the data set, `pairs()` to produce a scatterplot matrix of the 1st 10 ten variables of the data, `plot()` to produce side-by-side boxplots of `Outstate` versus `Private` + create a new qualitative variable, `Elite`, by binning `Top10perc` + divide universities into 2 groups based on whether or not the proportion of students coming from the top 10 % of their high school classes exceeds 50%.
-```{r}
+  <li> Use `summary()` to produce a numerical summary of the variables in the data set, `pairs()` to produce a scatterplot matrix of the 1st 10 ten variables of the data, `plot()` to produce side-by-side boxplots of `Outstate` versus `Private` + create a new qualitative variable, `Elite`, by binning `Top10perc` + divide universities into 2 groups based on whether or not the proportion of students coming from the top 10 % of their high school classes exceeds 50%. </li>
+```{r, warning=F,message=F}
 library(tidyverse)
 
 pairs(College[,1:10])
@@ -259,13 +274,14 @@ summary(College)
 #tail(College)
 ```
 
-Use `summary()` function to see how many elite universities there are + use `plot()` to produce side-by-side boxplots of Outstate versus Elite.
+  <li> Use `summary()` function to see how many elite universities there are + use `plot()` to produce side-by-side boxplots of Outstate versus Elite. </li>
 ```{r}
 summary(College$Elite)
 plot(Outstate ~ Elite, data = College, col=c("Red","Blue"),
      main="Out-of-State Tuition by Elite Schools")
 ```
-Use `hist()` to produce some histograms with differing numbers of bins for a few of the quantitative variables. You may find the command `par(mfrow=c(2,2))` useful (divides print window into 4 regions for 4 simultaneous plots)
+
+  <li> Use `hist()` to produce some histograms with differing numbers of bins for a few of the quantitative variables. You may find the command `par(mfrow=c(2,2))` useful (divides print window into 4 regions for 4 simultaneous plots) </li>
 ```{r}
 par(mfrow=c(2,2))
 hist(College$Books, col="red",main="Distribution of Estimated Books Cost",
@@ -278,7 +294,7 @@ hist(College$Grad.Rate, col="brown",main="Distribution of Graduation Rate",
      xlab="Graduation Rate (%)", xlim = c(0,100))
 ```
 
-Continue exploring the data, and provide a brief summary of what you discover.
+  <li> Continue exploring the data, and provide a brief summary of what you discover. </li>
 ```{r}
 par(mfrow=c(2,2))
 plot(PhD ~ Elite, data = College, col=c("Red","Blue"),
@@ -289,13 +305,15 @@ plot(Accept/Apps ~ Elite, data = College, col=c("Red","Blue"),
 plot(Accept/Apps ~ Private, data = College, col=c("Red","Blue"),
      main="Acceptance Rate by Private Status")
 ```
-
-9. This exercise involves the `Auto` data set studied in the lab. Make sure that the missing values have been removed from the data.
+ </ul>
+<li> This exercise involves the `Auto` data set studied in the lab. Make sure that the missing values have been removed from the data. </li>
 ```{r}
 summary(Auto)
 ```
-(a) Which of the predictors are quantitative, and which are qualitative? --> quant = {mpg,cylinders,displacement,horsepower,acceleration}, qual = {year,origin,name}?
-(b) What is the range, mean + standard deviation of each quantitative predictor? You can answer
+  
+  <ul>
+  <il> **Which of the predictors are quantitative, and which are qualitative?** --> quant = {mpg,cylinders,displacement,horsepower,acceleration}, qual = {year,origin,name}? </li>
+  <li> What is the range, mean + standard deviation of each quantitative predictor? </li>
 ```{r}
 quant_range <- map(Auto[,1:6],range) # returns list
 quant_mean <- map(Auto[,1:6],mean) # returns list
@@ -305,7 +323,7 @@ quant_mean
 quant_sd
 ```
 
-(d) Now remove the 10th through 85th observations. What is the range, mean, and standard deviation of each predictor in the subset of the data that remains?
+  <li> Now remove the 10th through 85th observations. What is the range, mean, and standard deviation of each predictor in the subset of the data that remains? </li>
 ```{r}
 quant_range <- map(Auto[-c(11:85),1:6],range) # returns list
 quant_mean <- map(Auto[-c(11:85),1:6],mean) # returns list
@@ -314,96 +332,77 @@ quant_range
 quant_mean
 quant_sd
 ```
-(e) Using the full data set, investigate the predictors graphically, using scatterplots or other tools of your choice. Create some plots highlighting the relationships among the predictors. Comment on your findings.
+  
+  <li> Using the full data set, investigate the predictors graphically, using scatterplots or other tools of your choice. Create some plots highlighting the relationships among the predictors. Comment on your findings. </li>
 ```{r}
 pairs(Auto[,1:6])
-
 ```
-(f) Suppose that we wish to predict gas mileage (mpg) on the basis of the other variables. Do your plots suggest that any of the other variables might be useful in predicting mpg? Justify your answer.
-* all, but acceleration is pretty weak relative to others
+  
+  <li> Suppose that we wish to predict gas mileage (mpg) on the basis of the other variables. Do your plots suggest that any of the other variables might be useful in predicting mpg? Justify your answer == all, but acceleration is pretty weak relative to others </li>
 ```{r}
 cor(Auto$mpg,Auto$acceleration)
 cor(Auto[,1:6])
 ```
-
-10. This exercise involves the Boston housing data set, part of the MASS library in R. How many rows are in this data set? How many columns? What do the rows and columns represent?
+  </ul>
+  
+<li> This exercise involves the Boston housing data set, part of the MASS library in R. How many rows are in this data set? How many columns? What do the rows and columns represent? </li>
 ```{r}
 library(MASS)
 glimpse(Boston) # Housing Values in Suburbs of Boston
 # ?Boston # = read about dataset
 ```
-**Each row = suburb/town in Boston with 506 of them (rows), with predictors/variables of per capita crime rate, proportions of residential land zoned for lots > 25k sqft., blacks per town, non-retail business acres per town, + owner-occupied units build since '40, NO2 concentration, avg # rooms per dwelling, weighted mean distancse to 5 Boston employment centers, index of radial highway accessbility, property-tax rate pe r$10k, pupil/teach ratio, median owner-occupied home values (\$1k's), and a dummy variable for if tract bounds Charles River**
+  <ul>
+  <li> Each row = suburb/town in Boston with 506 of them (rows), with predictors/variables of per capita crime rate, proportions of residential land zoned for lots > 25k sqft., blacks per town, non-retail business acres per town, + owner-occupied units build since '40, NO2 concentration, avg # rooms per dwelling, weighted mean distancse to 5 Boston employment centers, index of radial highway accessbility, property-tax rate pe r$10k, pupil/teach ratio, median owner-occupied home values (\$1k's), and a dummy variable for if tract bounds Charles River </li>
+  </ul>
 
-(b) Make some pairwise scatterplots of the predictors (columns) in this data set. Describe your findings.
+<li> Make some pairwise scatterplots of the predictors (columns) in this data set. Describe your findings. </li>
 ```{r}
 pairs(Boston[,-c(4,9)])
 ```
-(c) Are any of the predictors associated with per capita crime rate? If so, explain the relationship.
+  <ul>
+  <li> Are any of the predictors associated with per capita crime rate? If so, explain the relationship. </li>
 ```{r}
 mtx <- cor(Boston[,-c(4,9)])
 mtx[,1]
 ```
-(d) Do any of the suburbs of Boston appear to have particularly
-high crime rates? Tax rates? Pupil-teacher ratios? Comment on
-the range of each predictor.
-(e) How many of the suburbs in this data set bound the Charles
-river?
-2.4 Exercises 57
-(f) What is the median pupil-teacher ratio among the towns in this
-data set?
-(g) Which suburb of Boston has lowest median value of owneroccupied
-homes? What are the values of the other predictors
-for that suburb, and how do those values compare to the overall
-ranges for those predictors? Comment on your findings.
-(h) In this data set, how many of the suburbs average more than
-seven rooms per dwelling? More than eight rooms per dwelling?
-Comment on the suburbs that average more than eight rooms
-per dwelling
-
-
-
-develop an accurate modelthat can be used to predict sales on the basis of the different 
-##    channels' advertising budgets.'
-
-ads <- read.csv('Advertising.csv')
-head(ads)
-
-library(dplyr)
+  Appears that `indus`,`nox`,`tax`, and `lstat` have a moderately positive correlations with `crim`. `dis`, `black`, `medv`, and `zn` have negative correlations, to note.
+  </ul>
+  
+<li> Do any of the suburbs of Boston appear to have particularly high crime rates? Tax rates? Pupil-teacher ratios? Comment on the range of each predictor. </li>
+```{r}
 library(ggplot2)
+par(mfrow=c(1,3))
+boxplot(Boston$crim, ylab="Crime Rate")
+boxplot(Boston$tax, ylab="Tax rate")
+boxplot(Boston$ptratio, ylab="Pupil-teacher ratio")
+```  
+  Looks like a lot of outliers for crime rate, none for Tax rate, some quite low values for Pupil-Teacher ratio
+  
+<li> How many of the suburbs in this data set bound the Charles river? </li>
+```{r}
+```
 
-glimpse(ads)
-
-'Quantitative response variable Y = Sales with 3 predictors (channels) + we assume some relationship written as
-  Y = f(X) + E where f(X) is a function of the values of the channels and E = epsilon/error w/ mean = 0 and is 
-  independent of X
-
-We are estimating Y based on given X values/points. The errors in our predictions vs. actual values should have
-   a mean = 0.
-
-Statistical learning refers to a set of approaches for estimating f.'
-
-tv_sales <- ggplot(ads) + geom_point(aes(TV,Sales)) # most condensed plot
-nwsppr_sales <- ggplot(ads) + geom_point(aes(Newspaper,Sales)) # most scattered plot
-radio_sales <- ggplot(ads) + geom_point(aes(Radio,Sales))
-
-'2 main reasons to estimate f:
-  - prediction
-    - may have x values readily available, but cannot easily obtain y values
-    - since E averages to 0, we can predict with w/ y_hat = f_hat(x)
-    - f_hat is usually a black box, provided it yields accurate predictions for y
-    - accuracy of y_hat in relation to y depends on REDUCIBLE ERROR and IRREDUCIBLE ERROR
-    - f_hat will generally not be a perfect estimate of f, and the error in this estimate 
-        is REDUCIBLE
-    - We can potentially improve the accuracy of f_hat via the most appropriate statisical
-        learning technique
-    - Even if we found the "perfect" estimate, we would still have error because Y is also
-         a function of E, which cannot be predicted with X, by definition
-    - Therefore variability in E also affects prediction accuracy, and is the IRREDUCIBLE 
-        error
-    - E may contain unmeasures variables useful in predicting Y, and since we do not 
-      measure them, we cannot use them in f to predict Y
-    - E may also carry unmeasurable variation (variation in drug manufacturing or in how
-         a patient is feeling may vary the risk of an adverse reaction)
-    - E(Y - Y_hat)^2
-  - inference
-'
+<li> What is the median pupil-teacher ratio among the towns in this data set? </li>
+```{r}
+median(Boston$ptratio)
+hist(Boston$ptratio) # makes sense since skewed
+```
+  
+<li> Which suburb of Boston has lowest median value of owner-occupied homes? What are the values of the other predictors for that suburb, and how do those values compare to the overall ranges for those predictors? Comment on your findings. </li>
+```{r}
+Boston[which.min(Boston$age),]
+summary(Boston[,c(1:3,5:8,10:14)])
+```
+  
+<li> In this data set, how many of the suburbs average more than seven rooms per dwelling? More than eight rooms per dwelling? Comment on the suburbs that average more than eight rooms per dwelling </li>
+```{r}
+Boston %>%
+  filter(rm > 7) %>%
+  summarise(count = n())
+Boston %>%
+  filter(rm > 8) %>%
+  summarise(count = n())
+Boston %>%
+  filter(rm > 8) %>%
+  summary()
+```
