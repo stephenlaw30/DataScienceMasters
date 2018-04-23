@@ -57,13 +57,21 @@ confint(simpleLM)
     * Key point = A PI tells you *about the distribution of values*, NOT the uncertainty in determining the true population parameter
     * PI's must account for both the **uncertainty** in knowing the value of the true population parameter, plus **scatter/noise** So
     * **A PI is always wider than a confidence interval (less confident)**
+    
+  * CI's give a range for `E[y???x]`, PI's give a range *for `y` itself*.
+  * Naturally, best guess for y = `E[y???x]`, so both intervals are centered around the same value, `x??^`, but with *different standard errors*
+  * We *guess** the expected value of `E[y???x]` more precisely than we estimate `y` itself** so **estimating y requires including the variance that comes from the true error term**
+    * Ex: Could get perfect estimates of ?? (coefficients), so an estimate of `E[y???x]` would be perfect, but we still wouldn't be sure what `y` itself was b/c *there is a true error term we need to consider (irreducible)*. 
+    * Our confidence "interval" would just be a single DP, as we estimate E[y???x] exactly right, but our PI would be wider b/c we take the true error term into account.
 ```{r}
 # create a column (vector) of 5,10,15 as new lstat values to use to predict medv's valie + CI with the model
+print("CI")
 predict(object = simpleLM, newdata = data.frame(lstat=c(5,10,15)), interval="confidence")
+print("PI")
 predict(object = simpleLM, newdata = data.frame(lstat=c(5,10,15)), interval="prediction")
 ```
 
-95% CI associated with a `lstat` value = 10 is `(24.47, 25.63)`, and the 95 % **prediction interval** = `(12.828, 37.28)`. As expected, the *CI and PI's are centered around the same point* = a predicted value of `25.05` for `medv` when `lstat` = 10), but
+95% CI associated with a `lstat` value = 10 is `(24.47, 25.63)`, and the 95 % **prediction interval** = `(12.828, 37.28)`. As expected, the *CI and PI's are centered around the same point* = a predicted value of `25.05` for `medv` when `lstat` = 10, but
 the latter are substantially wider.
 
 Now plot `medv` + `lstat` along w/ the **least squares regression line** using `plot()` and `abline()`
@@ -72,7 +80,7 @@ plot(Boston$lstat,Boston$medv)
 abline(simpleLM, col="red", lwd=3)
 ```
 
-There is some evidence for **non-linearity** in this relationship.
+There is some evidence for **non-linearity** in this relationship, as seen by the upper-left area of the plot
 
 `abline()` can be used to draw *any* line, not just the least squares regression line. To draw a line with intercept `a` and slope `b`, type `abline(a,b)`. 
 
@@ -87,205 +95,152 @@ plot(Boston$lstat, Boston$medv, pch=20) # change DP shape
 plot(Boston$lstat, Boston$medv, pch="+") # change DP shape
 plot(1:20,1:20,pch =1:20)
 ```
-Next we examine some diagnostic plots, several of which were discussed
-in Section 3.3.3. Four diagnostic plots are automatically produced by applying
-the plot() function directly to the output from lm(). In general, this
-command will produce one plot at a time, and hitting Enter will generate
-the next plot. However, it is often convenient to view all four plots together.
-We can achieve this by using the par() function, which tells R to split the par() display screen into separate panels so that multiple plots can be viewed simultaneously.
-For example, par(mfrow=c(2,2)) divides the plotting region
-into a 2 × 2 grid of panels.
-> par
-3.6 Lab: Linear Regression 113
-> plot(predict (lm.fit), residuals (lm.fit))
-> plot(predict (lm.fit), rstudent (lm.fit))
-On the basis of the residual plots, there is some evidence of non-linearity.
-Leverage statistics can be computed for any number of predictors using the
-hatvalues() function. hatvalues()
-> plot(hatvalues (lm.fit))
-> which.max(hatvalues (lm.fit))
-375
-The which.max() function identifies the index of the largest element of a which.max() vector. In this case, it tells us which observation has the largest leverage
-statistic.
-3.6.3 Multiple Linear Regression
-In order to fit a multiple linear regression model using least squares, we
-again use the lm() function. The syntax lm(y???x1+x2+x3) is used to fit a
-model with three predictors, x1, x2, and x3. The summary() function now
-outputs the regression coefficients for all the predictors.
-> lm.fit=lm(medv???lstat+age ,data=Boston )
-> summary (lm.fit)
-Call:
-lm(formula = medv ??? lstat + age , data = Boston )
-Residuals :
-Min 1Q Median 3Q Max
--15.98 -3.98 -1.28 1.97 23.16
-Coefficients:
-Estimate Std. Error t value Pr(>|t|)
-(Intercept ) 33.2228 0.7308 45.46 <2e-16 ***
-lstat -1.0321 0.0482 -21.42 <2e-16 ***
-age 0.0345 0.0122 2.83 0.0049 **
----
-Signif. codes: 0 *** 0.001 ** 0.01 * 0.05 . 0.1 1
-Residual standard error: 6.17 on 503 degrees of freedom
-Multiple R-squared: 0.551, Adjusted R-squared: 0.549
-F-statistic : 309 on 2 and 503 DF, p-value: <2e-16
-The Boston data set contains 13 variables, and so it would be cumbersome
-to have to type all of these in order to perform a regression using all of the
-predictors. Instead, we can use the following short-hand:
-> lm.fit=lm(medv???.,data=Boston)
-> summary (lm.fit)
-Call:
-lm(formula = medv ??? ., data = Boston)
-114 3. Linear Regression
-Residuals :
-Min 1Q Median 3Q Max
--15.594 -2.730 -0.518 1.777 26.199
-Coefficients:
-Estimate Std. Error t value Pr(>|t|)
-(Intercept ) 3.646e+01 5.103e+00 7.144 3.28e-12 ***
-crim -1.080e-01 3.286e-02 -3.287 0.001087 **
-zn 4.642e-02 1.373e-02 3.382 0.000778 ***
-indus 2.056e-02 6.150e-02 0.334 0.738288
-chas 2.687e+00 8.616e-01 3.118 0.001925 **
-nox -1.777e+01 3.820e+00 -4.651 4.25e-06 ***
-rm 3.810e+00 4.179e-01 9.116 < 2e-16 ***
-age 6.922e-04 1.321e-02 0.052 0.958229
-dis -1.476e+00 1.995e-01 -7.398 6.01e-13 ***
-rad 3.060e-01 6.635e-02 4.613 5.07e-06 ***
-tax -1.233e-02 3.761e-03 -3.280 0.001112 **
-ptratio -9.527e-01 1.308e-01 -7.283 1.31e-12 ***
-black 9.312e-03 2.686e-03 3.467 0.000573 ***
-lstat -5.248e-01 5.072e-02 -10.347 < 2e-16 ***
----
-Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-Residual standard error: 4.745 on 492 degrees of freedom
-Multiple R-Squared : 0.7406, Adjusted R-squared : 0.7338
-F-statistic : 108.1 on 13 and 492 DF, p-value: < 2.2e-16
-We can access the individual components of a summary object by name
-(type ?summary.lm to see what is available). Hence summary(lm.fit)$r.sq
-gives us the R2, and summary(lm.fit)$sigma gives us the RSE. The vif() vif() function, part of the car package, can be used to compute variance inflation
-factors. Most VIF's are low to moderate for this data. The car package is
-not part of the base R installation so it must be downloaded the first time
-you use it via the install.packages option in R.
-> library (car)
-> vif(lm.fit)
-crim zn indus chas nox rm age
-1.79 2.30 3.99 1.07 4.39 1.93 3.10
-dis rad tax ptratio black lstat
-3.96 7.48 9.01 1.80 1.35 2.94
-What if we would like to perform a regression using all of the variables but
-one? For example, in the above regression output, age has a high p-value.
-So we may wish to run a regression excluding this predictor. The following
-syntax results in a regression using all predictors except age.
-> lm.fit1=lm(medv???.-age ,data=Boston )
-> summary (lm.fit1)
-...
-Alternatively, the update() function can be used. update()
-3.6 Lab: Linear Regression 115
-> lm.fit1=update(lm.fit , ???.-age)
-3.6.4 Interaction Terms
-It is easy to include interaction terms in a linear model using the lm() function.
-The syntax lstat:black tells R to include an interaction term between
-lstat and black. The syntax lstat*age simultaneously includes lstat, age,
-and the interaction term lstat×age as predictors; it is a shorthand for
-lstat+age+lstat:age.
-> summary (lm(medv???lstat*age ,data=Boston))
-Call:
-lm(formula = medv ??? lstat * age , data = Boston )
-Residuals :
-Min 1Q Median 3Q Max
--15.81 -4.04 -1.33 2.08 27.55
-Coefficients:
-Estimate Std. Error t value Pr(>|t|)
-(Intercept ) 36.088536 1.469835 24.55 < 2e-16 ***
-lstat -1.392117 0.167456 -8.31 8.8e-16 ***
-age -0.000721 0.019879 -0.04 0.971
-lstat:age 0.004156 0.001852 2.24 0.025 *
----
-Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-Residual standard error: 6.15 on 502 degrees of freedom
-Multiple R-squared: 0.556, Adjusted R-squared: 0.553
-F-statistic : 209 on 3 and 502 DF, p-value: <2e-16
-3.6.5 Non-linear Transformations of the Predictors
-The lm() function can also accommodate non-linear transformations of the
-predictors. For instance, given a predictor X, we can create a predictor X2
-using I(X^2). The function I() is needed since the ^ has a special meaning I() in a formula; wrapping as we do allows the standard usage in R, which is
-to raise X to the power 2. We now perform a regression of medv onto lstat
-and lstat2.
-> lm.fit2=lm(medv???lstat+I(lstat^2))
-> summary (lm.fit2)
-Call:
-lm(formula = medv ??? lstat + I(lstat ^2))
-Residuals :
-Min 1Q Median 3Q Max
--15.28 -3.83 -0.53 2.31 25.41
-116 3. Linear Regression
-Coefficients:
-Estimate Std. Error t value Pr(>|t|)
-(Intercept ) 42.86201 0.87208 49.1 <2e-16 ***
-lstat -2.33282 0.12380 -18.8 <2e-16 ***
-I(lstat ^2) 0.04355 0.00375 11.6 <2e-16 ***
----
-Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-Residual standard error: 5.52 on 503 degrees of freedom
-Multiple R-squared: 0.641, Adjusted R-squared: 0.639
-F-statistic : 449 on 2 and 503 DF, p-value: <2e-16
-The near-zero p-value associated with the quadratic term suggests that
-it leads to an improved model. We use the anova() function to further anova() quantify the extent to which the quadratic fit is superior to the linear fit.
-> lm.fit=lm(medv???lstat)
-> anova(lm.fit ,lm.fit2)
-Analysis of Variance Table
-Model 1: medv ??? lstat
-Model 2: medv ??? lstat + I(lstat^2)
-Res.Df RSS Df Sum of Sq F Pr(>F)
-1 504 19472
-2 503 15347 1 4125 135 <2e-16 ***
----
-Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-Here Model 1 represents the linear submodel containing only one predictor,
-lstat, while Model 2 corresponds to the larger quadratic model that has two
-predictors, lstat and lstat2. The anova() function performs a hypothesis
-test comparing the two models. The null hypothesis is that the two models
-fit the data equally well, and the alternative hypothesis is that the full
-model is superior. Here the F-statistic is 135 and the associated p-value is
-virtually zero. This provides very clear evidence that the model containing
-the predictors lstat and lstat2 is far superior to the model that only
-contains the predictor lstat. This is not surprising, since earlier we saw
-evidence for non-linearity in the relationship between medv and lstat. If we
-type
-> par(mfrow=c(2,2))
-> plot(lm.fit2)
-then w
-3.6 Lab: Linear Regression 117
-> lm.fit5=lm(medv???poly(lstat ,5))
-> summary (lm.fit5)
-Call:
-lm(formula = medv ??? poly(lstat , 5))
-Residuals :
-Min 1Q Median 3Q Max
--13.543 -3.104 -0.705 2.084 27.115
-Coefficients:
-Estimate Std. Error t value Pr(>|t|)
-(Intercept ) 22.533 0.232 97.20 < 2e-16 ***
-poly(lstat , 5)1 -152.460 5.215 -29.24 < 2e-16 ***
-poly(lstat , 5)2 64.227 5.215 12.32 < 2e-16 ***
-poly(lstat , 5)3 -27.051 5.215 -5.19 3.1e-07 ***
-poly(lstat , 5)4 25.452 5.215 4.88 1.4e-06 ***
-poly(lstat , 5)5 -19.252 5.215 -3.69 0.00025 ***
----
-Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-Residual standard error: 5.21 on 500 degrees of freedom
-Multiple R-squared: 0.682, Adjusted R-squared: 0.679
-F-statistic : 214 on 5 and 500 DF, p-value: <2e-16
-This suggests that including additional polynomial terms, up to fifth order,
-leads to an improvement in the model fit! However, further investigation of
-the data reveals that no polynomial terms beyond fifth order have signifi-
-cant p-values in a regression fit.
-Of course, we are in no way restricted to using polynomial transformations
-of the predictors. Here we try a log transformation.
-> summary (lm(medv???log(rm),data=Boston))
-...
-3.6.6 Qualitative Predictors
+
+Next we examine some **diagnostic plots**. 4 are automatically produced by applying `plot()` directly to the output from a linear model.
+```{r}
+par(mfrow=c(2,2)) # #see all plots together
+plot(simpleLM) # residuals v fitted, QQ, Scale-Location, residuals v leverage
+```
+
+There looks to be a curving pattern as we move down the x-axis to the right,almost like a fish hook, indicating non-linearity between `lstat` and `medv` such that our residuals are not **identically and independently distributed (IID)**
+
+**Normal Q-Q plot** = empirical quantiles vs. theoretical Standard Normal quantiles. For our model, our fitted quantiles are "too large", indicating a slight-right skew.
+
+  * quantiles from a N(??,??2) population should be linearly related to Standard Normal quantiles
+    * Let xp = pth quantile from a N(??,??2), then probability of *non-standard normal* X being below a real value x is P(X <= x) = p, so clearly, for the *standardized* normal Z, P(Z <= (xp - ??)/??)) = p, and therefore xp = ?? + zp*??
+
+**"Residuals vs Fitted" and "Scale/Spread-Location"** = essentially the same, showing if there is a trend to the residuals (if they're spread equally along the ranges of predictors). This again shows the fish-hook pattern indicating non-IID residuals and non-linearity in the relationship.
+
+**Residuals vs. Leverage** = tells us which DP's have the greatest influence on the regression (i.e. high leverage points).
+
+  * Not all outliers are influential in linear regression so results wouldn't be much different whether included or not.
+  * Watch for outlying values at the upper right or lower right corners = spots where cases can be influential against a regression line. 
+  * Look for cases outside of a **Cook's distance** (dashed line) , meaning they have high **Cook's distance scores** + are influential to the regression results, as the results will be altered if we exclude those cases.
+    * Cook's distance = function of the leverage and standardized residual associated with each data poin
+  * Looks' like we have several high leverage points that influence our regression as noted by being quite far from the dotted Cook's distance line and being noted with annotations (215,413,375) 
+
+Alternatively, can compute residuals from a linear regression fit using `residuals()`, or `rstudent()` to return **studentized residuals**, and we can use this to plot the residuals against the fitted values (1st + 3rd plots above)
+
+  * **studentized residuals** = alternative criterion for IDing outliers
+    * basic idea = delete observations ` at a time, each time refitting the regression model on the remaining `n-1` observations
+    * Then, compare the observed response values to their fitted values based on the models with the `i`th observation deleted. 
+    * This produces **deleted residuals**, and standardizing the deleted residuals produces studentized residuals.
+    *  deleted residual `d_i = y_i - y_i_hat` = observed response for ith variable minus predicted response based on the estimated model with the ith observation deleted
+    
+      * data point i being influential implies the DP "pulls" the estimated regression line towards itself, which means the observed response would be close to the predicted response. 
+      * But, if removed, the estimated regression line would "bounce back" away from the observed response, thereby **resulting in a large deleted residual** (i.e. a DP w/ a large deleted residual suggests the DP is influential)
+      
+    * "Largeness" of deleted residuals depend on units of measurement, just as ordinary residuals do
+    * Solve this by **standardizing** = dividing each deleted residual by an estimate of its standard deviation.
+    * studentized residual, `t_i = d_i/sd(d_i) = e_i/sqrt(MSE_i(1-h_ii)` = same as ordinary residual `e_i` divided by a factor that includes the MSE *based on estimated model **w/ ith observation deleted**, `MSE_i`*, and the **leverage, `h_ii`**
+    * TLDR: studentized residual = just a deleted residual divided by its estimated standard deviation
+      
+      * In general, studentized residuals = more effective than standardized residuals. 
+      * If an observation has a studentized residual > 3 (in absolute value), can call it an outlier.
+```{r}
+par(mfrow=c(2,1))
+plot(x=predict(simpleLM),y=residuals(simpleLM))
+plot(x=predict(simpleLM),y=rstudent(simpleLM))
+```
+
+On the basis of the residual plots, there is some evidence of non-linearity. **Leverage statistics** can be computed for any # of predictors using `hatvalues()`.
+```{r}
+#hatvalues(simpleLM)
+plot(hatvalues(simpleLM))
+which.max(hatvalues(simpleLM))
+```
+We see the index of the observation has the largest leverage statistic as 365
+
+### 3.6.3 Multiple Linear Regression
+
+To fit a multiple linear regression model using **least squares**, again use `lm()` w/ `n` predictors
+```{r}
+multLR <- lm(medv ~ lstat + age, Boston)
+summary(multLR)
+```
+
+```{r}
+allMultLR <- lm(medv ~ ., Boston)
+summary(allMultLR)
+```
+
+Can access individual components of a **summary object** by name (`?summary.lm`). Hence `summary(lm.fit)$r.sq` gives us R2 + `summary(lm.fit)$sigma` gives us the **RSE**. `vif()`, part of the `car` package (functions to apply to a fitted regression model) can be used to compute **variance inflation** factors. Most VIF's are low to moderate for this data.
+
+* **VIF** = ratio of the variance of ??_j when fitting the full model divided by the variance of ??_j if fit on its own
+  * smallest possible = 1 (indicates complete absence of collinearity)
+  * Typically in practice, there's a small amount of collinearity among predictors
+  * Rule of thumb = VIF > 5 or 10 indicates a problematic amount of collinearity. 
+  * `VIF(??_j ) = 1/(1 ??? R2_(X_j | X_-j)` where `R2_(X_j | X_-j)` = R2 from a regression of `X_j` onto all other predictors, `X_-j`)
+  * If `R2_(X_j | X_-j)` = close to 1, collinearity is present, so the VIF will be large.
+```{R}
+#install.packages("car",dependencies=TRUE)
+#update.packages(checkBuilt = TRUE)
+library(car)
+vif(allMultLR)
+```
+
+What if we'd like to perform a regression using all variables but one?
+```{r}
+multLR_noAge <- lm(medv ~ . - age, Boston) # largest p-value in full model
+summary(multLR_noAge)
+```
+
+Alternatively, `update()` can be used.
+```{r}
+multLR_noAge <- update(allMultLR, ~ . - age)
+summary(multLR_noAge)
+```
+
+### 3.6.4 Interaction Terms
+It is easy to include **interaction terms** in a linear model, such as w/ syntax `lstat:black` = interaction term between `lstat` +  `black`. The syntax `lstat*age` simultaneously includes `lstat`, `age`, *and the interaction term `lstat × age`* as predictors, as it is a shorthand for `lstat+age+lstat:age`
+```{r}
+multLR_interaction <- lm(medv ~ lstat*age, Boston)
+summary(multLR_interaction)
+```
+
+### 3.6.5 Non-linear Transformations of Predictors
+
+`lm()` function can also accommodate non-linear transformations of predictors. Given a predictor `X`, can create a predictor `X2`
+using `I(X^2)` (`I()` is needed since `^` has a special meaning in a formula)
+```{r}
+multLR_transform <- lm(medv ~ lstat + I(lstat^2), Boston)
+summary(multLR_transform)
+```
+
+The near-0 p-value associated with the quadratic term suggests it leads to an improved model. **Use `?anova()` to further quantify the extent to which the quadratic fit is superior to the linear fit.**
+
+* `anova()` = computes analysis of variance (or deviance) tables for 1+ fitted model objects, tested in order specified whether the model terms are significant
+```{r}
+anova(lm(medv~lstat,Boston),multLR_transform)
+```
+
+`anova()` performs a **hypothesis test** comparing the 2 models w/ a null H0 = the 2 models fit the data equally well, + the alternative H1 = the full model (1st given) is superior. 
+
+Here the **F-statistic** = 135 + the associated p-value = virtually 0. This info provides very clear evidence that the quadratic model is far superior (not surprising, since earlier we saw evidence for non-linearity in the relationship between `medv` + `lstat`
+```{r}
+par(mfrow=c(2,2))
+plot(multLR_transform)
+```
+
+There looks to be no pattern for our normal nor studentizes residuals, indicating linearity in our fit model such that our residuals *are* identically and independently distributed (IID)
+
+**Normal Q-Q plot** = For our new model, our fitted quantiles are still "too large" in the upper-right, indicating a slight-right skew.
+
+**Residuals vs. Leverage** = Looks like we still have several high leverage points that influence our regression as noted by being quite far from the dotted Cook's distance line and being noted with annotations
+
+In order to create a cubic fit, we can include a predictor of the form `I(X^3)`. However, this approach can start to get cumbersome for higher-order polynomials. A better approach involves using `poly()` to create the polynomial within `lm()`
+```{r}
+# produce a fifth-order polynomial fit
+fifthOrder <- lm(medv ~ poly(lstat,5), Boston)
+summary(fifthOrder)
+```
+
+This suggests that including additional polynomial terms, up to 5th order, leads to an improvement in the model fit! However, further investigation of data reveals that no polynomial terms beyond 5th order have significant p-values in a regression fit. Of course, we are in no way restricted to only using polynomial transformations of the predictors. Here we try a **log transformation.**
+```{r}
+summary(lm(medv ~ log(rm), Boston))
+```
+         
+### 3.6.6 Qualitative Predictors
 We will now examine the Carseats data, which is part of the ISLR library.
 We will attempt to predict Sales (child car seat sales) in 400 locations
 based on a number of predictors.

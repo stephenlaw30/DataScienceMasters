@@ -241,7 +241,7 @@ sum(mlb11$high_BA)
 
 15.   You can use `favstats` to get the summary statistics within each `high_BA` group, and `bwplot()` to make boxplots. For example, what appears to be the link between `homeruns` and `high_BA`? Do teams with higher batting averages tend to hit more home runs?
 
-```{r, eval = FALSE}
+```{r, }
 favstats(homeruns ~ high_BA, data = mlb11)
 densityplot(~ homeruns, groups = high_BA, data = mlb11, auto.key = TRUE)
 #bwplot(mlb11$homeruns, groups = mlb11$high_BA, data = mlb11)
@@ -249,7 +249,7 @@ densityplot(~ homeruns, groups = high_BA, data = mlb11, auto.key = TRUE)
 
 16.   Repeat the code above, only using `stolen_bases` instead of `homeruns`. Does there appear to be a link between `stolen bases` and `high_BA`? 
 
-```{r, eval = FALSE}
+```{r, }
 favstats(stolen_bases ~ high_BA, data = mlb11)
 densityplot(~ stolen_bases, groups = high_BA, data = mlb11, auto.key = TRUE)
 ```

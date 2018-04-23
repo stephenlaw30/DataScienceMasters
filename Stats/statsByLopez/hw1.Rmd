@@ -1,0 +1,112 @@
+---
+title: "HW 1"
+author: Your name here
+output: html_document
+---
+
+```{r knitr_options , include=FALSE}
+#Here's some preamble, which makes ensures your figures aren't too big
+knitr::opts_chunk$set(fig.width=6, fig.height=3.6, warning=FALSE,
+message=FALSE)
+library(mosaic)
+```
+
+## Question 1
+
+Write code to upload the `mlb11` data set into `R`, and print the first 6 rows of the data set.
+
+```{r}
+download.file("http://www.openintro.org/stat/data/mlb11.RData", destfile = "mlb11.RData")
+load("mlb11.RData")
+head(mlb11,6)
+```
+## Question 2
+
+What element of the `mlb11` data set corresponds to the 10th row and 6th column? What team and variable is referred to in this cell?
+```{r}
+mlb11[10,6]
+mlb11$team[10]
+```
+**The value `.258` corresponds to the Houston Astros' BA**
+
+## Question 3
+
+Describe the distribution of at-bats (`at_bats`) by considering its center, shape, and spread. Back up your claims by identifying the mean, median, standard deviation and interquartile range of this variable.
+```{r}
+library(ggplot2)
+
+#hist(mlb11$at_bats)
+#histogram(~at_bats, data = mlb11)
+
+fav_stats(mlb11$at_bats)
+iqr(mlb11$at_bats)
+
+ggplot(mlb11, aes(x=at_bats)) + 
+  geom_histogram(binwidth = 50, color="black", fill="red") + 
+  theme_bw() + 
+  xlab("At-bats") + 
+  ylab("Frequency") +
+  ggtitle("Distribution of At-bats for the 2011 MLB season")
+```
+
+**We've got a slight right-skewed distribution, with a small number of very high values, meaning we use the median value of 5515.5 for our measure of center rather than the mean value of 5523.5 and the IQR value of 126.75 for our measure of spread, rather than the standard deviation of 79.87. Therefore we can say the distribution is *unimodal*, centered around 5500 with a spread of ~127 AB's**
+
+## Question 4
+A coach is curious if stealing more bases is linked with more home runs. Make and describe a scatter plot of team home runs versus stolen bases. Then, add a title to your plot
+```{r}
+ggplot(mlb11, aes(stolen_bases,homeruns)) + 
+  geom_point(color="green") +
+  theme_bw() + 
+  xlab("Stolen Bases") + 
+  ylab("Home Runs") +
+  ggtitle("Home Runs by Stolen Bases")
+cor(mlb11$stolen_bases,mlb11$homeruns)
+```
+
+**Appears to be no real (barely a weak) negative relationship between stolen bases and homeruns, which is confirmed by the vew low (in absolute value) negative correlation.**
+
+## Question 5.
+Create a new variable, `AboveAveWins`, representing whether or not the team won more than half of its games (there are 162 games in a season).  How many teams won 82 games or more?
+```{r}
+mlb11 <- mlb11 %>%
+  mutate(AboveAveWins = if_else(wins > 162/2,1,0))
+table(mlb11$AboveAveWins)
+```
+
+**Only 13 teams won 82 games or more.**
+
+## Question 6. 
+You can create separate scatter plots within groups using the code below.
+```{r}
+xyplot(homeruns ~ stolen_bases | AboveAveWins, data = mlb11)
+```
+
+Does the association between home runs and stolen bases differ within the groups of `AboveAveWins`?
+
+**There seems to be a weak negative relationship for those teams with a value of 0 for `AboveAveWins`, while there may be a weak positive relationship for those with a value of 1 for `AboveAveWins`.**
+```{r}
+cor(subset(mlb11,AboveAveWins==0)$stolen_bases,subset(mlb11,AboveAveWins==0)$homeruns)
+cor(subset(mlb11,AboveAveWins==1)$stolen_bases,subset(mlb11,AboveAveWins==1)$homeruns)
+```
+**Turns out there is a moderate negative relationship for those teams with a value of 0 for `AboveAveWins`, and a weak positive relationship for those with a value of 1 for `AboveAveWins`.**
+
+## Question 7
+Make both a histogram and a boxplot of `hits`. What features are apparent in the histogram that aren't apparent in the boxplot? What features are apparent in the boxplot that aren't apparent in the histogram?
+```{r}
+ggplot(mlb11, aes(hits)) + 
+  geom_histogram(binwidth = 50,color="black",fill="orange") +
+  theme_bw() + 
+  xlab("Hit ") + 
+  ylab("Frequency") +
+  ggtitle("Distribution of Hits")
+
+ggplot(mlb11, aes("",hits)) + 
+  geom_boxplot(fill="green",color="black") +
+  theme_bw() + 
+  xlab("Stolen Bases") + 
+  ylab("Home Runs") +
+  coord_flip() +   
+  ggtitle("Home Runs by Stolen Bases")
+```
+ 
+ **The boxplot displays the high outlier, while the histogram displays the unimodal shape of the distribution.**
