@@ -372,7 +372,7 @@ plot(lm1)
 ```
   * We can see a pattern in our residuals in both the residuals and Scale-Location plot, indicating that our residuals are not identically and independently distributed (IID) and our relationship between the predictor and response is non-linear.
   * In our Q-Q plot, we have the fitted quantiles are raising a bit too high at the higher end of theoretical quantiles, indicating a right skew.
-  * For our Residuals vs Leverage, we have what looks like 2-possible high levarage points (indicatred by annotations of 117 and 94), which means these points are influencing our regression of `mpg` onto `horsepower`
+  * For our Residuals vs Leverage, we have what looks like 2-possible high levarage points (indicated by annotations of 117 and 94), and some outliers (> 2 or < -2 on the y-axis), which means these points are influencing our regression of `mpg` onto `horsepower`
 
 **9. This question involves the use of multiple linear regression on the Auto data set.**
 **(a) Produce a scatterplot matrix which includes all of the variables in the data set.**
@@ -384,129 +384,114 @@ pairs(~ mpg+displacement+horsepower+weight+acceleration, Auto)
 cor(select(Auto,-name))
 ```
 
-**(c) Use the lm() function to perform a multiple linear regression with mpg as the response and all other variables except name as
-the predictors. Use the summary() function to print the results. Comment on the output. For instance:**
+**(c) Use the lm() function to perform a multiple linear regression with `mpg` as the response and all other variables except name as
+the predictors. Use the summary() function to print the results. Comment on the output**
 ```{R}
 lm2 <- lm(mpg~.-name,Auto)
 summary(lm2)
 ```
-  * i. Is there a relationship between the predictors and the response?
-  * ii. Which predictors appear to have a statistically significant
-relationship to the response?
-  * iii. What does the coefficient for the year variable suggest?
-* (d) Use the plot() function to produce diagnostic plots of the linear
-regression fit. Comment on any problems you see with the fit.
-Do the residual plots suggest any unusually large outliers? Does
-the leverage plot identify any observations with unusually high
-leverage?
-* (e) Use the * and : symbols to fit linear regression models with
-interaction effects. Do any interactions appear to be statistically
-significant?
-* (f) Try a few different transformations of the variables, such as
-log(X), ???
-X, X2. Comment on your findings.
+  * **i. Is there a relationship between the predictors and the response?**
+    * There appears to be a relationship between `mpg` and *some* predictors = `weight`,year,origin, and some `displacement`
+  * **ii. Which predictors appear to have a statistically significant relationship to the response?**
+    * Very sig = `weight`,year,origin, Moderately = `displacement`
+  * **iii. What does the coefficient for the year variable suggest?**
+    * It suggests that for each year increase, we have a .75 unit increase in `mpg`
+* **(d) Use the plot() function to produce diagnostic plots of the linear regression fit. Comment on any problems you see with the fit. Do the residual plots suggest any unusually large outliers? Does the leverage plot identify any observations with unusually high leverage?**
+```{r}
+par(mfrow=c(2,2))
+plot(lm2)
+```
+  * There may be a *slight* pattern in Residuals vs. Fitted, but it is not apparant in Scale-Location, indicating that we are probably able to say that our residuals are identically and independently distributed (IID) and our relationship between the predictor and response is linear.
+  * In our Q-Q plot, we have the fitted quantiles are raising a bit too high at the higher end of theoretical quantiles, indicating a right skew.
+  * For our Residuals vs Leverage, we have a couple outliers (> 2 or < -2 on the y-axis) and a high levarage point (14), which means these points are influencing our regression of `mpg` onto `horsepower`
 
-10. This question should be answered using the Carseats data set.
-* (a) Fit a multiple regression model to predict Sales using Price,
-Urban, and US.
-* (b) Provide an interpretation of each coefficient in the model. Be
-careful-some of the variables in the model are qualitative!
-*  Write out the model in equation form, being careful to handle
-the qualitative variables properly.
-* (d) For which of the predictors can you reject the null hypothesis
-H0 : ??j = 0?
-* (e) On the basis of your response to the previous question, fit a
-smaller model that only uses the predictors for which there is
-evidence of association with the outcome.
-* (f) How well do the models in (a) and (e) fit the data?
-* (g) Using the model from (e), obtain 95 % confidence intervals for
-the coefficient(s).
-* (h) Is there evidence of outliers or high leverage observations in the
-model from (e)?
+* **(e) Use the \* and : symbols to fit linear regression models with interaction effects. Do any interactions appear to be statistically significant?**
+```{r}
+lm3 <- lm(mpg~.-name+cylinders*(.-name),Auto)
+lm4 <- lm(mpg~.-name+displacement*(.-name),Auto)
+lm5 <- lm(mpg~.-name+horsepower*(.-name),Auto)
+lm6 <- lm(mpg~.-name+weight*(.-name),Auto)
+lm7 <- lm(mpg~.-name+acceleration*(.-name),Auto)
+lm8 <- lm(mpg~.-name+year*(.-name),Auto)
+lm9 <- lm(mpg~.-name+origin*(.-name),Auto)
+#lm3 <- lm(mpg~.+cylinders*displacement-name,Auto)
+#lm3 <- lm(mpg~.+cylinders*displacement-name,Auto)
+#lm3 <- lm(mpg~.+cylinders*displacement-name,Auto)
+#lm3 <- lm(mpg~.+cylinders*displacement-name,Auto)
+#lm3 <- lm(mpg~.+cylinders*displacement-name,Auto)
+#lm3 <- lm(mpg~.+cylinders*displacement-name,Auto)
+#lm3 <- lm(mpg~.+cylinders*displacement-name,Auto)
+summary(lm3)
+summary(lm4)
+summary(lm5)
+summary(lm6)
+summary(lm7)
+summary(lm8)
+summary(lm9)
+```
+* **(f) Try a few different transformations of the variables, such as log(X), ??? X, X2. Comment on your findings.**
+  * cylinders:year  displacement:weight   displacement:year  horsepower:year  weight:year 
+  * cylinders:acceleration    weight:acceleration   acceleration:year   acceleration:origin
+  
+**10. This question should be answered using the Carseats data set.**
+**(a) Fit a multiple regression model to predict Sales using Price, Urban, and US.**
+```{r}
+data("Carseats")
+lm10 <- lm(Sales~Price+Urban+US,Carseats)
+summary(lm10)
+```
+**(b) Provide an interpretation of each coefficient in the model. Be careful-some of the variables in the model are qualitative!**
+**(c) Write out the model in equation form, being careful to handle the qualitative variables properly.**
+  * `model = 13.043 - .054\*Price - .024\*Urban + 1.2\*US`
+**(d) For which of the predictors can you reject the null hypothesis H0 : ??j = 0?**
+  * `Price` and `USyes`
+**(e) On the basis of your response to the previous question, fit a smaller model that only uses the predictors for which there is evidence of association with the outcome.**
+```{r}
+lm11 <- lm(Sales~Price+US,Carseats)
+summary(lm11)
+```
+**(f) How well do the models in (a) and (e) fit the data?**
+  * 2nd model fits barely better (R2 = .2354 vs. .2335)
+**(g) Using the model from (e), obtain 95 % confidence intervals for the coefficient(s).**
+```{r}
+confint(lm11)
+```
+**(h) Is there evidence of outliers or high leverage observations in the model from (e)?**
+```{r}
+par(mfrow=c(2,2))
+plot(lm11)
+```
+  * 1 high leverage point
 
-11. In this problem we will investigate the t-statistic for the null hypothesis
-H0 : ?? = 0 in simple linear regression without an intercept. To
-begin, we generate a predictor x and a response y as follows.
+**11. In this problem we will investigate the t-statistic for the null hypothesis H0 : ?? = 0 in simple linear regression without an intercept. To begin, we generate a predictor x and a response y as follows.**
 ```{r}
 set.seed(1)
 x <- rnorm(100)
 y <- 2*x+rnorm (100)
 ```
-* (a) Perform a simple linear regression of y onto x, without an intercept.
-Report the coefficient estimate ??^, the standard error of
-this coefficient estimate, and the t-statistic and p-value associated
-with the null hypothesis H0 : ?? = 0. Comment on these
-results. (You can perform regression without an intercept using
-the command lm(y???x+0).)
-* (b) Now perform a simple linear regression of x onto y without an
-intercept, and report the coefficient estimate, its standard error,
-and the corresponding t-statistic and p-values associated with
-the null hypothesis H0 : ?? = 0. Comment on these results.
-* (c) What is the relationship between the results obtained in (a) and (b)?
-* (d) For the regression of Y onto X without an intercept, the tstatistic
-for H0 : ?? = 0 takes the form ??/^ SE(??^), where ??^ is
-given by (3.38), and where
-(These formulas are slightly different from those given in Sections
-3.1.1 and 3.1.2, since here we are performing regression
-without an intercept.) Show algebraically, and confirm numerically
-in R, that the t-statistic can be written as
-*  (e) Using the results from (d), argue that the t-statistic for the regression
-of y onto x is the same as the t-statistic for the regression
-of x onto y.
-* (f) In R, show that when regression is performed with an intercept,
-the t-statistic for H0 : ??1 = 0 is the same for the regression of y
-onto x as it is for the regression of x onto y.
+**(a) Perform a simple linear regression of y onto x, without an intercept. Report the coefficient estimate ??^, the standard error of this coefficient estimate, and the t-statistic and p-value associated with the null hypothesis H0 : ?? = 0. Comment on these results. (You can perform regression without an intercept using the command lm(y???x+0).)**
+**(b) Now perform a simple linear regression of x onto y without an intercept, and report the coefficient estimate, its standard error, and the corresponding t-statistic and p-values associated with the null hypothesis H0 : ?? = 0. Comment on these results.**
+**(c) What is the relationship between the results obtained in (a) and (b)?**
+**(d) For the regression of Y onto X without an intercept, the tstatistic for H0 : ?? = 0 takes the form ??/^ SE(??^), where ??^ is given by (3.38), and where (These formulas are slightly different from those given in Sections 3.1.1 and 3.1.2, since here we are performing regression without an intercept.) Show algebraically, and confirm numerically in R, that the t-statistic can be written as**
+**(e) Using the results from (d), argue that the t-statistic for the regression of y onto x is the same as the t-statistic for the regression of x onto y.**
+**(f) In R, show that when regression is performed with an intercept, the t-statistic for H0 : ??1 = 0 is the same for the regression of y onto x as it is for the regression of x onto y.**
 
 12. This problem involves simple linear regression without an intercept.
-* (a) Recall that the coefficient estimate ??^ for the linear regression of
-Y onto X without an intercept is given by (3.38). Under what
-circumstance is the coefficient estimate for the regression of X
-onto Y the same as the coefficient estimate for the regression of
-Y onto X?
-* (b) Generate an example in R with n = 100 observations in which
-the coefficient estimate for the regression of X onto Y is different
-from the coefficient estimate for the regression of Y onto X.
-* (c) Generate an example in R with n = 100 observations in which
-the coefficient estimate for the regression of X onto Y is the
-same as the coefficient estimate for the regression of Y onto X.
+* (a) Recall that the coefficient estimate ??^ for the linear regression of Y onto X without an intercept is given by (3.38). Under what circumstance is the coefficient estimate for the regression of X onto Y the same as the coefficient estimate for the regression of Y onto X?
+* (b) Generate an example in R with n = 100 observations in which the coefficient estimate for the regression of X onto Y is different from the coefficient estimate for the regression of Y onto X.
+* (c) Generate an example in R with n = 100 observations in which the coefficient estimate for the regression of X onto Y is the same as the coefficient estimate for the regression of Y onto X.
 
-13. In this exercise you will create some simulated data and will fit simple
-linear regression models to it. Make sure to use set.seed(1) prior to
-starting part (a) to ensure consistent results.
-* (a) Using the rnorm() function, create a vector, x, containing 100
-observations drawn from a N(0, 1) distribution. This represents
-a feature, X.
-* (b) Using the rnorm() function, create a vector, eps, containing 100
-observations drawn from a N(0, 0.25) distribution i.e. a normal
-distribution with mean zero and variance 0.25.
-* (c) Using x and eps, generate a vector y according to the model
-Y = ???1+0.5X + . (3.39)
-What is the length of the vector y? What are the values of ??0
-and ??1 in this linear model?
-* (d) Create a scatterplot displaying the relationship between x and
-y. Comment on what you observe.
-* (e) Fit a least squares linear model to predict y using x. Comment
-on the model obtained. How do ??^0 and ??^1 compare to ??0 and
-??1?
-* (f) Display the least squares line on the scatterplot obtained in (d).
-Draw the population regression line on the plot, in a different
-color. Use the legend() command to create an appropriate legend.
-* (g) Now fit a polynomial regression model that predicts y using x
-and x2. Is there evidence that the quadratic term improves the
-model fit? Explain your answer.
-* (h) Repeat (a)-(f) after modifying the data generation process in
-such a way that there is less noise in the data. The model (3.39)
-should remain the same. You can do this by decreasing the variance
-of the normal distribution used to generate the error term
- in (b). Describe your results.
-* (i) Repeat (a)-(f) after modifying the data generation process in
-such a way that there is more noise in the data. The model
-(3.39) should remain the same. You can do this by increasing
-the variance of the normal distribution used to generate the
-error term  in (b). Describe your results.
-* (j) What are the confidence intervals for ??0 and ??1 based on the
-original data set, the noisier data set, and the less noisy data
-set? Comment on your results.
+13. In this exercise you will create some simulated data and will fit simple linear regression models to it. Make sure to use set.seed(1) prior to starting part (a) to ensure consistent results.
+* (a) Using the rnorm() function, create a vector, x, containing 100 observations drawn from a N(0, 1) distribution. This represents a feature, X.
+* (b) Using the rnorm() function, create a vector, eps, containing 100 observations drawn from a N(0, 0.25) distribution i.e. a normal distribution with mean zero and variance 0.25.
+* (c) Using x and eps, generate a vector y according to the model Y = ???1+0.5X + . (3.39) What is the length of the vector y? What are the values of ??0 and ??1 in this linear model?
+* (d) Create a scatterplot displaying the relationship between x and y. Comment on what you observe.
+* (e) Fit a least squares linear model to predict y using x. Comment on the model obtained. How do ??^0 and ??^1 compare to ??0 and ??1?
+* (f) Display the least squares line on the scatterplot obtained in (d). Draw the population regression line on the plot, in a different color. Use the legend() command to create an appropriate legend.
+* (g) Now fit a polynomial regression model that predicts y using x and x2. Is there evidence that the quadratic term improves the model fit? Explain your answer.
+* (h) Repeat (a)-(f) after modifying the data generation process in such a way that there is less noise in the data. The model (3.39) should remain the same. You can do this by decreasing the variance of the normal distribution used to generate the error term in (b). Describe your results.
+* (i) Repeat (a)-(f) after modifying the data generation process in such a way that there is more noise in the data. The model (3.39) should remain the same. You can do this by increasing the variance of the normal distribution used to generate the error term  in (b). Describe your results.
+* (j) What are the confidence intervals for ??0 and ??1 based on the original data set, the noisier data set, and the less noisy data set? Comment on your results.
 
 14. This problem focuses on the collinearity problem.
 * (a) Perform the following commands in R:
@@ -516,56 +501,22 @@ x1 <- runif (100)
 x2 <- 0.5*x1+rnorm (100)/10
 y <- 2+2*x1+0.3*x2+rnorm (100)
 ```
-The last line corresponds to creating a linear model in which y is
-a function of x1 and x2. Write out the form of the linear model.
-What are the regression coefficients?
-* (b) What is the correlation between x1 and x2? Create a scatterplot
-displaying the relationship between the variables.
-* (c) Using this data, fit a least squares regression to predict y using
-x1 and x2. Describe the results obtained. What are ??^0, ??^1, and
-??^2? How do these relate to the true ??0, ??1, and ??2? Can you
-reject the null hypothesis H0 : ??1 = 0? How about the null
-hypothesis H0 : ??2 = 0?
-126 3. Linear Regression
-* (d) Now fit a least squares regression to predict y using only x1.
-Comment on your results. Can you reject the null hypothesis
-H0 : ??1 = 0?
-* (e) Now fit a least squares regression to predict y using only x2.
-Comment on your results. Can you reject the null hypothesis
-H0 : ??1 = 0?
-* (f) Do the results obtained in (c)-(e) contradict each other? Explain
-your answer.
-* (g) Now suppose we obtain one additional observation, which was
-unfortunately mismeasured.
+The last line corresponds to creating a linear model in which y is a function of x1 and x2. Write out the form of the linear model.  What are the regression coefficients?
+* (b) What is the correlation between x1 and x2? Create a scatterplot displaying the relationship between the variables.
+* (c) Using this data, fit a least squares regression to predict y using x1 and x2. Describe the results obtained. What are ??^0, ??^1, and ??^2? How do these relate to the true ??0, ??1, and ??2? Can you reject the null hypothesis H0 : ??1 = 0? How about the null hypothesis H0 : ??2 = 0?
+* (d) Now fit a least squares regression to predict y using only x1. Comment on your results. Can you reject the null hypothesis H0 : ??1 = 0?
+* (e) Now fit a least squares regression to predict y using only x2. Comment on your results. Can you reject the null hypothesis H0 : ??1 = 0?
+* (f) Do the results obtained in (c)-(e) contradict each other? Explain your answer.
+* (g) Now suppose we obtain one additional observation, which was unfortunately mismeasured.
 ```{r}
 x1 <- c(x1, 0.1)
 x2 <- c(x2, 0.8)
 y <- c(y,6)
 ```
-Re-fit the linear models from (c) to (e) using this new data. What
-effect does this new observation have on the each of the models?
-In each model, is this observation an outlier? A high-leverage
-point? Both? Explain your answers.
+Re-fit the linear models from (c) to (e) using this new data. What effect does this new observation have on the each of the models? In each model, is this observation an outlier? A high-leverage point? Both? Explain your answers.
 
-15. This problem involves the Boston data set, which we saw in the lab
-for this chapter. We will now try to predict per capita crime rate
-using the other variables in this data set. In other words, per capita
-crime rate is the response, and the other variables are the predictors.
-* (a) For each predictor, fit a simple linear regression model to predict
-the response. Describe your results. In which of the models is
-there a statistically significant association between the predictor
-and the response? Create some plots to back up your assertions.
-* (b) Fit a multiple regression model to predict the response using
-all of the predictors. Describe your results. For which predictors
-can we reject the null hypothesis H0 : ??j = 0?
-* (c) How do your results from (a) compare to your results from (b)?
-Create a plot displaying the univariate regression coefficients
-from (a) on the x-axis, and the multiple regression coefficients
-from (b) on the y-axis. That is, each predictor is displayed as a
-single point in the plot. Its coefficient in a simple linear regression
-model is shown on the x-axis, and its coefficient estimate
-in the multiple linear regression model is shown on the y-axis.
-* (d) Is there evidence of non-linear association between any of the
-predictors and the response? To answer this question, for each
-predictor X, fit a model of the form
-Y = ??0 + ??1X + ??2X2 + ??3X3 + .
+15. This problem involves the Boston data set, which we saw in the lab for this chapter. We will now try to predict per capita crime rate using the other variables in this data set. In other words, per capita crime rate is the response, and the other variables are the predictors.
+* (a) For each predictor, fit a simple linear regression model to predict the response. Describe your results. In which of the models is there a statistically significant association between the predictor and the response? Create some plots to back up your assertions.
+* (b) Fit a multiple regression model to predict the response using all of the predictors. Describe your results. For which predictors can we reject the null hypothesis H0 : ??j = 0?
+* (c) How do your results from (a) compare to your results from (b)? Create a plot displaying the univariate regression coefficients from (a) on the x-axis, and the multiple regression coefficients from (b) on the y-axis. That is, each predictor is displayed as a single point in the plot. Its coefficient in a simple linear regression model is shown on the x-axis, and its coefficient estimate in the multiple linear regression model is shown on the y-axis.
+* (d) Is there evidence of non-linear association between any of the predictors and the response? To answer this question, for each predictor X, fit a model of the form Y = ??0 + ??1X + ??2X2 + ??3X3 + .
