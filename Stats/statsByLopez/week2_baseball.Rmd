@@ -1,0 +1,83 @@
+---
+title: "Lecture2 - baseball stats"
+---
+```{r}
+library(Lahman)
+library(mosaic)
+library(tidyverse)
+
+data(Teams)
+glimpse(Teams)
+```
+
+```{r}
+# get teams after 1970 with new variables
+teams1 <- Teams %>%
+  filter(yearID >= 1970) %>%
+  mutate(X1B = H - X2B - X3B - HR, # derive single from hits minus doubles + triples + HR
+         TB = X1B + 2*X2B + 3*X3B + 4*HR, # calculate total bases
+         RC = ((H + BB)*TB)/(AB + BB)) # calculate runs created
+teams1 %>%
+  ggplot(aes(x=RC,y=R)) + 
+  geom_point(colour = "black", fill = "white", alpha=.3) +
+  ggtitle("Runs by Runs Created, 1970-2015")
+#xyplot(R~RC, data=teams1)
+```
+
+There's a very strong, positive relationship between Runs and RC, which we can clarify via a correlation calculation to get `r`, and get `R2` as well.
+
+```{r}
+(r <- cor(teams1$R,teams1$RC))
+(r2 <- cor(teams1$R,teams1$RC)**2)
+```
+
+Can now check association between a team's totals runs and other quantitative variables.
+```{r}
+(cor_mtrx <- round(cor(select(teams1, R, RC, AB, H, HR, SO, SB, CS, RA, DP)),3))
+```
+
+Looks like H and HR are the only ones with stronger positive relationships, while RA and AB have a moderate positive relationship, with CS having the only negative relationship, but it's quite weak. This suggests that a team's total runs are influenced heavily by more RC, H, and HR, and less so by RA and AB. We can also view this as a correlation plot
+```{r}
+library(corrplot)
+corrplot(cor_mtrx,method="number")
+#corrplot(cor_mtrx) = gives circles, not #'s of r values
+```
+
+What about runs created against more popular but advanced metrics?
+```{r}
+teams1 <- teams1 %>%
+  mutate(OBP = (H+BB)/(AB+BB),
+         SLG = (X1B+2*X2B+3*X3B+4*HR)/AB,
+         OPS = OBP+SLG)
+
+cor_mtrx2 <- round(cor(select(teams1, R, RC, OBP, SLG, OPS)),3)
+corrplot(cor_mtrx2,method="number")
+```
+
+All 4 variables have strong positive relationships with runs, with OBP having the lowest, but we can ignore it as OPS contains effects of both OBP and SLG.
+
+**What we've shown**:
+
+* 1 - Is runs created important to success?
+  * Yes. Strong link to team runs
+	
+* 2 - How well does the metric measure a player's contribution?
+  * Pretty well. 
+  * Other advanced formulas exist
+  * Adjustments possible
+
+* 3 - Is the metric repeatable? 
+  * Let's find out
+  
+### Repeatability
+```{r}
+teams2 <- teams1 %>%
+  arrange(franchID, yearID) %>%
+  group_by(franchID) %>%
+  mutate(next_yr_R = dplyr::lead(R)) # lead() = find "next"/"previous" values in a vector
+
+cor_mtrx3 <- round(cor(select(ungroup(teams2), next_yr_R, R, RC, OBP, SLG, OPS), use="pairwise.complete.obs"),3)
+corrplot(cor_mtrx3,method="number")
+```
+
+All have weak positive relationship.
