@@ -573,34 +573,131 @@ ggplot(aes(x,y),data=data.frame(x,y)) +
   geom_abline(intercept = -1.01885, slope = 0.49947)
 ```
 **(g) Now fit a polynomial regression model that predicts y using x and x2. Is there evidence that the quadratic term improves the model fit? Explain your answer.**
-
-**(h) Repeat (a)-(f) after modifying the data generation process in such a way that there is less noise in the data. The model (3.39) should remain the same. You can do this by decreasing the variance of the normal distribution used to generate the error term in (b). Describe your results.
-**(i) Repeat (a)-(f) after modifying the data generation process in such a way that there is more noise in the data. The model (3.39) should remain the same. You can do this by increasing the variance of the normal distribution used to generate the error term  in (b). Describe your results.
-**(j) What are the confidence intervals for ??0 and ??1 based on the original data set, the noisier data set, and the less noisy data set? Comment on your results.
-
-14. This problem focuses on the collinearity problem.
-**(a) Perform the following commands in R:
+```{r}
+lm_poly <- lm(y~poly(x,2))
+summary(lm_poly)
+```
+  * R2 has increased (technically), but the second-order polynomial is not significant, meaning there's no evidence that the quadratic term improves model fit.
+  
+**(h) Repeat (a)-(f) w/ less noise in the data (reduce variance in epsilon generation). The model (3.39) should remain the same. Describe your results.**
 ```{r}
 set.seed(1)
-x1 <- runif (100)
-x2 <- 0.5*x1+rnorm (100)/10
-y <- 2+2*x1+0.3*x2+rnorm (100)
+x1 <- rnorm(100) # N(0,1) by default
+eps1 <- rnorm(100,sd=sqrt(.05))
+y1 <- -1 + .5*x1 + eps1
+lm_eps1 <- lm(y1~x1)
+summary(lm_eps1)
+
+ggplot(aes(x,y),data=data.frame(x,y)) + 
+  geom_point(color="red") + 
+  theme_bw() + 
+  geom_abline(intercept = -1.01885, slope = 0.49947)
+ggplot(aes(x1,y1),data=data.frame(x1,y1)) + 
+  geom_point(color="red") + 
+  theme_bw() + 
+  geom_abline(intercept = -1.00843, slope = 0.49976)
 ```
-The last line corresponds to creating a linear model in which y is a function of x1 and x2. Write out the form of the linear model.  What are the regression coefficients?
-**(b) What is the correlation between x1 and x2? Create a scatterplot displaying the relationship between the variables.
-**(c) Using this data, fit a least squares regression to predict y using x1 and x2. Describe the results obtained. What are ??^0, ??^1, and ??^2? How do these relate to the true ??0, ??1, and ??2? Can you reject the null hypothesis H0 : ??1 = 0? How about the null hypothesis H0 : ??2 = 0?
-**(d) Now fit a least squares regression to predict y using only x1. Comment on your results. Can you reject the null hypothesis H0 : ??1 = 0?
-**(e) Now fit a least squares regression to predict y using only x2. Comment on your results. Can you reject the null hypothesis H0 : ??1 = 0?
-**(f) Do the results obtained in (c)-(e) contradict each other? Explain your answer.
-**(g) Now suppose we obtain one additional observation, which was unfortunately mismeasured.
+**(i) Repeat (a)-(f) after modifying the data generation process in such a way that there is more noise in the data. The model (3.39) should remain the same. You can do this by increasing the variance of the normal distribution used to generate the error term  in (b). Describe your results.**
+```{r}
+set.seed(1)
+x2 <- rnorm(100) # N(0,1) by default
+eps2 <- rnorm(100,sd=sqrt(.5))
+y2 <- -1 + .5*x2 + eps2
+lm_eps2 <- lm(y2~x2)
+summary(lm_eps2)
+
+par(mfrow=c(2,2))
+ggplot(aes(x,y),data=data.frame(x,y)) + 
+  geom_point(color="red") + 
+  theme_bw() + 
+  geom_abline(intercept = -1.01885, slope = 0.49947)
+ggplot(aes(x1,y1),data=data.frame(x1,y1)) + 
+  geom_point(color="red") + 
+  theme_bw() + 
+  geom_abline(intercept = -1.00843, slope = 0.49976)
+ggplot(aes(x2,y2),data=data.frame(x2,y2)) + 
+  geom_point(color="red") + 
+  theme_bw() + 
+  geom_abline(intercept = -1.02665, slope = 0.49925)
+```
+**(j) What are the confidence intervals for B0 and B1 based on the original, noisier, + less noisy data sets? Comment on your results.**
+```{r}
+confint(lm_eps)
+confint(lm_eps1)
+confint(lm_eps2)
+```
+
+**14. This problem focuses on the collinearity problem.**
+**(a) Perform the following commands in R:**
+```{r}
+set.seed(1)
+x1 <- runif(100)
+x2 <- 0.5*x1 + rnorm(100)/10
+y <- 2 + 2*x1 + 0.3*x2 + rnorm(100)
+```
+**The last line corresponds to creating a linear model in which y = a function of x1 + x2. Write out the form of the linear model. What are the regression coefficients?**
+  * Model = `y = B0 + B1x1 + B2x2 + eps` where B0 = B1 = 2, B2 = .3, and epsilon is 100 random numbers between 0-1 from the normal distribution
+**(b) What is the correlation between x1 and x2? Create a scatterplot displaying the relationship between the variables.**
+```{r}
+cor(x1,x2)
+ggplot(aes(x1,x2),data=data.frame(x1,x2)) + 
+  geom_point(color="red") + 
+  theme_bw() 
+```
+  * There's a pretty strong positive correlation between both predictors
+**(c) Using this data, fit a least squares regression to predict y using x1 + x2. Describe the results obtained. What are B^0, B^1, and B^2? How do these relate to the true B0, B1, and B2? Can you reject the null H0: B1 = 0? How about the null hypothesis H0: B2 = 0?**
+```{r}
+lm_14 <- lm(y~x1+x2)
+summary(lm_14)
+```
+  * Our B^0 has slightly increased from 2 to 2.1305, while our B^1 has decreased by over .5 from 2 down to 1.4396, while B^3 has increased from .3 to 1.0097. We cannot reject the null H0: B2 = 0, but we *may* be able to reject the null H0: B1 = 0, depending on our threshold for doing so (is 1 * enough?)
+**(d) Now fit a least squares regression to predict y using only x1. Comment on your results. Can you reject the null hypothesis H0 : B1 = 0?**
+```{r}
+lm_14_2 <- lm(y~x1)
+summary(lm_14_2)
+```
+**(e) Now fit a least squares regression to predict y using only x2. Comment on your results. Can you reject the null H0 : B1 = 0?**
+  * It seems that now we can reject the null H0 : B1 = 0
+```{r}
+lm_14_3 <- lm(y~x2)
+summary(lm_14_3)
+```
+  * It seems that now we can reject the null H0 : B1 = 0
+**(f) Do the results obtained in (c)-(e) contradict each other? Explain your answer.**
+  * No, each predictor can only influence the response in isolation, with no other effects from the other predictors.
+  * **We know this because r_x1x2 = .835, i.e .x1 and x2 are collinear**
+  * Therefore, we cannot (or it is difficult to) distinguish the individual effects of each predictor in isolation that we can see in the simple linear models with 1 predictor
+  
+**(g) Now suppose we obtain one additional observation, which was unfortunately mismeasured.**
 ```{r}
 x1 <- c(x1, 0.1)
 x2 <- c(x2, 0.8)
 y <- c(y,6)
 ```
-Re-fit the linear models from (c) to (e) using this new data. What effect does this new observation have on the each of the models? In each model, is this observation an outlier? A high-leverage point? Both? Explain your answers.
+**Re-fit the linear models from (c) to (e) using this new data. What effect does this new observation have on the each of the models? In each model, is this observation an outlier? A high-leverage point? Both? Explain your answers.**
+```{r}
+lm_14 <- lm(y~x1+x2)
+summary(lm_14)
+par(mfrow=c(2,2))
+plot(lm_14,main="both")
 
-15. This problem involves the Boston data set, which we saw in the lab for this chapter. We will now try to predict per capita crime rate using the other variables in this data set. In other words, per capita crime rate is the response, and the other variables are the predictors.
+lm_14_2 <- lm(y~x1)
+summary(lm_14_2)
+par(mfrow=c(2,2))
+plot(lm_14_2,main="x1")
+
+lm_14_3 <- lm(y~x2)
+summary(lm_14_3)
+par(mfrow=c(2,2))
+plot(lm_14_3,main="x2")
+```
+  * It now appears that we can see some individual effect from x2 in the multiple linear regression model (as opposed to x1 in the original multiple regression), while both individual effects are still clearly visible in the simple models.
+  * R2 has increased in the multiple model and the x2 model, but decreased in the x1 model
+  * Looking at the x1 plots, we see that observation 101 is indeed an outlier (Residuals vs. leverage), and that it's fitted quantiles is "too large", indicating an overestimation.
+  * We can also see it clearly annotatedin the residuals vs. fitted and scale-location plots as an outlier (>2 or <-2)
+  * It is a high-leverage point for the x2 model, as well as in the multiple regression.
+
+**15. This problem involves the Boston data set, which we saw in the lab for this chapter. We will now try to predict per capita crime rate using the other variables in this data set. In other words, per capita crime rate is the response, and the other variables are the predictors.**
 **(a) For each predictor, fit a simple linear regression model to predict the response. Describe your results. In which of the models is there a statistically significant association between the predictor and the response? Create some plots to back up your assertions.
 **(b) Fit a multiple regression model to predict the response using all of the predictors. Describe your results. For which predictors can we reject the null hypothesis H0 : ??j = 0?
 **(c) How do your results from (a) compare to your results from (b)? Create a plot displaying the univariate regression coefficients from (a) on the x-axis, and the multiple regression coefficients from (b) on the y-axis. That is, each predictor is displayed as a single point in the plot. Its coefficient in a simple linear regression model is shown on the x-axis, and its coefficient estimate in the multiple linear regression model is shown on the y-axis.
