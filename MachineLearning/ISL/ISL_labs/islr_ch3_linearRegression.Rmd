@@ -5,7 +5,7 @@ date: "April 20, 2018"
 output: html_document
 ---
 # 3.6.2 Simple Linear Regression
-```{r}
+```{r,warning=F}
 library(MASS)
 library(ISLR)
 ```
@@ -13,7 +13,6 @@ library(ISLR)
 `MASS` library contains `Boston` data set, which records `medv` (median house value) for 506 neighborhoods around Boston. We will **seek to predict `medv` using 13 predictors such as `rm` (avg #  of rooms per house), `age` (avg age of houses), + `lstat` (% of households with low socioeconomic status)**
 
 ```{r}
-#fix(Boston)
 names(Boston)
 ```
 
@@ -58,16 +57,14 @@ confint(simpleLM)
     * PI's must account for both the **uncertainty** in knowing the value of the true population parameter, plus **scatter/noise** So
     * **A PI is always wider than a confidence interval (less confident)**
     
-  * CI's give a range for `E[y???x]`, PI's give a range *for `y` itself*.
-  * Naturally, best guess for y = `E[y???x]`, so both intervals are centered around the same value, `x??^`, but with *different standard errors*
-  * We *guess** the expected value of `E[y???x]` more precisely than we estimate `y` itself** so **estimating y requires including the variance that comes from the true error term**
-    * Ex: Could get perfect estimates of ?? (coefficients), so an estimate of `E[y???x]` would be perfect, but we still wouldn't be sure what `y` itself was b/c *there is a true error term we need to consider (irreducible)*. 
-    * Our confidence "interval" would just be a single DP, as we estimate E[y???x] exactly right, but our PI would be wider b/c we take the true error term into account.
+  * CI's give a range for `E[y|x]`, PI's give a range *for `y` itself*.
+  * Naturally, best guess for y = `E[y|x]`, so both intervals are centered around the same value, `x*B^`, but with *different standard errors*
+  * We *guess** the expected value of `E[y|x]` more precisely than we estimate `y` itself** so **estimating y requires including the variance that comes from the true error term**
+    * Ex: Could get perfect estimates of ?? (coefficients), so an estimate of `E[y|x]` would be perfect, but we still wouldn't be sure what `y` itself was b/c *there is a true error term we need to consider (irreducible)*. 
+    * Our confidence "interval" would just be a single DP, as we estimate E[y|x] exactly right, but our PI would be wider b/c we take the true error term into account.
 ```{r}
 # create a column (vector) of 5,10,15 as new lstat values to use to predict medv's valie + CI with the model
-print("CI")
 predict(object = simpleLM, newdata = data.frame(lstat=c(5,10,15)), interval="confidence")
-print("PI")
 predict(object = simpleLM, newdata = data.frame(lstat=c(5,10,15)), interval="prediction")
 ```
 
@@ -106,8 +103,8 @@ There looks to be a curving pattern as we move down the x-axis to the right,almo
 
 **Normal Q-Q plot** = empirical quantiles vs. theoretical Standard Normal quantiles. For our model, our fitted quantiles are "too large", indicating a slight-right skew.
 
-  * quantiles from a N(??,??2) population should be linearly related to Standard Normal quantiles
-    * Let xp = pth quantile from a N(??,??2), then probability of *non-standard normal* X being below a real value x is P(X <= x) = p, so clearly, for the *standardized* normal Z, P(Z <= (xp - ??)/??)) = p, and therefore xp = ?? + zp*??
+  * quantiles from a N(mu,sigma^2) population should be linearly related to Standard Normal quantiles
+    * Let xp = pth quantile from a N(mu,sigma^2), then probability of *non-standard normal* X being below a real value x is P(X <= x) = p, so clearly, for the *standardized* normal Z, P(Z <= (xp - mu)/sigma)) = p, and therefore xp = mu + zp*sigma
 
 **"Residuals vs Fitted" and "Scale/Spread-Location"** = essentially the same, showing if there is a trend to the residuals (if they're spread equally along the ranges of predictors). This again shows the fish-hook pattern indicating non-IID residuals and non-linearity in the relationship.
 
@@ -170,9 +167,9 @@ Can access individual components of a **summary object** by name (`?summary.lm`)
   * smallest possible = 1 (indicates complete absence of collinearity)
   * Typically in practice, there's a small amount of collinearity among predictors
   * Rule of thumb = VIF > 5 or 10 indicates a problematic amount of collinearity. 
-  * `VIF(??_j ) = 1/(1 ??? R2_(X_j | X_-j)` where `R2_(X_j | X_-j)` = R2 from a regression of `X_j` onto all other predictors, `X_-j`)
+  * `VIF(B_j ) = 1/(1 / R2_(X_j | X_(-j))` where `R2_(X_j | X_(-j))` = R2 from a regression of `X_j` onto all other predictors, `X_-j`)
   * If `R2_(X_j | X_-j)` = close to 1, collinearity is present, so the VIF will be large.
-```{R}
+```{r,warning=F,message=F}
 #install.packages("car",dependencies=TRUE)
 #update.packages(checkBuilt = TRUE)
 library(car)
@@ -242,7 +239,7 @@ summary(lm(medv ~ log(rm), Boston))
          
 ### 3.6.6 Qualitative Predictors
 `Carseats` = attempt to predict `Sales` (child car seat sales) in 400 locations based on a number of predictors.
-```{r}
+```{r,warning=F,message=F}
 library(ISLR)
 library(tidyverse)
 glimpse(Carseats)
@@ -286,24 +283,29 @@ LoadLibraries()
 
 **2. Carefully explain the differences between the KNN classifier and KNN regression methods.**
 
-* 
+* KNN classifier = ID's the k closest neighbors to a new point, `x0`, and then estimates the **conditional probability P(Y=j|X=x0)** for class j as the fraction of DPs in the neighborhood where the response = j, and then classifying the new x0 DP to the class j with the highest conditional probability (most neighbors in the neighborhood)
+* KNN regression = ID's the k closest neighbors to a new point, `x0`, and then estimates `f(x0)` as the average of all training responses in the neighborhood
+  * takes an abstract point as input + treats as a *real* observation + estimates the output `f(x0)` it would predict if real
+  * becomes a function `f(x0)` that outputs a prediction for any input
+  * *quantitative estimate by averaging the result of the K nearest neighbors*
 
 **3. Suppose we have a data set with 5 predictors, X1 = GPA, X2 = IQ, X3 = Gender (1 = Female, 0 = Male), X4 = Interaction between GPA and IQ, and X5 = Interaction between GPA and Gender. The response = starting salary after graduation (in thousands of $). Suppose we use least squares to fit the model, and get B^ = 50, B^1 = 20, B^2 = 0.07, B^3 = 35, B^4 = 0.01, B^5 = -10**
-
-* **(a) Which answer is correct, and why?** = 
-    * i. For a fixed value of IQ and GPA, males earn more on average than females.
-    * ii. For a fixed value of IQ and GPA, females earn more on average than males.
-    * **iii. For a fixed value of IQ and GPA, males earn more on average than females provided that the GPA is high enough. **
+**(a) Which answer is correct, and why?**
+  * i. For a fixed value of IQ and GPA, males earn more on average than females.
+  * ii. For a fixed value of IQ and GPA, females earn more on average than males.
+  * **iii. For a fixed value of IQ and GPA, males earn more on average than females provided that the GPA is high enough. **
     * Least Squares model for females = 50 + 20X1 + .07X2 + 35 + .01X4 -10X5 == 85 + 20(GPA) + .07(IQ) + .01(GPA:IQ) - 10(GP:Gender) == 85 + 10(GPA) + .07(IQ) + .01(GPA:IQ)
     * Least Squares model for males = 50 + 20X1 + .07X2 + .01X4 == 50 + 20(GPA) + .07(IQ) + .01(GPA:IQ)
     * Therefore, starting salary for males is greater if GPA is large enough such that GPA >= 3.5 (simplifying, adding the 2 models gives 35 = 10GPA)
-    * iv. For a fixed value of IQ and GPA, females earn more on average than males provided that the GPA is high enough.
+  * iv. For a fixed value of IQ and GPA, females earn more on average than males provided that the GPA is high enough.
 * **(b) Predict the salary of a female with IQ of 110 and a GPA of 4.0.**
-    * 85 + 10(GPA) + .07(IQ) + .01(GPA:IQ) == 85 + 10(4) + .07(110) + .01((110\*4)) = 85 + 40 + 7.7 + 4.4 = $137.1K/yr
+  
+  * 85 + 10(GPA) + .07(IQ) + .01(GPA:IQ) == 85 + 10(4) + .07(110) + .01((110\*4)) = 85 + 40 + 7.7 + 4.4 = $137.1K/yr
 * **(c) T/F: Since the coefficient for the GPA/IQ interaction term is very small, there is very little evidence of an interaction effect. Justify your answer.**
-    * False. The actual value of the interaction term's coefficient does not matter in deciding if there's evidence of an interaction effect is present. What we must do is check the p-value for the coefficient which tests the H0: B^4 = 0 and associate the results with the t-statistic and F score
-      * **F-statistic** = ((TSS-RSS)/p)/(RSS/(n-p-1)) = for no relationship between the response and predictors, expect F-statistic to take on a value close to 1
-      * TSS = sum of (y_i - y_bar)^2, RSS = sum of (y_i - y_i_hat)^2
+  
+  * False. The actual value of the interaction term's coefficient does not matter in deciding if there's evidence of an interaction effect is present. What we must do is check the p-value for the coefficient which tests the H0: B^4 = 0 and associate the results with the t-statistic and F score
+    * **F-statistic** = ((TSS-RSS)/p)/(RSS/(n-p-1)) = for no relationship between the response and predictors, expect F-statistic to take on a value close to 1
+    * TSS = sum of (y_i - y_bar)^2, RSS = sum of (y_i - y_i_hat)^2
 
 **4. I collect a set of data (n = 100 observations) containing a single predictor and a quantitative response. I then fit a linear regression model to the data, as well as a separate cubic regression, i.e. Y = B0 + B1X + B2X^2 + B3X^3 + e.**
 
@@ -317,12 +319,21 @@ LoadLibraries()
     * We don't have enough info say which test RSS would be lower, since we don't know how far it is from linear. If the true non-linear relationship is *closer to linear than cubic*, linear regression test RSS could be lower, or vice versa (see: Bias-Variance trade-off)
 
 **5. Consider the fitted values that result from performing linear regression *without an intercept*. In this setting, the ith fitted value takes the form y^_i = x_iB, where B = sum_i[x_i*y_i]/sum_k[x_k^2]. Show that we can write y^_i = sum_j[a_j*y_j], and what is a_j?**
+
   * **Note: We interpret this result by saying that the fitted values from linear regression are *linear combinations* of the response values.**
   * Plugging in sum_i[x_i\*y_i]/sum_k[x_k^2] for B in y^_i = x_iB, we get y^_i = x_i(sum_j[x_j\*y_j]/sum_k[x_k^2]), flipping around terms, we get sum_j[(x_i\*x_j)/sum_k[x_k^2]]\*y_i so a_j = (x_i\*x_j)/sum_k[x_k^2]]
 
 **6. Using (3.4), argue that in the case of simple linear regression, the least squares line always passes through the point (x¯, y¯).**
 
+  * least square line equation:  y = B0^ + B1^\*x, so if we substitute x_bar for x, we get y = B0^ + B1^\*x_bar
+  * (3.4) hows us that the intercept = (0, x_bar - B1\*y_bar)
+  * Plug in f(x_bar) into the linear equation which gives us x = x_bar, y = B0 + B1*x_bar
+  * Plugging in optimal values of B0 into the equation gives y = (y_bar - B1*x_bar + B1*x_bar, which simplifies to y = y_bar when x = x_bar
+  
 **7. It is claimed in the text that in the case of simple linear regression of Y onto X, the R2 statistic (3.17) is equal to the square of the correlation between X and Y (3.18). Prove that this is the case. For simplicity, you may assume that ¯x = ¯y = 0.**
+  
+  * We know R2 = 1 - RSS/TSS = 1 - (sum_i((y_i - y_i^)^2)).
+  * Having y_i^ = Bi^x_i, write R2 = 1 - (sum_i((y_i - sum_j(x_j\*y_j)/sum_j(x_j^2*x_i))^2)/sum_j(y_i^2))
 
 ### Applied
 8. This question involves the use of simple linear regression on the Auto data set.
@@ -697,8 +708,53 @@ plot(lm_14_3,main="x2")
   * We can also see it clearly annotatedin the residuals vs. fitted and scale-location plots as an outlier (>2 or <-2)
   * It is a high-leverage point for the x2 model, as well as in the multiple regression.
 
-**15. This problem involves the Boston data set, which we saw in the lab for this chapter. We will now try to predict per capita crime rate using the other variables in this data set. In other words, per capita crime rate is the response, and the other variables are the predictors.**
-**(a) For each predictor, fit a simple linear regression model to predict the response. Describe your results. In which of the models is there a statistically significant association between the predictor and the response? Create some plots to back up your assertions.
-**(b) Fit a multiple regression model to predict the response using all of the predictors. Describe your results. For which predictors can we reject the null hypothesis H0 : ??j = 0?
-**(c) How do your results from (a) compare to your results from (b)? Create a plot displaying the univariate regression coefficients from (a) on the x-axis, and the multiple regression coefficients from (b) on the y-axis. That is, each predictor is displayed as a single point in the plot. Its coefficient in a simple linear regression model is shown on the x-axis, and its coefficient estimate in the multiple linear regression model is shown on the y-axis.
-**(d) Is there evidence of non-linear association between any of the predictors and the response? To answer this question, for each predictor X, fit a model of the form Y = ??0 + ??1X + ??2X2 + ??3X3 + .
+**15. Using Boston data set, try to predict per capita crime rate using the other variables in this data set. In other words, per capita crime rate is the response, and the other variables are the predictors.**
+**(a) For each predictor, fit a simple linear regression model to predict the response. Describe your results. In which of the models is there a statistically significant association between the predictor and the response? Create some plots to back up your assertions.**
+```{r}
+library(broom)
+names <- names(Boston)
+names <- names[2:length(names)]
+
+df <- as.data.frame(data_frame(formula = paste('crim ~', names), 
+           model = map(formula, lm, data = Boston))) %>%
+  mutate(tidied = map(model, tidy)) %>%
+  unnest(tidied) %>%
+  mutate(significant = if_else(p.value < .001,"***",
+                                 if_else(p.value < .01,"**",
+                                         if_else(p.value < .05,"*","no"))))
+df %>% filter(!term=="(Intercept)")
+```
+  * Each variable, in isolation, has a statistically significant association with the response `crim` *except* for being on the Charles River (`chas`).
+**(b) Fit a multiple regression model to predict the response using all of the predictors. Describe your results. For which predictors can we reject the null hypothesis H0: Bj = 0?**
+```{r}
+fullBostonCrim <- lm(crim~.,Boston)
+summary(fullBostonCrim)
+```
+  * The variables for which we can reject the null H0: Bj = 0 are `rad`, `dis`, less so `medv`, and less so `zn`, `black`. So, looking at the coefficients, we can see that an increase of 1 unit in the index of accessibility to radial highways would increase per capita crime rate by .588 units, an increase of 1 unit in the weighted mean of distances to five Boston employment centres would decrease per capita crime rate by .987 units, and an increase in in median home value of $1K would mean a decrease of .198 units for crime rate.
+**(c) How do results from (a) compare toresults from (b)? Create a plot displaying univariate regression coefficients from (a) on x-axis, + multiple regression coefficients from (b) on y-axis (i.e. each predictor is displayed as a single DP**
+  * The multiple linear regression has eliminated signicant associations indicated by the simple linear regression models for indus, nox, rm, age, tax, ptratio, and lstat, and decreased the significance of zn, black, and medv, and for dis and rad (but these last 3 ar still significant)
+```{r}
+simpEstimate <- fullBostonCrim$coefficients[2:length(fullBostonCrim$coefficients)]
+coeffs <- df %>%
+  filter(!term=="(Intercept)") %>% 
+  select(term,estimate) %>% 
+  mutate(multEstimate = estimate,
+         simpEstimate = simpEstimate) %>%
+  select(-estimate)
+
+ggplot(coeffs,aes(simpEstimate,multEstimate)) + 
+  geom_point()
+```
+**(d) Is there evidence of non-linear association between any of the predictors + the response? To answer this question, for each predictor X, fit a model of the form `Y = B0 + B1X + B2X^2 + B3X^3 + epsilon`**
+```{r}
+
+df <- as.data.frame(data_frame(formula = paste('crim ~ ', names, " + I(", names, "^2)", " + I(", names, "^3)", sep=""),
+                         model = map(formula, lm, data = Boston))) %>%
+  mutate(tidied = map(model, tidy)) %>%
+  unnest(tidied) %>%
+  mutate(significant = if_else(p.value < .001,"***",
+                                 if_else(p.value < .01,"**",
+                                         if_else(p.value < .05,"*","no"))))
+df %>% filter(!term=="(Intercept)")
+```
+* It appears that indus, nox, dis, medv, less so, ptratio, and (barely) age have a non-linear relationship with crim
