@@ -1,0 +1,715 @@
+---
+title: "ISLR_Ch4_LogisticRegression"
+author: "Steve Newns"
+date: "April 27, 2018"
+output: html_document
+---
+## 4.6.1 The Stock Market Data
+
+Begin by examining some numerical + graphical summaries of `Smarket` data (`ISLR` library) = % returns for S&P 500 stock index over 1,250 days, from the beginning of 2001 until end of 2005. For each date, we have recorded the % returns for each of the 5 previous trading days, `Lag1` through `Lag5` + recorded `Volume` (# of shares traded on previous day, in billions), `Today` (% return on date in question) + `Direction` (whether market was Up/Down on this date)
+```{r,warning=F}
+library(ISLR)
+names(Smarket)
+dim(Smarket)
+summary(Smarket)
+pairs(Smarket)
+```
+
+`cor()` = produce matrix w/ all of pairwise correlations among predictors in a data set (ignoring `Direction` = qualitative)
+```{r}
+library(tidyverse)
+Smarket %>%
+  select(-Direction) %>%
+  cor()
+```
+
+As expected, correlations between lag variables + today's returns = ~0 = appears to be little correlation between today's + previous days' returns, w/ only substantial correlation = between Year and Volume. 
+```{r}
+library(ggplot2)
+
+Smarket %>%
+  mutate(rowNum = as.numeric(row.names(Smarket))) %>%
+  ggplot(aes(rowNum,Volume)) + 
+    geom_point() + 
+    labs(x="Index",main="Volume of trades over Time")
+#plot(Smarket$Volume)
+```
+
+By plotting the data we see Volume is increasing over time == average # of shares traded daily increased from 2001 to 2005.
+
+## 4.6.2 Logistic Regression
+
+Next, we will fit a logistic regression model in order to predict Direction using Lag1-Lag5 + Volume via `glm()` = fits generalized linear models (class of models that includes logistic regression) 
+
+* like `lm()` but must pass in argument `family=binomial` to tell R to run a logistic regression rather than some generalized linear model
+
+```{r}
+glm_fit <- glm(Direction~.-Year-Today,Smarket,family = "binomial")
+summary(glm_fit)
+```
+
+Smallest p-value here is associated w/ Lag1 + negative coefficient suggests if the market had a positive return yesterday, it is less likely to go up today. However, at a value of 0.15, the p-value is still relatively large, and so there is no clear evidence of a real association between Lag1 and Direction.
+
+Use `coef()` function in order to access just the coefficients for this fitted model + `summary()` function to access particular
+aspects of the fitted model, such as the p-values for the coefficients
+```{r}
+coef(glm_fit)
+summary(glm_fit)$coef
+summary(glm_fit)$coef[,4]
+```
+
+`predict()` = predict the probability market will go up, given values of the predictors w/ `type="response"` to tell R to output probabilities of the form`P(Y = 1|X)`, as opposed to other info, such as the **logit**
+
+* If no data set is supplied to predict() function, probabilities are computed for the training data used to fit the logistic regression model. 
+
+```{r}
+glm_probs <- predict(glm_fit,type="response") # no newdata arg =  predict probability on training data used to fit model
+head(glm_probs)
+#contrasts(Direction)
+```
+
+We know these values correspond to the probability of market going *up*, rather than down, b/c `contrasts()` indicates R has created a dummy variable w/ 1 = Up
+```{r}
+contrasts(Smarket$Direction)
+```
+
+To make a prediction as to whether the market will go up/down on a particular day, must convert predicted probabilities into class labels, Up or Down. Create a vector of class predictions based on whether predicted probability of a market increase is > or <  0.5.
+```{r}
+glm_preds <- rep("Down",1250)   # create vector of 1250 Down elements.
+glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
+(cm <- table(glm_preds,Smarket$Direction)) # confusion matrix
+
+sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
+specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+cat("\nSensitivity (TP rate): ",sensitivity)
+cat("\nSpecificity (TN rate or Recall): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+```
+
+Diagonal elements of a confusion matrix = correct predictions, while off-diagonals = incorrect predictions. Hence our logistic regression model correctly predicted market would go up on 507 days + that it would go down on 145 days, for a total of 507 + 145 = 652 correct predictions = 52.2 % of the time. 
+
+At first glance, it appears that the logistic regression model is working a little better than random guessing. However, this result is misleading b/c we trained and tested the model on the *same set* of 1250 observations. **In other words, 100% ??? 52.2% = 47.8% = the training error rate, which is often overly optimistic as it tends to *underestimate* test error rate.** 
+
+To better assess accuracy of the logistic regression model = fit the model using part of the data + then examine how well it predicts *held out data* = will yield a more realistic error rate, in the sense that in practice we will be interested in our model's performance *out-of-sample*, and *not* on training data (days in the future for which market's movements are unknown)
+
+To implement this strategy, we will first create a vector corresponding
+to the observations from 2001 through 2004. We will then use this vector
+to create a held out data set of observations from 2005.
+> train=(Year <2005)
+> Smarket .2005= Smarket [!train ,]
+> dim(Smarket .2005)
+[1] 252 9
+> Direction .2005= Direction [!train]
+The object train is a vector of 1, 250 elements, corresponding to the observations
+in our data set. The elements of the vector that correspond to
+observations that occurred before 2005 are set to TRUE, whereas those that
+correspond to observations in 2005 are set to FALSE. The object train is
+a Boolean vector, since its elements are TRUE and FALSE. Boolean vectors boolean
+can be used to obtain a subset of the rows or columns of a matrix. For
+instance, the command Smarket[train,] would pick out a submatrix of the
+stock market data set, corresponding only to the dates before 2005, since
+those are the ones for which the elements of train are TRUE. The ! symbol
+can be used to reverse all of the elements of a Boolean vector. That is,
+!train is a vector similar to train, except that the elements that are TRUE
+in train get swapped to FALSE in !train, and the elements that are FALSE
+in train get swapped to TRUE in !train. Therefore, Smarket[!train,] yields
+a submatrix of the stock market data containing only the observations for
+which train is FALSE-that is, the observations with dates in 2005. The
+output above indicates that there are 252 such observations.
+We now fit a logistic regression model using only the subset of the observations
+that correspond to dates before 2005, using the subset argument.
+We then obtain predicted probabilities of the stock market going up for
+each of the days in our test set-that is, for the days in 2005.
+> glm.fits=glm(Direction???Lag1+Lag2+Lag3+Lag4+Lag5+Volume ,
+data=Smarket ,family=binomial ,subset=train)
+> glm.probs=predict (glm.fits,Smarket .2005, type=" response ")
+Notice that we have trained and tested our model on two completely separate
+data sets: training was performed using only the dates before 2005,
+and testing was performed using only the dates in 2005. Finally, we compute
+the predictions for 2005 and compare them to the actual movements
+of the market over that time period.
+> glm.pred=rep("Down",252)
+> glm.pred[glm.probs >.5]=" Up"
+> table(glm.pred ,Direction .2005)
+Direction .2005
+glm.pred Down Up
+Down 77 97
+Up 34 44
+> mean(glm.pred==Direction .2005)
+160 4. Classification
+[1] 0.48
+> mean(glm.pred!=Direction .2005)
+[1] 0.52
+The != notation means not equal to, and so the last command computes
+the test set error rate. The results are rather disappointing: the test error
+rate is 52 %, which is worse than random guessing! Of course this result
+is not all that surprising, given that one would not generally expect to be
+able to use previous days' returns to predict future market performance.
+(After all, if it were possible to do so, then the authors of this book would
+be out striking it rich rather than writing a statistics textbook.)
+We recall that the logistic regression model had very underwhelming pvalues
+associated with all of the predictors, and that the smallest p-value,
+though not very small, corresponded to Lag1. Perhaps by removing the
+variables that appear not to be helpful in predicting Direction, we can
+obtain a more effective model. After all, using predictors that have no
+relationship with the response tends to cause a deterioration in the test
+error rate (since such predictors cause an increase in variance without a
+corresponding decrease in bias), and so removing such predictors may in
+turn yield an improvement. Below we have refit the logistic regression using
+just Lag1 and Lag2, which seemed to have the highest predictive power in
+the original logistic regression model.
+> glm.fits=glm(Direction???Lag1+Lag2 ,data=Smarket ,family=binomial ,
+subset=train)
+> glm.probs=predict (glm.fits,Smarket .2005, type=" response ")
+> glm.pred=rep("Down",252)
+> glm.pred[glm.probs >.5]=" Up"
+> table(glm.pred ,Direction .2005)
+Direction .2005
+glm.pred Down Up
+Down 35 35
+Up 76 106
+> mean(glm.pred==Direction .2005)
+[1] 0.56
+> 106/(106+76)
+[1] 0.582
+Now the results appear to be a little better: 56% of the daily movements
+have been correctly predicted. It is worth noting that in this case, a much
+simpler strategy of predicting that the market will increase every day will
+also be correct 56% of the time! Hence, in terms of overall error rate, the
+logistic regression method is no better than the na¨ive approach. However,
+the confusion matrix shows that on days when logistic regression predicts
+an increase in the market, it has a 58% accuracy rate. This suggests a
+possible trading strategy of buying on days when the model predicts an increasing
+market, and avoiding trades on days when a decrease is predicted.
+Of course one would need to investigate more carefully whether this small
+improvement was real or just due to random chance.
+4.6 Lab: Logistic Regression, LDA, QDA, and KNN 161
+Suppose that we want to predict the returns associated with particular
+values of Lag1 and Lag2. In particular, we want to predict Direction on a
+day when Lag1 and Lag2 equal 1.2 and 1.1, respectively, and on a day when
+they equal 1.5 and ???0.8. We do this using the predict() function.
+> predict (glm.fits,newdata =data.frame(Lag1=c(1.2 ,1.5),
+Lag2=c(1.1,-0.8) ),type="response ")
+1 2
+0.4791 0.4961
+4.6.3 Linear Discriminant Analysis
+Now we will perform LDA on the Smarket data. In R, we fit an LDA model
+using the lda() function, which is part of the MASS library. Notice that the lda() syntax for the lda() function is identical to that of lm(), and to that of
+glm() except for the absence of the family option. We fit the model using
+only the observations before 2005.
+> library(MASS)
+> lda.fit=lda(Direction???Lag1+Lag2 ,data=Smarket ,subset=train)
+> lda.fit
+Call:
+lda(Direction ??? Lag1 + Lag2 , data = Smarket , subset = train)
+Prior probabilities of groups:
+Down Up
+0.492 0.508
+Group means:
+Lag1 Lag2
+Down 0.0428 0.0339
+Up -0.0395 -0.0313
+Coefficients of linear discriminants:
+LD1
+Lag1 -0.642
+Lag2 -0.514
+> plot(lda.fit)
+The LDA output indicates that ^??1 = 0.492 and ^??2 = 0.508; in other words,
+49.2 % of the training observations correspond to days during which the
+market went down. It also provides the group means; these are the average
+of each predictor within each class, and are used by LDA as estimates
+of ??k. These suggest that there is a tendency for the previous 2 days'
+returns to be negative on days when the market increases, and a tendency
+for the previous days' returns to be positive on days when the market
+declines. The coefficients of linear discriminants output provides the linear
+combination of Lag1 and Lag2 that are used to form the LDA decision rule.
+In other words, these are the multipliers of the elements of X = x in
+(4.19). If ???0.642×Lag1???0.514×Lag2 is large, then the LDA classifier will
+162 4. Classification
+predict a market increase, and if it is small, then the LDA classifier will
+predict a market decline. The plot() function produces plots of the linear
+discriminants, obtained by computing ???0.642 × Lag1 ??? 0.514 × Lag2 for
+each of the training observations.
+The predict() function returns a list with three elements. The first element,
+class, contains LDA's predictions about the movement of the market.
+The second element, posterior, is a matrix whose kth column contains the
+posterior probability that the corresponding observation belongs to the kth
+class, computed from (4.10). Finally, x contains the linear discriminants,
+described earlier.
+> lda.pred=predict (lda.fit , Smarket .2005)
+> names(lda.pred)
+[1] "class" "posterior " "x"
+As we observed in Section 4.5, the LDA and logistic regression predictions
+are almost identical.
+> lda.class=lda.pred$class
+> table(lda.class ,Direction .2005)
+Direction .2005
+lda.pred Down Up
+Down 35 35
+Up 76 106
+> mean(lda.class==Direction .2005)
+[1] 0.56
+Applying a 50 % threshold to the posterior probabilities allows us to recreate
+the predictions contained in lda.pred$class.
+> sum(lda.pred$posterior[,1]>=.5)
+[1] 70
+> sum(lda.pred$posterior[,1]<.5)
+[1] 182
+Notice that the posterior probability output by the model corresponds to
+the probability that the market will decrease:
+> lda.pred$posterior [1:20,1]
+> lda.class [1:20]
+If we wanted to use a posterior probability threshold other than 50 % in
+order to make predictions, then we could easily do so. For instance, suppose
+that we wish to predict a market decrease only if we are very certain that the
+market will indeed decrease on that day-say, if the posterior probability
+is at least 90 %.
+> sum(lda.pred$posterior[,1]>.9)
+[1] 0
+No days in 2005 meet that threshold! In fact, the greatest posterior probability
+of decrease in all of 2005 was 52.02 %.
+4.6 Lab: Logistic Regression, LDA, QDA, and KNN 163
+4.6.4 Quadratic Discriminant Analysis
+We will now fit a QDA model to the Smarket data. QDA is implemented
+in R using the qda() function, which is also part of the MASS library. The qda() syntax is identical to that of lda().
+> qda.fit=qda(Direction???Lag1+Lag2 ,data=Smarket ,subset=train)
+> qda.fit
+Call:
+qda(Direction ??? Lag1 + Lag2 , data = Smarket , subset = train)
+Prior probabilities of groups:
+Down Up
+0.492 0.508
+Group means:
+Lag1 Lag2
+Down 0.0428 0.0339
+Up -0.0395 -0.0313
+The output contains the group means. But it does not contain the coefficients
+of the linear discriminants, because the QDA classifier involves a
+quadratic, rather than a linear, function of the predictors. The predict()
+function works in exactly the same fashion as for LDA.
+> qda.class=predict (qda.fit ,Smarket .2005) $class
+> table(qda.class ,Direction .2005)
+Direction .2005
+qda.class Down Up
+Down 30 20
+Up 81 121
+> mean(qda.class==Direction .2005)
+[1] 0.599
+Interestingly, the QDA predictions are accurate almost 60 % of the time,
+even though the 2005 data was not used to fit the model. This level of accuracy
+is quite impressive for stock market data, which is known to be quite
+hard to model accurately. This suggests that the quadratic form assumed
+by QDA may capture the true relationship more accurately than the linear
+forms assumed by LDA and logistic regression. However, we recommend
+evaluating this method's performance on a larger test set before betting
+that this approach will consistently beat the market!
+4.6.5 K-Nearest Neighbors
+We will now perform KNN using the knn() function, which is part of the knn()
+class library. This function works rather differently from the other modelfitting
+functions that we have encountered thus far. Rather than a two-step
+approach in which we first fit the model and then we use the model to make
+predictions, knn() forms predictions using a single command. The function
+requires four inputs.
+164 4. Classification
+1. A matrix containing the predictors associated with the training data,
+labeled train.X below.
+2. A matrix containing the predictors associated with the data for which
+we wish to make predictions, labeled test.X below.
+3. A vector containing the class labels for the training observations,
+labeled train.Direction below.
+4. A value for K, the number of nearest neighbors to be used by the
+classifier.
+We use the cbind() function, short for column bind, to bind the Lag1 and cbind()
+Lag2 variables together into two matrices, one for the training set and the
+other for the test set.
+> library(class)
+> train.X=cbind(Lag1 ,Lag2)[train ,]
+> test.X=cbind(Lag1 ,Lag2)[!train ,]
+> train.Direction =Direction [train]
+Now the knn() function can be used to predict the market's movement for
+the dates in 2005. We set a random seed before we apply knn() because
+if several observations are tied as nearest neighbors, then R will randomly
+break the tie. Therefore, a seed must be set in order to ensure reproducibility
+of results.
+> set.seed(1)
+> knn.pred=knn(train.X,test.X,train.Direction ,k=1)
+> table(knn.pred ,Direction .2005)
+Direction .2005
+knn.pred Down Up
+Down 43 58
+Up 68 83
+> (83+43) /252
+[1] 0.5
+The results using K = 1 are not very good, since only 50 % of the observations
+are correctly predicted. Of course, it may be that K = 1 results in an
+overly flexible fit to the data. Below, we repeat the analysis using K = 3.
+> knn.pred=knn(train.X,test.X,train.Direction ,k=3)
+> table(knn.pred ,Direction .2005)
+Direction .2005
+knn.pred Down Up
+Down 48 54
+Up 63 87
+> mean(knn.pred==Direction .2005)
+[1] 0.536
+The results have improved slightly. But increasing K further turns out
+to provide no further improvements. It appears that for this data, QDA
+provides the best results of the methods that we have examined so far.
+4.6 Lab: Logistic Regression, LDA, QDA, and KNN 165
+4.6.6 An Application to Caravan Insurance Data
+Finally, we will apply the KNN approach to the Caravan data set, which is
+part of the ISLR library. This data set includes 85 predictors that measure
+demographic characteristics for 5,822 individuals. The response variable is
+Purchase, which indicates whether or not a given individual purchases a
+caravan insurance policy. In this data set, only 6 % of people purchased
+caravan insurance.
+> dim(Caravan )
+[1] 5822 86
+> attach(Caravan)
+> summary(Purchase )
+No Yes
+5474 348
+> 348/5822
+[1] 0.0598
+Because the KNN classifier predicts the class of a given test observation by
+identifying the observations that are nearest to it, the scale of the variables
+matters. Any variables that are on a large scale will have a much larger
+effect on the distance between the observations, and hence on the KNN
+classifier, than variables that are on a small scale. For instance, imagine a
+data set that contains two variables, salary and age (measured in dollars
+and years, respectively). As far as KNN is concerned, a difference of $1,000
+in salary is enormous compared to a difference of 50 years in age. Consequently,
+salary will drive the KNN classification results, and age will have
+almost no effect. This is contrary to our intuition that a salary difference
+of $1, 000 is quite small compared to an age difference of 50 years. Furthermore,
+the importance of scale to the KNN classifier leads to another issue:
+if we measured salary in Japanese yen, or if we measured age in minutes,
+then we'd get quite different classification results from what we get if these
+two variables are measured in dollars and years.
+A good way to handle this problem is to standardize the data so that all standardize
+variables are given a mean of zero and a standard deviation of one. Then
+all variables will be on a comparable scale. The scale() function does just scale() this. In standardizing the data, we exclude column 86, because that is the
+qualitative Purchase variable.
+> standardized.X= scale(Caravan [,-86])
+> var(Caravan [ ,1])
+[1] 165
+> var(Caravan [ ,2])
+[1] 0.165
+> var(standardized.X[,1])
+[1] 1
+> var(standardized.X[,2])
+[1] 1
+Now every column of standardized.X has a standard deviation of one and
+a mean of zero.
+166 4. Classification
+We now split the observations into a test set, containing the first 1,000
+observations, and a training set, containing the remaining observations.
+We fit a KNN model on the training data using K = 1, and evaluate its
+performance on the test data.
+> test=1:1000
+> train.X= standardized.X[-test ,]
+> test.X= standardized.X[test ,]
+> train.Y=Purchase [-test]
+> test.Y=Purchase [test]
+> set.seed(1)
+> knn.pred=knn(train.X,test.X,train.Y,k=1)
+> mean(test.Y!=knn.pred)
+[1] 0.118
+> mean(test.Y!="No")
+[1] 0.059
+The vector test is numeric, with values from 1 through 1, 000. Typing
+standardized.X[test,] yields the submatrix of the data containing the observations
+whose indices range from 1 to 1, 000, whereas typing
+standardized.X[-test,] yields the submatrix containing the observations
+whose indices do not range from 1 to 1, 000. The KNN error rate on the
+1,000 test observations is just under 12 %. At first glance, this may appear
+to be fairly good. However, since only 6 % of customers purchased
+insurance, we could get the error rate down to 6 % by always predicting No
+regardless of the values of the predictors!
+Suppose that there is some non-trivial cost to trying to sell insurance
+to a given individual. For instance, perhaps a salesperson must visit each
+potential customer. If the company tries to sell insurance to a random
+selection of customers, then the success rate will be only 6 %, which may
+be far too low given the costs involved. Instead, the company would like
+to try to sell insurance only to customers who are likely to buy it. So the
+overall error rate is not of interest. Instead, the fraction of individuals that
+are correctly predicted to buy insurance is of interest.
+It turns out that KNN with K = 1 does far better than random guessing
+amon
+4.6 Lab: Logistic Regression, LDA, QDA, and KNN 167
+> knn.pred=knn(train.X,test.X,train.Y,k=3)
+> table(knn.pred ,test.Y)
+test.Y
+knn.pred No Yes
+No 920 54
+Yes 21 5
+> 5/26
+[1] 0.192
+> knn.pred=knn(train.X,test.X,train.Y,k=5)
+> table(knn.pred ,test.Y)
+test.Y
+knn.pred No Yes
+No 930 55
+Yes 11 4
+> 4/15
+[1] 0.267
+As a comparison, we can also fit a logistic regression model to the data.
+If we use 0.5 as the predicted probability cut-off for the classifier, then
+we have a problem: only seven of the test observations are predicted to
+purchase insurance. Even worse, we are wrong about all of these! However,
+we are not required to use a cut-off of 0.5. If we instead predict a purchase
+any time the predicted probability of purchase exceeds 0.25, we get much
+better results: we predict that 33 people will purchase insurance, and we
+are correct for about 33 % of these people. This is over five times better
+than random guessing!
+subset=-test)
+Warning message:
+> glm.pred=rep("No",1000)
+> glm.pred[glm.probs >.5]=" Yes"
+> table(glm.pred ,test.Y)
+test.Y
+glm.pred No Yes
+No 934 59
+Yes 7 0
+> glm.pred=rep("No",1000)
+> glm.pred[glm.probs >.25]=" Yes"
+> table(glm.pred ,test.Y)
+test.Y
+glm.pred No Yes
+No 919 48
+Yes 22 11
+> 11/(22+11)
+[1] 0.333
+> glm.fits=glm(Purchase???.,data=Caravan ,family=binomial ,
+: fitted probabilities numerically 0 or 1 occurred
+> glm.probs=predict(glm.fits, Caravan [test ,], type="response ")
+glm.fits
+168 4. Classification
+4.7 Exercises
+Conceptual
+1. Using a little bit of algebra, prove that (4.2) is equivalent to (4.3). In
+other words, the logistic function representation and logit representation
+for the logistic regression model are equivalent.
+2. It was stated in the text that classifying an observation to the class
+for which (4.12) is largest is equivalent to classifying an observation
+to the class for which (4.13) is largest. Prove that this is the case. In
+other words, under the assumption that the observations in the kth
+class are drawn from a N(??k, ??2) distribution, the Bayes' classifier
+assigns an observation to the class for which the discriminant function
+is maximized.
+3. This problem relates to the QDA model, in which the observations
+within each class are drawn from a normal distribution with a classspecific
+mean vector and a class specific covariance matrix. We consider
+the simple case where p = 1; i.e. there is only one feature.
+Suppose that we have K classes, and that if an observation belongs
+to the kth class then X comes from a one-dimensional normal distribution,
+X ??? N(??k, ??2
+k). Recall that the density function for the
+one-dimensional normal distribution is given in (4.11). Prove that in
+this case, the Bayes' classifier is not linear. Argue that it is in fact
+quadratic.
+Hint: For this problem, you should follow the arguments laid out in
+Section 4.4.2, but without making the assumption that ??2
+1 = ... = ??2
+K.
+4. When the number of features p is large, there tends to be a deterioration
+in the performance of KNN and other local approaches that
+perform prediction using only observations that are near the test observation
+for which a prediction must be made. This phenomenon is
+known as the curse of dimensionality, and it ties into the fact that curse of dinon-parametric
+approaches often perform poorly when p is large. We mensionality
+will now investigate this curse.
+(a) Suppose that we have a set of observations, each with measurements
+on p = 1 feature, X. We assume that X is uniformly
+(evenly) distributed on [0, 1]. Associated with each observation
+is a response value. Suppose that we wish to predict a test observation's
+response using only observations that are within 10 % of
+the range of X closest to that test observation. For instance, in
+order to predict the response for a test observation with X = 0.6,
+4.7 Exercises 169
+we will use observations in the range [0.55, 0.65]. On average,
+what fraction of the available observations will we use to make
+the prediction?
+(b) Now suppose that we have a set of observations, each with
+measurements on p = 2 features, X1 and X2. We assume that
+(X1, X2) are uniformly distributed on [0, 1] × [0, 1]. We wish to
+predict a test observation's response using only observations that
+are within 10 % of the range of X1 and within 10 % of the range
+of X2 closest to that test observation. For instance, in order to
+predict the response for a test observation with X1 = 0.6 and
+X2 = 0.35, we will use observations in the range [0.55, 0.65] for
+X1 and in the range [0.3, 0.4] for X2. On average, what fraction
+of the available observations will we use to make the prediction?
+(c) Now suppose that we have a set of observations on p = 100 features.
+Again the observations are uniformly distributed on each
+feature, and again each feature ranges in value from 0 to 1. We
+wish to predict a test observation's response using observations
+within the 10 % of each feature's range that is closest to that test
+observation. What fraction of the available observations will we
+use to make the prediction?
+(d) Using your answers to parts (a)-(c), argue that a drawback of
+KNN when p is large is that there are very few training observations
+"near" any given test observation.
+(e) Now suppose that we wish to make a prediction for a test observation
+by creating a p-dimensional hypercube centered around
+the test observation that contains, on average, 10 % of the training
+observations. For p = 1, 2, and 100, what is the length of
+each side of the hypercube? Comment on your answer.
+Note: A hypercube is a generalization of a cube to an arbitrary
+number of dimensions. When p = 1, a hypercube is simply a line
+segment, when p = 2 it is a square, and when p = 100 it is a
+100-dimensional cube.
+5. We now examine the differences between LDA and QDA.
+(a) If the Bayes decision boundary is linear, do we expect LDA or
+QDA to perform better on the training set? On the test set?
+(b) If the Bayes decision boundary is non-linear, do we expect LDA
+or QDA to perform better on the training set? On the test set?
+(c) In general, as the sample size n increases, do we expect the test
+prediction accuracy of QDA relative to LDA to improve, decline,
+or be unchanged? Why?
+170 4. Classification
+(d) True or False: Even if the Bayes decision boundary for a given
+problem is linear, we will probably achieve a superior test error
+rate using QDA rather than LDA because QDA is flexible
+enough to model a linear decision boundary. Justify your answer.
+6. Suppose we collect data for a group of students in a statistics class
+with variables X1 = hours studied, X2 = undergrad GPA, and Y =
+receive an A. We fit a logistic regression and produce estimated
+coefficient, ??^0 = ???6, ??^1 = 0.05, ??^2 = 1.
+(a) Estimate the probability that a student who studies for 40 h and
+has an undergrad GPA of 3.5 gets an A in the class.
+(b) How many hours would the student in part (a) need to study to
+have a 50 % chance of getting an A in the class?
+7. Suppose that we wish to predict whether a given stock will issue a
+dividend this year ("Yes" or "No") based on X, last year's percent
+profit. We examine a large number of companies and discover that the
+mean value of X for companies that issued a dividend was X¯ = 10,
+while the mean for those that didn't was X¯ = 0. In addition, the
+variance of X for these two sets of companies was ^??2 = 36. Finally,
+80 % of companies issued dividends. Assuming that X follows a normal
+distribution, predict the probability that a company will issue
+a dividend this year given that its percentage profit was X = 4 last
+year.
+Hint: Recall that the density function for a normal random variable
+is f(x) = ???
+1
+2????2 e???(x?????)2/2??2
+. You will need to use Bayes' theorem.
+8. Suppose that we take a data set, divide it into equally-sized training
+and test sets, and then try out two different classification procedures.
+First we use logistic regression and get an error rate of 20 % on the
+training data and 30 % on the test data. Next we use 1-nearest neighbors
+(i.e. K = 1) and get an average error rate (averaged over both
+test and training data sets) of 18 %. Based on these results, which
+method should we prefer to use for classification of new observations?
+Why?
+9. This problem has to do with odds.
+(a) On average, what fraction of people with an odds of 0.37 of
+defaulting on their credit card payment will in fact default?
+(b) Suppose that an individual has a 16 % chance of defaulting on
+her credit card payment. What are the odds that she will default?
+4.7 Exercises 171
+Applied
+10. This question should be answered using the Weekly data set, which
+is part of the ISLR package. This data is similar in nature to the
+Smarket data from this chapter's lab, except that it contains 1, 089
+weekly returns for 21 years, from the beginning of 1990 to the end of
+2010.
+(a) Produce some numerical and graphical summaries of the Weekly
+data. Do there appear to be any patterns?
+(b) Use the full data set to perform a logistic regression with
+Direction as the response and the five lag variables plus Volume
+as predictors. Use the summary function to print the results. Do
+any of the predictors appear to be statistically significant? If so,
+which ones?
+(c) Compute the confusion matrix and overall fraction of correct
+predictions. Explain what the confusion matrix is telling you
+about the types of mistakes made by logistic regression.
+(d) Now fit the logistic regression model using a training data period
+from 1990 to 2008, with Lag2 as the only predictor. Compute the
+confusion matrix and the overall fraction of correct predictions
+for the held out data (that is, the data from 2009 and 2010).
+(e) Repeat (d) using LDA.
+(f) Repeat (d) using QDA.
+(g) Repeat (d) using KNN with K = 1.
+(h) Which of these methods appears to provide the best results on
+this data?
+(i) Experiment with different combinations of predictors, including
+possible transformations and interactions, for each of the
+methods. Report the variables, method, and associated confusion
+matrix that appears to provide the best results on the held
+out data. Note that you should also experiment with values for
+K in the KNN classifier.
+11. In this problem, you will develop a model to predict whether a given
+car gets high or low gas mileage based on the Auto data set.
+(a) Create a binary variable, mpg01, that contains a 1 if mpg contains
+a value above its median, and a 0 if mpg contains a value below
+its median. You can compute the median using the median()
+function. Note you may find it helpful to use the data.frame()
+function to create a single data set containing both mpg01 and
+the other Auto variables.
+172 4. Classification
+(b) Explore the data graphically in order to investigate the association
+between mpg01 and the other features. Which of the other
+features seem most likely to be useful in predicting mpg01? Scatterplots
+and boxplots may be useful tools to answer this question.
+Describe your findings.
+(c) Split the data into a training set and a test set.
+(d) Perform LDA on the training data in order to predict mpg01
+using the variables that seemed most associated with mpg01 in
+(b). What is the test error of the model obtained?
+(e) Perform QDA on the training data in order to predict mpg01
+using the variables that seemed most associated with mpg01 in
+(b). What is the test error of the model obtained?
+(f) Perform logistic regression on the training data in order to predict
+mpg01 using the variables that seemed most associated with
+mpg01 in (b). What is the test error of the model obtained?
+(g) Perform KNN on the training data, with several values of K, in
+order to predict mpg01. Use only the variables that seemed most
+associated with mpg01 in (b). What test errors do you obtain?
+Which value of K seems to perform the best on this data set?
+12. This problem involves writing functions.
+(a) Write a function, Power(), that prints out the result of raising 2
+to the 3rd power. In other words, your function should compute
+23 and print out the results.
+Hint: Recall that x^a raises x to the power a. Use the print()
+function to output the result.
+(b) Create a new function, Power2(), that allows you to pass any
+two numbers, x and a, and prints out the value of x^a. You can
+do this by beginning your function with the line
+> Power2=function (x,a){
+You should be able to call your function by entering, for instance,
+> Power2 (3,8)
+on the command line. This should output the value of 38, namely,
+6, 561.
+(c) Using the Power2() function that you just wrote, compute 103,
+817, and 1313.
+(d) Now create a new function, Power3(), that actually returns the
+result x^a as an R object, rather than simply printing it to the
+screen. That is, if you store the value x^a in an object called
+result within your function, then you can simply return() this
+return() result, using the following line:
+4.7 Exercises 173
+return(result)
+The line above should be the last line in your function, before
+the } symbol.
+(e) Now using the Power3() function, create a plot of f(x) = x2.
+The x-axis should display a range of integers from 1 to 10, and
+the y-axis should display x2. Label the axes appropriately, and
+use an appropriate title for the figure. Consider displaying either
+the x-axis, the y-axis, or both on the log-scale. You can do this
+by using log=''x'', log=''y'', or log=''xy'' as arguments to
+the plot() function.
+(f) Create a function, PlotPower(), that allows you to create a plot
+of x against x^a for a fixed a and for a range of values of x. For
+instance, if you call
+> PlotPower (1:10,3)
+then a plot should be created with an x-axis taking on values
+1, 2,..., 10, and a y-axis taking on values 13, 23,..., 103.
+13. Using the Boston data set, fit classification models in order to predict
+whether a given suburb has a crime rate above or below the median.
+Explore logistic regression, LDA, and KNN models using various subsets
+of the predictors. Describe your findings.

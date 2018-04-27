@@ -662,9 +662,23 @@ LoadLibraries()</code></pre>
 <li>We don’t have enough info say which test RSS would be lower, since we don’t know how far it is from linear. If the true non-linear relationship is <em>closer to linear than cubic</em>, linear regression test RSS could be lower, or vice versa (see: Bias-Variance trade-off)</li>
 </ul></li>
 </ul>
-<p>**5. Consider the fitted values that result from performing linear regression <em>without an intercept</em>. In this setting, the ith fitted value takes the form y^_i = x_iB, where B = sum_i[x_i*y_i]/sum_k[x_k^2]. Show that we can write y^_i = sum_j[a_j*y_j], and what is a_j?<strong> * </strong>Note: We interpret this result by saying that the fitted values from linear regression are <em>linear combinations</em> of the response values.** * Plugging in sum_i[x_i*y_i]/sum_k[x_k^2] for B in y^_i = x_iB, we get y^_i = x_i(sum_j[x_j*y_j]/sum_k[x_k^2]), flipping around terms, we get sum_j[(x_i*x_j)/sum_k[x_k^2]]*y_i so a_j = (x_i*x_j)/sum_k[x_k^2]]</p>
+<p>**5. Consider the fitted values that result from performing linear regression <em>without an intercept</em>. In this setting, the ith fitted value takes the form y^_i = x_iB, where B = sum_i[x_i*y_i]/sum_k[x_k^2]. Show that we can write y^_i = sum_j[a_j*y_j], and what is a_j?**</p>
+<ul>
+<li><strong>Note: We interpret this result by saying that the fitted values from linear regression are <em>linear combinations</em> of the response values.</strong></li>
+<li>Plugging in sum_i[x_i*y_i]/sum_k[x_k^2] for B in y^_i = x_iB, we get y^_i = x_i(sum_j[x_j*y_j]/sum_k[x_k^2]), flipping around terms, we get sum_j[(x_i*x_j)/sum_k[x_k^2]]*y_i so a_j = (x_i*x_j)/sum_k[x_k^2]]</li>
+</ul>
 <p><strong>6. Using (3.4), argue that in the case of simple linear regression, the least squares line always passes through the point (x¯, y¯).</strong></p>
+<ul>
+<li>least square line equation: y = B0^ + B1^*x, so if we substitute x_bar for x, we get y = B0^ + B1^*x_bar</li>
+<li>(3.4) hows us that the intercept = (0, x_bar - B1*y_bar)</li>
+<li>Plug in f(x_bar) into the linear equation which gives us x = x_bar, y = B0 + B1*x_bar</li>
+<li>Plugging in optimal values of B0 into the equation gives y = (y_bar - B1<em>x_bar + B1</em>x_bar, which simplifies to y = y_bar when x = x_bar</li>
+</ul>
 <p><strong>7. It is claimed in the text that in the case of simple linear regression of Y onto X, the R2 statistic (3.17) is equal to the square of the correlation between X and Y (3.18). Prove that this is the case. For simplicity, you may assume that ¯x = ¯y = 0.</strong></p>
+<ul>
+<li>We know R2 = 1 - RSS/TSS = 1 - (sum_i((y_i - y_i<sup>)</sup>2)).</li>
+<li>Having y_i^ = Bi^x_i, write R2 = 1 - (sum_i((y_i - sum_j(x_j*y_j)/sum_j(x_j^2*x_i))<sup>2)/sum_j(y_i</sup>2))</li>
+</ul>
 </div>
 <div id="applied" class="section level3">
 <h3>Applied</h3>
