@@ -88,6 +88,8 @@ cat("\nSensitivity (TP rate): ",sensitivity)
 cat("\nSpecificity (TN rate or Recall): ",specificity)
 cat("\nPrecision (Positive Predictive Value): ",precision)
 cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+
 ```
 
 Diagonal elements of a confusion matrix = correct predictions, while off-diagonals = incorrect predictions. Hence our logistic regression model correctly predicted market would go up on 507 days + that it would go down on 145 days, for a total of 507 + 145 = 652 correct predictions = 52.2 % of the time. 
@@ -497,11 +499,28 @@ We predict 33 people will purchase insurance + are correct for about 33 % of the
 
 * 4.2 = `p(X) = (exp(B0 + B1\*X))/(1+exp(B0 + B1\*X)))`
 * 4.3 = `p(X)/(1-p(X)) = exp(B0 + B1\*X)`
-* Take the log of the odds give the **logit** = `ln(p/(1-p))` (4.4). Plugging into 4.3 gives `ln[p(X)(1-p(X))] = B0 + B1\*X`. 
-* From 4.3: `p(X)(1-p(X)) = exp(B0 + B1\*X)`, we have `p(X) = exp(B0 + B1\*X)*(1-p(X)) =  exp(B0 + B1\*X)*(1-exp(B0 + B1\*X)  )`
-* ????????????????????????????????????????
+* From 4.3: 
+\[= \frac {\frac {e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}}
+        {1 - \frac {e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}}
+\\
+= \frac {\frac {e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}}
+        {
+          \frac {1 + e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}
+          - \frac {e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}
+        }
+\\
+= \frac {\frac {e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}}
+        {\frac {1} {1 + e^{\beta_0 + \beta_1 X}}}
+\]        
 
-**2. Classifying an observation to the class for which (4.12) [p_k(x)] is largest is equivalent to classifying an observation to the class for which (4.13) [sigma_k(x)] is largest. Prove that this is the case. In other words, under the assumption the observations in the kth class are drawn from a N(mu_k, simga^2) distribution, the Bayes' classifier assigns an observation to the class for which the discriminant function is maximized.**
+**2. Classifying an observation to the class for which (4.12)** \[p_k(x) = \frac {\pi_k \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_k)^2)}{\sum {\pi_l \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_l)^2) }}\] 
+**is largest = equivalent to classifying an observation to the class for which (4.13)**
+\[x \frac {\mu_k} {\sigma^2} - \frac {\mu_k^2} {2 \sigma^2} + \log(\pi_k) \geq x \frac {\mu_i} {\sigma^2} - \frac {\mu_i^2} {2 \sigma^2} + \log(\pi_i)\]
+**is largest. Prove that this is the case. In other words, under the assumption the observations in the kth class are drawn from a**
+\[ N(\mu_k(x), \sigma^2)\] 
+**distribution, the Bayes' classifier assigns an observation to the class for which the discriminant function is maximized.**
+
+* 
   
   * 
 
