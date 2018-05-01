@@ -513,24 +513,42 @@ We predict 33 people will purchase insurance + are correct for about 33 % of the
         {\frac {1} {1 + e^{\beta_0 + \beta_1 X}}}
 \]        
 
-**2. Classifying an observation to the class for which (4.12)** \[p_k(x) = \frac {\pi_k \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_k)^2)}{\sum {\pi_l \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_l)^2) }}\] 
-**is largest = equivalent to classifying an observation to the class for which (4.13)**
-\[x \frac {\mu_k} {\sigma^2} - \frac {\mu_k^2} {2 \sigma^2} + \log(\pi_k) \geq x \frac {\mu_i} {\sigma^2} - \frac {\mu_i^2} {2 \sigma^2} + \log(\pi_i)\]
-**is largest. Prove that this is the case. In other words, under the assumption the observations in the kth class are drawn from a**
-\[ N(\mu_k(x), \sigma^2)\] 
-**distribution, the Bayes' classifier assigns an observation to the class for which the discriminant function is maximized.**
+**2. Classifying an observation to the class for which (4.12)** $p_k(x) = \frac {\pi_k \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_k)^2)}{\sum {\pi_l \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_l)^2) }}$
+**is largest = equivalent to classifying an observation to the class for which *the discriminant function* (4.13) $\delta_k(x) = x \frac {\mu_k} {\sigma^2} - \frac {\mu_k^2} {2 \sigma^2} + \log(\pi_k)$ is largest. Prove that this is the case. In other words, under the assumption the observations in the kth class are drawn from a $ N(\mu_k, \sigma^2)$ distribution, the Bayes' classifier assigns an observation to the class for which the discriminant function is maximized.**
+
+* ***NOTE***: **LDA** = model distribution of predictors `X` separately in each of response class (given `Y`s) + use Bayes’ theorem to flip these around into estimates for `Pr(Y = k|X = x)`
+
+* Fix `x` + observe that we're maximizing over parameter `k`. Suppose that $\delta_k(x) \geq \delta_i(x)$, show that $f_k(x) \geq f_i(x)$. 
+* Assuming $\delta_k(x) \geq \delta_i(x)$, we can write $x \frac {\mu_k} {\sigma^2} - \frac {\mu_k^2} {2 \sigma^2} + \log(\pi_k) \geq x \frac {\mu_i} {\sigma^2} - \frac {\mu_i^2} {2 \sigma^2} + \log(\pi_i)$
+* Exponentiation = a **monotonically increasing** (entirely non-decreasing) function, so we can exponentiate and write $\pi_k \exp (x \frac {\mu_k} {\sigma^2} - \frac {\mu_k^2} {2 \sigma^2}) \geq \pi_i \exp (x \frac {\mu_i} {\sigma^2} - \frac {\mu_i^2} {2 \sigma^2})$
+
+* Multipy both sides by constant $c = \frac { \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} x^2)} {\sum { \pi_l \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_l)^2)}}$
+
+* Gives $\frac {\pi_k \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_k)^2)}{\sum {\pi_l \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_l)^2) }} \geq \frac {\pi_i \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_i)^2)}{\sum {\pi_l \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_l)^2) }}$ 
+
+* This is the same as $f_k(x) \geq f_i(x)$ and can be reversed to prove that maximizing $\delta_k(x)$ is the same as maximizing $p_k(x)$
+
+**3. This problem relates to the QDA model, in which observations w/in each class are drawn from a normal distribution w/ a class-specific mean vector + a class-specific covariance matrix. Consider the simple case where `p = 1` = only 1 feature. Suppose we have `K` classes, + if an observation belongs to the `k`th class, then `X` comes from a 1D normal distribution: $X \sim N(\mu_k, \sigma_k^2)$ Recall the density function for the 1D normal distribution is given in (4.11): $f_k(x) = \frac {1} {\sqrt{2 \pi} \sigma_k} \exp(- \frac {1} {2 \sigma_k^2} (x - \mu_k)^2)$ Prove that in this case, the Bayes' classifier ($Pr(Y = 1|X = x_0) > 0.5$) is *not* linear. Argue that it is in fact quadratic.**
+
+* **Hint: For this problem, you should follow the arguments laid out in Section 4.4.2, but without making the assumption that $\sigma_1^2  = ... = \sigma_K^2$ = (shared variance term across all K classes)**
+* $\mu_k$ and $\simga_k^2$ =k are mean + variance parameters for kth class.
+* Now, we are NOT making the shared variance assumtion
+* Plugging (4.11) into (4.10) $Pr(Y = 1|X = x) = \frac {\pi_k f_k(x)} {\sum_{l=1}^K \pi_l f_l(x)}$, we find that
+
+where n is the total number of training observations, and nk is the number
+of training observations in the kth class. The estimate for μk is simply the
+average of all the training observations from the kth class, while ˆσ2 can
+be seen as a weighted average of the sample variances for each of the K
+classes. Sometimes we have knowledge of the class membership probabilities
+π1,...,πK, which can be used directly. In the absence of any additional
+information, LDA estimates πk using the proportion of the training observations
+that belong to the kth class. In other words,
+
+**4. When the number of features p is large = tends to be deterioration in performance of KNN + other *local* approaches that perform prediction using only observations near the test observation = *curse of dimensionality*, which ties into the fact that *non-parametric approaches often perform poorly when p is large.* We will now investigate this curse.**
+
+**(a) Suppose we have a set of observations, each w/ measurements on p = 1 feature, `X`. Assume `X` = uniformly (evenly) distributed on [0, 1]. Associated w/ each observation = a response value. Suppose we wish to predict a test observation's response using only observations w/in 10 % of the range of X values that're closest to that test observation. For instance, in order to predict the response for a test observation with X = 0.6, use observations in the range [0.55, 0.65]. On average, what fraction of the available observations will we use to make the prediction?**
 
 * 
-  
-  * 
-
-**3. This problem relates to the QDA model, in which the observations within each class are drawn from a normal distribution with a classspecific mean vector and a class specific covariance matrix. We consider the simple case where p = 1; i.e. there is only one feature. Suppose that we have K classes, and that if an observation belongs to the kth class then X comes from a one-dimensional normal distribution, X ??? N(??k, ??2 k). Recall that the density function for the one-dimensional normal distribution is given in (4.11). Prove that in this case, the Bayes' classifier is not linear. Argue that it is in fact quadratic.**
-
-* **Hint: For this problem, you should follow the arguments laid out in Section 4.4.2, but without making the assumption that ??2 1 = ... = ??2 K.**
-
-**4. When the number of features p is large, there tends to be a deterioration in the performance of KNN and other local approaches that perform prediction using only observations that are near the test observation for which a prediction must be made. This phenomenon is known as the curse of dimensionality, and it ties into the fact that non-parametric approaches often perform poorly when p is large. We mensionality will now investigate this curse.**
-
-**(a) Suppose that we have a set of observations, each with measurements on p = 1 feature, X. We assume that X is uniformly (evenly) distributed on [0, 1]. Associated with each observation is a response value. Suppose that we wish to predict a test observation's response using only observations that are within 10 % of the range of X closest to that test observation. For instance, in order to predict the response for a test observation with X = 0.6, we will use observations in the range [0.55, 0.65]. On average, what fraction of the available observations will we use to make the prediction?**
 
 **(b) Now suppose that we have a set of observations, each with measurements on p = 2 features, X1 and X2. We assume that (X1, X2) are uniformly distributed on [0, 1] ? [0, 1]. We wish to predict a test observation's response using only observations thatare within 10 % of the range of X1 and within 10 % of the range of X2 closest to that test observation. For instance, in order to predict the response for a test observation with X1 = 0.6 and X2 = 0.35, we will use observations in the range [0.55, 0.65] for X1 and in the range [0.3, 0.4] for X2. On average, what fraction of the available observations will we use to make the prediction?**
 
@@ -610,36 +628,154 @@ glm_probs <- predict(glm_fit,type="response") # no newdata arg =  predict probab
 
 glm_preds <- rep("Down",nrow(Weekly))   # create vector of 1089 Down elements.
 glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
-(cm <- table(glm_preds,Weekly$Direction)) # confusion matrix
+True <- Weekly$Direction
+(cm <- table(glm_preds,True)) # confusion matrix
 
-sensitivity <- cm[4] / (cm[4] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
 accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
+cat("\nFOR PREDICTING DOWN:")
+cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
 cat("\nPrecision (Positive Predictive Value): ",precision)
 cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
 cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
 
 library(caret)
 #loads library "caret"
-
+cat("\n")
 confusionMatrix(as.factor(glm_preds), Weekly$Direction) 
 ```
 
-* Our logistic regression model has an accuracy of 56% with a training error rate of 44%. For this days the market did increase, we were right ~56.5% of the time (sensitivity), and for those days where the market did not increase, we were correct 53% of the time (specificity). 
+* Our logistic regression model has an accuracy of 56% with a training error rate of 44%. For this days the market did increase, we were right ~56.5% of the time (Neg Pred Value), and for those days where the market did not increase, we were correct 53% of the time (Pos Pred Value). With a sensitivity of 11% and specificity of 92%, this model is good at predicting when the market will go up, but not so much as to when it will go down.
 
 **(d) Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010).**
+```{r}
+train <- subset(Weekly,Year%in% c(1990:2008))
+test <- subset(Weekly,Year >= 2009)
 
+glm_fit <- glm(Direction ~ Lag2, train, family="binomial")
+summary(glm_fit)
+
+glm_probs <- predict(glm_fit,test,type="response") # no newdata arg =  predict probability on training data used to fit model
+
+glm_preds <- rep("Down",nrow(test))   # create vector of 1089 Down elements.
+glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
+True <- test$Direction
+(cm <- table(glm_preds,True)) # confusion matrix
+
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+cat("\nFOR PREDICTING DOWN:")
+cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nNegative Predictive Value: ",npv)
+cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+
+#library(caret)
+#cat("\n")
+#confusionMatrix(as.factor(glm_preds), Weekly$Direction) 
+```
+
+* Our logistic regression model has an accuracy of 62.5% with a training error rate of 37.5%. For the days the market did increase, we were right ~62% of the time (Neg Pred Value), and for those days where the market did not increase, we were correct 64% of the time (Pos Pred Value). With a sensitivity of 21% and specificity of 92%, this model is good at predicting when the market will go up, but not so much as to when it will go down.
+ 
 **(e) Repeat (d) using LDA.**
+```{r}
+lda_fit <- lda(Direction ~ Lag2, train)
+#summary(lda_fit)
+
+plot(lda_fit)
+
+lda_preds <- predict(lda_fit,test)
+#names(lda_preds)
+True <- test$Direction
+(cm <- table(lda_preds$class,True)) # confusion matrix
+
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+cat("\nFOR PREDICTING DOWN:")
+cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nNegative Predictive Value: ",npv)
+cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+```
+
+* Our LDA model is the same as our logistic regression.
 
 **(f) Repeat (d) using QDA.**
 
+```{r}
+qda_fit <- qda(Direction ~ Lag2, train)
+qda_preds <- predict(qda_fit,test)
+
+True <- test$Direction
+(cm <- table(qda_preds$class,True)) # confusion matrix
+
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+cat("\nFOR PREDICTING DOWN:")
+cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nNegative Predictive Value: ",npv)
+cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+```
+
+* Our QDA model has an accuracy of ~59% with a training error rate of ~41%. For the days the market did increase, we were right ~58% of the time (Neg Pred Value), and for those days where the market did not increase, we were never correct (Pos Pred Value). With a sensitivity of 0% and specificity of 100%, this model perfectly predicts when the market will go up, but always fails to correctly predict when will go down.
+* ***he proportion of negatives that are correctly identified as such (e.g. the percentage of healthy people who are correctly identified as not having the condition).***
+* So, even thought the QDA predicted "Up" every day, it was accurate > 58% of the time.
+
 **(g) Repeat (d) using KNN with K = 1.**
+```{r}
+train_x_k <- train$Lag2
+test_x_k <- test$Lag2
+train_labels <- train$Direction
+
+set.seed(1)
+
+knn_preds <- knn(train = train_x, test = test_x, cl = train_labels, k = 1) # cl = class labels
+
+(cm <- table(knn_preds,test$Direction)) # confusion matrix
+
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+cat("\nFOR PREDICTING DOWN:")
+cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nNegative Predictive Value: ",npv)
+cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+```
+
+* Our KNN model with K = 1 has an accuracy of ~48% with a training error rate of ~52%. For the days the market did increase, we were right ~56% of the time (Neg Pred Value), and for those days where the market did not increase, we correct 39% of the time (Pos Pred Value). With a sensitivity of 42% and specificity of 52%, we've correctly predicted 42% of days when the market went down and correctly predicted 52% of days when the market went up.
 
 **(h) Which of these methods appears to provide the best results on this data?**
+
+* We have accuracies of 62.5% for our logistic regression and our LDA models, and an accuracy of ~59% with our QDA model, and finally an accuracy of 48% with our KNN model.
 
 **(i) Experiment with different combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classifier.**
 
