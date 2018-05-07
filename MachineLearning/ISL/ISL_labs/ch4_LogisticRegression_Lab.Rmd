@@ -745,7 +745,7 @@ cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
 * So, even thought the QDA predicted "Up" every day, it was accurate > 58% of the time.
 
 **(g) Repeat (d) using KNN with K = 1.**
-```{r}
+```{r, eval=F}
 train_x_k <- train$Lag2
 test_x_k <- test$Lag2
 train_labels <- train$Direction

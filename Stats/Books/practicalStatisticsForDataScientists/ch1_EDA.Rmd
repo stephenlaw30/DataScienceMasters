@@ -1,0 +1,123 @@
+---
+title: "ch1: EDA"
+author: "Steve Newns"
+date: "May 7, 2018"
+output: html_document
+---
+
+### Exploratory Data Analysis
+
+In Contrast to the purely theoretical nature of **probability**: **statistics** = an *applied* science concerned w/ analysis + modeling of data
+
+EDA = comparatively new area of statistics, as classical statistics focused almost exclusively on **inference** = sometimes complex set of procedures for drawing conclusions about large populations based on small samples
+
+1962: Tukey = “The Future of Data Analysis” = proposed new scientific discipline: **data analysis** = included statistical inference as just 1 component, forging links tothe engineering + CS communities (terms like **bit** (short for binary digit) + software)
+
+Field of EDA = established with Tukey’s 1977 now-classic book **Exploratory Data Analysis**, w/ key drivers of this discipline = rapid development of new tech, access to more + bigger data, + greater use of quantitative analysis in a variety of disciplines
+
+Major challenge of data science: to harness torrent of raw data into actionable information so as to apply statistical concepts
+
+Data type = important to help determine the type of visual display, data analysis, or statistical model:
+
+* Structured
+  * numeric
+    * continuous vs. discrete
+  * categorical
+    * binary vs. ordinal
+    
+Explicit ID of data as categorical as distinct from text offers some advantages:
+
+* Knowing data is categorical can act as a signal telling SW how statistical procedures (like producing a chart or fitting a model) should behave
+  * ordinal data can be represented as an `ordered.factor` in R and Python, preserving a user-specified ordering in viz + models
+* Storage and indexing can be optimized (as in a RDB).
+* Possible values a given categorical variable can take are enforced in the software (like an enum).
+
+### Rectangular Data
+
+Typical frame of reference for an analysis in DS = **rectangular data object**, like a spreadsheet or DB table = 2D matrix w/ rows = records (cases) + columns = features (variables).
+
+#### Data Frames and Indexes
+Traditional DB tbls have 1+ cols designated as an **index** = can vastly improve efficiency of queries. 
+
+* In Python, w/ `pandas`: basic rectangular data structure = a **DataFrame object** where by default, an automatic INT index is created for a DataFrame based on order of the rows (also possible to set multilevel/hierarchical indexes to improve efficiency of certain operations)
+* In R, basic rectangular data structure = `data.frame` object =  has an implicit INT index based on row order. While a custom key can
+be created through the `row.names` attribute, native R `data.frame` does not support user-specified or multilevel indexes. To overcome this deficiency, `data.table` + `dplyr` packages both support multilevel indexes + offer significant speedups in working w/ a df 
+
+### Nonrectangular Data Structures
+
+* **Time series** = successive measurements of same variable = raw material for statistical forecasting method + also a key component of
+data produced by devices (think IoT)
+* **Spatial** data structures = mapping + location analytics = more complex + varied than rectangular data structures 
+  * *object representation* = focus of data = an object (e.g., a house) + its spatial coordinates.
+  * *field view*  = focuses on small units of space + the value of a relevant metric, such as pixel brightness (contrast to above)
+* **Graph (or network)** data structures = used to represent physical, social, + abstract relationships = ex: graph of a social network, FB or LinkedIn, may represent connections between people on the network.
+  * Distribution hubs connected by roads = example of a physical network.
+  * Graph structures = useful for certain types of problems, such as **network optimization** + **recommender systems**.
+
+GRAPHS
+
+* in CS + IT = depiction of connections among entities + to the underlying data structure
+* in statistics = variety of plots + viz, not just of connections among entities (term applies just to the viz, not to data structure)
+
+### Estimates of Location
+
+These = "typical" values of data = mean, weighted mean, median/50th percentile, weighted median (1/2 of sum of weights lies above + below sorted data), trimmed mean (dropping fixed # of extreme values to eliminate their influence)
+
+**Estimates** for values calculated from the data at hand = used to draw distinction between *observed* data + the *theoretical true or exact state of affairs*. DS's + BA's = more likely to refer to such values as a **metric**.
+  
+* Difference reflects approach of statistics vs DS == ***accounting for uncertainty = focus of statistics***, whereas **concrete business/organizational objectives = focus of DS***. 
+* Hence, **statisticians estimate, + DS's measure**.
+
+Mean = easy to calculate but not always best measure of center to use 
+
+  * $\bar{x}$ = sample mean = $\frac {\sum_{i}^n x_i} {n}$
+  * `N` = population size, `n` = sample size
+  * trimmed mean = $\bar{x}$ = $\frac {\sum_{i=1}^{n-p} w_i x_i} {\sum_{i}^n w_i}$
+    * widely used, and in many cases, are preferable to use instead of ordinary mean
+  * weighted mean = $\bar{x_w}$ = $\frac {\sum_{i=p+1}^{n-p} x_i} {n-2p}$
+    * multiplying each data value $x_i$ by a weight $w_i$  and dividing their sum by the sum of the weights.
+    * 2 main motivations:
+      * Some values = intrinsically more variable than others --> highly variable observations = given a lower weight. 
+        * Ex: average from multiple sensors + 1 sensor = less accurate, might **downweight** data from that sensor.
+      * Data collected does not equally represent the different groups we're interested in measuring
+        * Ex: B/c of the way online experiment was conducted, may not have a set of data that accurately reflects all groups in user base + to correct = give higher weight to values from the groups that were underrepresented.
+        
+Median = **robust** = insensitive to extreme values = depends only on values in center of sorted data.
+
+  * weighted median = sort data, but each DP has a weight + instead of the middle #, **weighted median = sum of the weights is = for the lower + upper halves of the sorted list** + is also robust to outliers.
+  
+Being an **outlier** != invalid or erroneous, but are often result of data errors + if so, mean = poor estimate of location/center, while median will be still be valid. 
+
+  * **In any case, outliers should be ID'e + are usually worthy of further investigation.**
+  * In contrast to typical data analysis, where outliers = sometimes informative + sometimes a nuisance, in **anomaly detection** = points of interest *are the outliers*, + the greater mass of data serves primarily to define the “normal” against which anomalies are measured.
+
+Median = not only robust estimate of location (trimmed mean widely used to avoid influence of outliers = thought of as compromise between median + mean = robust to extreme values in data, but uses more data to calculate the estimate for location/center)
+
+Statisticians have developed a plethora of other estimators for location, primarily w/ goal of developing an estimator more robust than mean + also more efficient (i.e., better able to discern small location differences between data sets). 
+  * these methods = potentially useful for *small* data sets, not likely to provide added benefit for large/moderately-sized data sets.
+
+```{r}
+library(tidyverse)
+
+state <- read.csv('../../../../PracticalStatsForDataScientists_50/data/state.csv')
+state %>%
+  summarise(meanPop = mean(Population)
+            ,meanTrimmedPop_10 = mean(Population, trim=.1)
+            ,medianPop = median(Population))
+```
+Mean > trimmed mean > median = indicates outlier influence.
+
+
+To compute avg murder rate, use *weighted* mean/medianto account for different populations in diferent states
+```{r}
+#install.packages("matrixStats")
+library(matrixStats) # weighred median
+
+state %>%
+  summarise(weightedMean_MR = weighted.mean(Murder.Rate, w = Population)
+            ,weightedMedian_MR = weightedMedian(Murder.Rate, w = Population))
+```
+
+In this case, the weighted mean and median are about the same.
+
+### Estimates of Variability

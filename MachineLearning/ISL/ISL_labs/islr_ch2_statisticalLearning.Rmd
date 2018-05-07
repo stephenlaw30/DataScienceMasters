@@ -92,7 +92,7 @@ identify(horsepower,mpg,name)
 <ol>
 <li> For each of parts (a) through (d), indicate whether we'd generally expect the performance of a flexible statistical learning method to be better or worse than an inflexible method. Justify your answer.</li>
   <ul>
-  <li> **If the sample size n is extremely large, and the number of predictors p is small** = Expect a flexible learning method to be *better with a larger sample size*, as there would be *more data points* for it *to use in training* and it *will fit the data closer*. </li>
+  <li> **If the sample size $\n$ is extremely large, and the number of predictors p is small** = Expect a flexible learning method to be *better with a larger sample size*, as there would be *more data points* for it *to use in training* and it *will fit the data closer*. </li>
   <li> **If the number of predictors p is extremely large, and the number of observations n is small** We'd expect a flexible learning method to be *worse with a large amount of predictors*, as we'd tend to *overfit to the small number of observations* in *n*. </li>
   <li> **If the relationship between the predictors and response is highly non-linear.** = We'd expect a more flexible method to *better fit the non-linear true structure of f*, as we'd have *more degrees of freedom*. </li> 
   <li> **If the variance of the error terms,(*sigma_squared2 = Var(epsilon)*), is extremely high** = We'd expect a more flexible approach to *do worse*, as it would *tend to take into account the noise in the errors* that is *signaled via a higher variance* </li>
