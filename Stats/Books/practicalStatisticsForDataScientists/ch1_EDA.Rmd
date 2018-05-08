@@ -96,7 +96,7 @@ Median = not only robust estimate of location (trimmed mean widely used to avoid
 Statisticians have developed a plethora of other estimators for location, primarily w/ goal of developing an estimator more robust than mean + also more efficient (i.e., better able to discern small location differences between data sets). 
   * these methods = potentially useful for *small* data sets, not likely to provide added benefit for large/moderately-sized data sets.
 
-```{r}
+```{r,message=F,warning=F}
 library(tidyverse)
 
 state <- read.csv('../../../../PracticalStatsForDataScientists_50/data/state.csv')
@@ -121,3 +121,147 @@ state %>%
 In this case, the weighted mean and median are about the same.
 
 ### Estimates of Variability
+
+**Variabilty/Dispersion**: measures whether data values are tightly clustered or spread out
+
+*Heart of statistics* = measuring + reducing it, distinguishing real from random, IDing sources, making decisions in its presence
+
+* **deviations** = difference between observed + estimate (of location)
+  * tell us how dispersed data is around central value
+  * 1 way to measure variability = estimate *typical value for these deviations* via operations on absolute values to avoid cancelling out
+* **variance = $s^2$ = $\frac {\sum (x - \bar{x})^2} {n}$** = sum of squared deviations from mean divided by `n` - 1, **SD (12-norm, euclidean norm) = $s$ = $\sqrt{variance}$ ** = square root of variance
+  * SD = much more interpretable than variance (b/c in same units/on same scale as value that's being estimated)
+  * chosen over MAD b/c, mathematically, working w/ squared values = much more convenient than absolute values, especially for statistical models
+  * can also compute a trimmed SD
+* **mean absolute deviation (l1-norm, Manhattan norm) = $\frac {\sum_{i=1}^{n} |x_i - \bar{x}|} {n}$** = mean of absolute value of deviations from mean
+* **median absolute deviation from median (MAD) = $Median (|{x_1} - m|,|{x_2} - m|,...,|{x_N} - m|)$** = median of absolute value of deviations from median
+* **order statistics/ranks** = metrics based on data values sorted from largest to smallest
+  * different approach to estimating dispersion based on looking @ spread of sorted data
+  * min + max = useful + help in IDing outliers, but don't use range (very sensitive) unless dropping off values on each end = *percentiles*
+* **Percentile/quantile** = value such that `P` percent of data values take on such a value or less and (100-`P`) take on such a value or more
+  * quantiles = indexed by fractions --> .8 quantile = 80th percentile
+  * W/ an even `n`, percentile = ambiguous, as we could take on any value between the order statistics ${x_j}$ and ${x_{j+1}}$ where j satistfies $100 \ast \frac {j} {n} \leq P \leq 100 \ast \frac {j+1} {n}$
+  * Formally, $Percentile (P) = (1-w){x_j} + w{x_{j+1}}$ for some weight $w$ between 0-1
+  * usually don't care about precise way $P$ is calculated, except for very small datasets
+
+
+Why `n`-1? = **degrees of freedom** (generally `n` is large enough that `n`-1 doesn't matter)
+  * using `n` in denominator of variance = *underestimates* true value of population var. and SD = **biased estimate**
+  * divide by `n`-1 makes SD an **unbiased estimate**
+    * unbiased estimate of a given parameter = expected value (mean) of statistic to equal the parameter being 
+  * using `n` leads to biased estimates b/c it involves notion of **Degrees of freedom (dF)** = takes into account # of constraints in computing an estimate
+  * in this case we have `n`-1 dF b/c we have 1 constraint, as sample SD depends on sample mean
+  * For many problems, DS's don't need to worry about dF, but there are cases where the concept is important (choosing values of K)
+  
+Var, SD, MAD = *NOT* robust (especially sensitive b/c *squared deviations*), while median absolute dev *IS* robust
+
+* Var, SD, MAD, median absolute deviation = *NOT* equivalent estimates, even when data comes from a normal distribution. 
+  * SD always > MAD > median absolute deviation.
+  * Sometimes, median absolute deviation is multiplied by a **constant scaling factor** = 1.4826) to put MAD on same scale as SD in case of a normal distribution.
+  
+For very large `n` = calculating *exact* percentiles = computationally expensive as it requires sorting, so ML + stat software use special algorithms to get approximates that calculate quickly w/ guaranteed accuracies
+
+```{r,message=F,warning=F}
+# estimates of variability for the state population data:
+state %>%
+  summarise(sdPop = sd(Population)
+            ,iqrPop = IQR(Population)
+            ,madPop = mad(Population))
+
+```
+
+SD = almost 2X as large as MAD (in R, by default, MAD = scaled to be on same scale as mean)
+
+### Exploring Data Distribution
+
+* boxplot = quick viz of distribution from Tukey
+* frequency table = numeric data values in intervals/bins w/ frequency counts (histogram as a table)
+* histogram = plot of freq. tbl w/ bins on x and count/proportion on y
+* density plot = *smoothed* histogram, often based on **kernel density estimate (KDE)**
+
+Percentiles = useful to measure spread of data + summarize entire distribution, such as tails
+```{r}
+# percentiles of murder rate by state
+quantile(state$Murder.Rate, p = c(.05,.25,.5,.75,.95))
+```
+
+Median = 4 murders per 100K people, w/ quite a lot of variability, as 5th percentile only = 1.6 and 95th = 6.5
+
+Boxplots = based on percentiles
+```{r}
+library(ggplot2)
+state %>% 
+  ggplot(aes(1,Population/1000000)) + 
+  geom_boxplot(varwidth = T) + 
+  ylab("Population (in millions)") + theme_bw()
+```
+
+Whiskers go out to 1.5*IQR and anything outside = outliers plotted as single DP's
+
+```{r}
+# freq tbl of population by state
+
+# make 11 bins
+breaks <- seq(from=min(state$Population),to=max(state$Population),length=11)
+# count freq w/ said bins
+pop_freq <- cut(state$Population,breaks=breaks,right=T,include.lowest=T)
+table(pop_freq)
+#get least + most populous states
+state %>%
+  filter(Population == min(Population)) %>%
+  select(State,Population)
+state %>%
+  filter(Population == max(Population)) %>%
+  select(State,Population)
+max(state$Population)-min(state$Population) # # of values split into 10 equal-sized bins
+(max(state$Population)-min(state$Population))/10 # size of each bin in 10 equal-sized bins
+```
+Top bin has ` one state: CA, 2 bins below it = empty, then Texas --> important to include empty bins = useful info
+
+Can also be useful to experiment w/ different bin sizes = if too too large, important features of distribution can be obscured, if  too small, result = too granular + ability to see bigger pictures is lost.
+
+Both freq tables + percentiles summarize data via bin, + in general, quartiles + deciles will have same count in each bin (**equal-*count* bins**), but the bin sizes will be different. Freq table, by contrast, has different counts in bins (**equal-*size* bins**).
+
+```{r}
+library(ggplot2)
+state %>% 
+  ggplot(aes(Population)) + 
+  geom_histogram(breaks=breaks,fill='white',color='black') +
+  ylab('Frequency') + theme_bw()
+```
+
+Again see empty bins included, bins = equal width, # of bins = arbitrary, bars = **contiguous** = no empty spaces between unless bin = empty
+
+In statistical theory, **location** + **variability** = the 1st + 2nd **moments** of a distribution, 3rd + 4th moments = **skewness** + **kurtosis** (propensity of the data to have extreme values) 
+* Generally, metrics = not used to measure skewness and kurtosis + viz displays as used to show/discover them
+
+**Density plot** = distribution of data values as a continuous line. (smoothed histogram) typically computed directly from data through a **kernal density estimate (KDE)**
+
+````{r}
+library(ggplot2)
+state %>% 
+  ggplot(aes(Population)) +
+  geom_histogram(aes(y = ..density..),breaks=breaks,fill='white',color='black') +
+  #geom_density(fill='white',color='blue') +
+  geom_line(aes(y = ..density.., colour = 'Empirical'), stat = 'density', color='blue') + 
+  ylab('Frequency') + theme_bw()
+
+state %>% 
+  ggplot(aes(Murder.Rate)) +
+  geom_histogram(aes(y = ..density..),bins=10,fill='white',color='black') +
+  #geom_density(fill='white',color='blue') +
+  geom_line(aes(y = ..density.., colour = 'Empirical'), stat = 'density', color='blue') + 
+  ylab('Frequency') + theme_bw()
+```
+
+Alternate plot
+
+```{r}
+hist(state$Murder.Rate,freq=F) # specify plotting proportion, not counts
+lines(density(state$Murder.Rate),lwd=3,col='blue')
+```
+
+Density y-axis = plotting histogram as a *proportion* rather than counts.
+
+Density estimation = rich topic w/ long history in statistical literature (20+ R packages have functions for density estimation, w/ particular recommendation for `ASH` or `KernSmooth`, but for many DS problems = suffices to use the base functions.
+
