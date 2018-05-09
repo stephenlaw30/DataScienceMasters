@@ -265,3 +265,169 @@ Density y-axis = plotting histogram as a *proportion* rather than counts.
 
 Density estimation = rich topic w/ long history in statistical literature (20+ R packages have functions for density estimation, w/ particular recommendation for `ASH` or `KernSmooth`, but for many DS problems = suffices to use the base functions.
 
+### Exploring Categorical + Binary Data
+
+Simple proportions + %'s tell the story (mode = useful for categorical, not so much for numerical)
+
+* **Expected Value** = avg. value based on a category’s probability of occurrence (*when categories can be associated with a numeric value*)
+  * Special type of categorical data = data in which categories represent/be mapped to discrete values on the same scale.
+  * Ex: New cloud tech = 2 levels of service @ $300/month vs. $50/month, offering free webinars to generate leads, figuring 5% of attendees will sign up for $300 service, 15% for $50, + 80% not sign up for anything. 
+  * This data can be summed up in a single **expected value = form of weighted mean in which weights = probabilities** = multiply each outcome by its probability of occurring + sum these values.
+  * EV = .05*300 + .15*50 + .8*0 = $22.5/month EV of a webinar attendee is thus $22.50 per month,
+  * EV adds the ideas of **future expectations and probability weights** often based on *subjective* judgment.
+  * EV = fundamental concept in business valuation + capital budgeting  (ex: EV of 5 years of profits from new acquisition, or expected cost savings from new pt. mgmt. SW @ a clinic)
+
+```{r}
+dfw <- read.csv('../../../../PracticalStatsForDataScientists_50/data/dfw_airline.csv')
+# of delays by cause at dallas-fort worth
+prop.table(dfw)*100
+
+#ggplot() + 
+#  geom_bar(aes(as.matrix(dfw)))
+barplot(as.matrix(dfw)/6, cex.axis=.5)
+```
+
+Binning in frequency tables = implicitly converts numeric data to an **ordered factor**
+
+* **Converting numeric data to categorical data = important + widely-used step in data analysis as it reduces complexity (+ size) of data which aids in discovery of relationships between features, particularly @ initial stages of an analysis**
+
+(MISLEADING GRAPHS)[http://passyworldofmathematics.com/misleading-graphs/]
+
+### Correlation
+
+EDA involved looking @ correlations among predictors + between predictors + outcome (high/low, pos/neg)
+
+* **Pearson’s Correlation coefficient = r = $\frac {\sum_{i=1}^{n} (x_i - \bar{x})(y_i - \bar{y})} {({n-1}) {s_x}{s_y}}$** = metric to measure extent and direction w/ which numeric variables are associated (from -1 to 1)
+  * gives estimate of correlation between 2 variables that always lies on same scale by multiplying deviations for variable 1 by deviations for variable 2 and dividing by the product of their SD's
+  * Variables can have an association that is *not linear*, in which case correlation coefficient = not that useful
+    * ex: As tax rates increase from 0, the revenue raised also increases. However, once tax rates reach a high level + approach 100%, tax avoidance increases + tax revenue actually declines
+  * *Is sensitive to outliers, so may need robust alternative like `trim` arg in `cor` like for trimmed means*
+
+```{R}
+sp500_px <- read.csv('../../../../PracticalStatsForDataScientists_50/data/sp500_px.csv',stringsAsFactors = F)
+sp500_sym <- read.csv('../../../../PracticalStatsForDataScientists_50/data/sp500_sym.csv',stringsAsFactors = F)
+```
+```{r}
+library(corrplot)
+
+etfs <- sp500_px[row.names(sp500_px)>"2012-07-01",
+                 sp500_sym[sp500_sym$sector=="etf", 'symbol']]
+corrplot(cor(etfs),method='ellipse')
+```
+
+Orientation of ellipse = direction + shading + width = strength (thinner and darker ellipses = stronger)
+
+See strong positive correlations for S&P 500 (SPY) and the Dow Jones Index (DIA) + QQQ and XLK (tech companies). 'Defensive' ETFs (tracking gold prices, oil prices, + marker volatility (GLD,USO,VXX respectively)) are mostly *negatively* correlated with other ETFs.
+
+* *OTHER CORRELATION ESTIMATES*
+  * Statisticians have proposed other types of correlation coefficients = **Spearman’s rho** or **Kendall’s tau** =  based on the *rank* of the data, rather than values = makes them robust to outliers + be able to handle certain types of nonlinearities. 
+  * DS's can generally stick to Pearson’s + its robust alternatives for EDA, as appeal of rank-based estimates = mostly for smaller data sets + specific hypothesis tests.
+
+### Exploring Two or More Variables
+
+Familiar estimators (mean, variance) look @ variables 1 at a time = **univariate analysis** while **Correlation analysis** = important method that compares 2 variables (**bivariate analysis(**).
+
+**Multivariate analysis**
+
+* **Contingency tables** = tally of counts between 2+ categorical variables.
+* **Hexagonal binning** = plot of 2 numeric variables w/ records binned into hexagons.
+* **Contour plots** = plot showing density of 2 numeric variables like a topographical map.
+* **Violin plots** = like a boxplot but showing density estimate.
+
+Like univariate analysis, bivariate analysis involves computing both summary stats + viz
+
+Scatterplots = fine for relatively small # of DPs --> 100s of 1000s or millions of records = scatterplot will be too dense. `kc_tax` = tax-assessed values for residential properties in King County, WA. Strip out very expensive + very small or large residences
+```{R}
+kc <- read.csv('../../../../PracticalStatsForDataScientists_50/data/kc_tax.csv',stringsAsFactors = F)
+kc_0 <- kc %>%
+  filter(TaxAssessedValue < 750000,
+         between(SqFtTotLiving, 100,3500))
+
+ggplot(kc_0, (aes(SqFtTotLiving,TaxAssessedValue))) +
+  stat_binhex(colour="white") +
+  theme_bw() +
+  scale_fill_gradient(low="white", high="blue") +
+  labs(x="Finished Square Feet", y="Tax Assessed Value")
+```
+
+See **hexagon binning plot** of relationship between finished square feet vs. tax-assessed value for homes in King County. Rather than plotting points (monolithic dark cloud), it grouped records into hexagonal bins + plotted the hexagons w/ a color indicating # of records in that bin. Positive relationship between square feet + tax-assessed value = clear w/ interesting feature of a hint of a
+2nd cloud above main cloud, indicating towards homes w/ same square footage as those in main cloud but w/ a higher tax-assessed value
+
+```{r}
+ggplot(kc_0, aes(SqFtTotLiving, TaxAssessedValue)) +
+  theme_bw() +
+  geom_point( alpha=0.1) +
+  geom_density2d(colour="white") +
+  labs(x="Finished Square Feet", y="Tax Assessed Value")
+```
+
+See Contour plot overlaid on scatterplot to see relationship between 2 numeric variables where contours = essentially a topographical map to 2 variables w/ each contour band = specific density of points, increasing as one nears a “peak.” Plot shows a similar story as hexagon binning = secondary peak “north” of main peak. 
+
+Other charts = heatmaps, so Heatmaps, hexagonal binning, contour plots = viz for a 2D density = natural analogs to histograms + density plots.
+
+#### 2 categorical variables
+
+contingency table (tbl of counts by category) = useful way to summarize 2 categorical variables
+
+```{r}
+library(descr)
+
+loans1 <- read.csv('../../../../PracticalStatsForDataScientists_50/data/lc_loans.csv',stringsAsFactors = F)
+
+(x_tab <- CrossTable(round(loans1$grade),loans1$status,prop.c=F,prop.chisq=F,prop.t=F))
+```
+Above = ontingency table between grade of a personal loan + outcome of that loan from Lending Club (leader in the P2P lending business) from 7 (high) to 1 (low) w/ outcome= paid off, current, late, or charged off (loan balance not expected to be collected). Higher grade loans = lower late/charge-off %'s compared to lower-grade loans. 
+
+Contingency tbls = just counts or also include column + total %'s (Pivot tables in Excel = most common contingency tbls
+
+Boxpots = good for distribution viz of numerics grouped by categorical = % of delays across airlines
+
+```{r}
+airlines <- read.csv('../../../../PracticalStatsForDataScientists_50/data/airline_stats.csv',stringsAsFactors = F)
+boxplot(pct_carrier_delay ~ airline, data=airlines, ylim=c(0, 50))
+```
+
+Alaska= appears to have fewest % of delays + American = most, + Q1 for American = higher than Q3 for Alaska
+
+**Violin Plot** = enhancement to boxplot = plots density estimate w/ density on y, which is mirrored over line + resulting shape = filled in, creating img resembling a violin w/ advantage = **can show nuances in a distribution not perceptible in  boxplot**. On the other hand, boxplot more clearly shows outliers
+
+```{r}
+ggplot(data=airlines, aes(airline, pct_carrier_delay)) +
+  geom_violin() +
+  labs(x="", y="Daily % of Delayed Flights") +
+  ylim(0, 50)
+```
+
+See concentration in the distribution near 0 for Alaska, + to a lesser extent, Delta = phenomenon is not as obvious in boxplot. 
+
+* *Can combine violin w/ boxplot by adding `geom_boxplot` to plot (best when colors are used)*
+
+#### Multiple vars
+
+Charts used to compare 2 vars, hexagonal binning, boxplots) = readily extended to more vars thru **conditioning** 
+
+  * In Hexagonal binnin = appeared to have cluster of homes w/ higher tax-assessed value per ft2. 
+
+```{r}
+kc_0 %>% 
+  filter(ZipCode %in% c(98188, 98105, 98108, 98126)) %>%
+ggplot(aes(SqFtTotLiving, TaxAssessedValue)) +
+  stat_binhex(colour="white") +
+  theme_bw() +
+  scale_fill_gradient( low="white", high="blue") +
+  labs(x="Finished Square Feet", y="Tax Assessed Value") +
+  facet_wrap("ZipCode")
+```
+
+This accounts for effect of location by plotting set of ZIPs = idea is clearer: tax-assessed value = much higher in some ZIP (98126, 98105) than in others (98108, 98188) + disparity gives rise to the 2 clusters in original
+
+Concept of **conditioning** vars in a graphics system was pioneered w/ **Trellis graphics**, developed by Rick Becker, Bill Cleveland, + others at Bell Labs +the idea has propogated to various modern graphics systems, such as the `lattice` + ``ggplot2` packages in R + `Seaborn` + `Bokeh` modules in Python. Conditioning vars = also integral to BI platforms
+
+W/ the advent of vast CPU power, modern viz platforms = moved well beyond humble beginnings of EDA but key concepts + tools developed over the years still form a foundation for these systems.
+
+### Summary
+W/ the dev of EDA, pioneered by Tukey, stats set a foundation that was a precursor to the field of DS.
+
+Key idea of EDA = 1sr + most important step in any project based on data = look @ it by summarizing + visualizing it to gain valuable intuition + understanding of the project.
+
+EDA should be a cornerstone of any DS project.
