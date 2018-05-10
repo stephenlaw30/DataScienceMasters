@@ -1,0 +1,96 @@
+---
+title: "ch2: Data + Sampling Distributions"
+author: "Steve Newns"
+date: "May 10, 2018"
+output: html_document
+---
+
+## Data + Sampling Distributions 
+
+Proliferation of data of varying quality + relevance reinforces need for **sampling** as a tool to work efficiently w/ a variety of data + to **minimize bias**. Even w/ big data projects, predictive models = typically developed + piloted w/ samples + they're used in tests of various sorts (e.g., pricing, web treatments)
+
+**Population** = *unknown* distribution, only thing available = sample of said population + the ***sample's *empirical* distribution** retrived via a sampling procedure
+
+* traditional stats = population parametes that **require strong assumptions**, modern stats = sample statistics where **such assumptions are not needed**
+
+DS should focus on sampling procedures + data *actually at hand*, sometimes from **a physical process that can be modeled** (flipping coins = binomial distribution)
+
+* ANY real-life binomial can be modeled effectively via a coin flip w/ *modified specified success probabilities*
+
+Can then gain additional insights via understanding the population.
+
+### Random sampling + sample bias
+
+Population (`N`) = large, defined but sometimes *theoretical or imaginary* set of data, and sample (`n`) = its subset
+
+* **Random sampling** = drawing elements into a sample at random where each available member = equal chance of being drawn in each draw (results in simple random sample), *with or without replacement*
+* **Stratified sampling** = dividing population into **strata** + randomly sampling from each strata.
+* **Simple random sample** = random sampling *without stratifying the population*
+* **Sample bias** = misrepresents the population.
+* **SELF-SELECTION SAMPLING BIAS** = reviews of restaurants, hotels, cafes, etc. on social media = prone to bias b/c people submitting them = NOT randomly selected + have taken initiative to write = leads to self-selection bias
+  * people motivated to write reviews may be those w/ poor experiences, have an association w/ establishment, or simply be a different type of person from those who do NOT write reviews. 
+  * While self-selection samples can be unreliable indicators of true state of affairs, they *may be more reliable in simply comparing 1 establishment to a similar one b/c the same self-selection bias might apply to each*
+
+Data *quality* often matters more than *quantity* when making estimates/models based on sample = involves **completeness, consistency of format, cleanliness, + accuracy of individual DPs**, + statistics adds notion of **representativeness**
+
+* Classic example = Literary Digest (1936) polled subscriber base = 10M+, Gallup poll = 2k w/ difference in selection of those polled.
+* LD = little attention to method of selection = polled relatively high socioeconomic status (own subscribers = owned luxuries like
+phones + automobiles, so appeared in marketers’ lists) = sample bias
+* **sample was different in some *meaningful nonrandom way* from the larger population it was meant to represent**
+  * **nonrandom* =  important b/c **hardly any sample will be *exactly* representative of a population** but sample ***bias* occurs when difference = meaningful** + can be expected to continue for other samples drawn in the same way as the 1st
+
+#### Bias
+
+*Statistical* **bias** = measurement/sampling errors that are **systematic** + produced by measurement/sampling process
+
+* Important distinction is made between errors due to *random chance* vs. due to bias.
+  * Ex: Consider physical process of a gun shooting @ a target = will not hit absolute center of the target every time, or even much at all. 
+  * **Unbiased process** = produces error, but it's ***random* + does not tend strongly in any direction**
+  
+Bias comes in *different forms* = may be *observable or invisible*
+
+If result *suggests* bias (by reference to **benchmark** or **actual values**) = often an indicator that statistical/ML model has been misspecified or an important predictor was let out
+
+#### Random selection
+
+To avoid sample bias, use more scientifically-chosen methods to get more representative samples, heart of which lies in random sampling = not always easy as *proper definitions of populations are key but are difficult*
+
+* generate a representative profile of customers via a pilot survey that survey needs to be representative but is labor intensive.
+  * 1) ***Define* WHO a customer is** = might select all customer records where purchase amount > 0. Include all past customers, or refunds? Internal test purchases? Resellers? Both billing agent + customer?
+* 2) Must specify a sampling *procedure* = “select 100 customers @ random,” or where a sampling from a **flow** (e.g., real-time transactions or web visitors), *timing considerations may be important* (10 AM weekday visitor may be different from 10 PM weekend)
+  * **Stratified sampling** = population divided into **strata** + random samples are taken from each stratum. 
+  * Political pollsters might seek to learn electoral preferences of whites, blacks, + Hispanics = SRS would yield too few blacks +  Hispanics, so those strata could be **overweighted** in stratified sampling to yield equivalent sample sizes.
+
+#### Size v. Quality
+
+In era of big data = sometimes surprising if *smaller is better* + ***time + effort* spent on random sampling not only will reduce bias, but also allow greater attention to EDA + data quality** 
+
+* Ex: Missing data + outliers may contain useful info + it might be too expensive to track down + evaluate these w/in millions of records, but doing so in a sample of several thousand records may be feasible. 
+* Data plotting + manual inspection bog down w/too much data.
+
+*So when are massive amounts of data needed?*: Classic scenario = when data is not only big, but **sparse** as well
+
+* Google search queries: columns = terms, rows = individual queries, cell = 0/1 if query contains term w/ goal = ddetermine best
+predicted search destination for a given query. 
+  * 150K+ words in English language + Google processes > 1 trillion queries/year = yields a huge matrix + vast majority of entries = 0
+* This = true big data problem: *only when enormous quantities of data are accumulated can effective search results be returned for most queries + more data accumulates = better the results* 
+* Not problem for popular search terms = effective data found fairly quickly for handful of extremely popular topics trending @ particular time
+* Real value of modern search tech = ability to return detailed + useful results for a huge *variety* of search queries, including those that occur only w/ v. small a frequency,
+* # of actual pertinent records (exact search query, or something very similar, appears, together w/ info on what link people ultimately clicked on) might need only be in the thousands to be effective. 
+* However, many trillions of DPs = needed to obtain these pertinent records (random sampling will not help).
+
+### Sample Mean versus Population Mean
+
+Mean of a sample from a population = $\bar{x}$ whereas ${\mu}$ = mean of a population.
+
+**Info about samples = *observed*, + info about large populations = often *inferred* from smaller samples** = keep the 2 things separate in symbology
+
+```{r,message=F,warning=F}
+library(tidyverse)
+
+state <- read.csv('../../../../PracticalStatsForDataScientists_50/data/state.csv')
+state %>%
+  summarise(meanPop = mean(Population)
+            ,meanTrimmedPop_10 = mean(Population, trim=.1)
+            ,medianPop = median(Population))
+```
