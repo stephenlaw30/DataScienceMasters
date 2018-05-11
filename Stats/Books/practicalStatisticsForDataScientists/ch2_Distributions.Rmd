@@ -79,18 +79,189 @@ predicted search destination for a given query.
 * # of actual pertinent records (exact search query, or something very similar, appears, together w/ info on what link people ultimately clicked on) might need only be in the thousands to be effective. 
 * However, many trillions of DPs = needed to obtain these pertinent records (random sampling will not help).
 
-### Sample Mean versus Population Mean
+#### Sample Mean versus Population Mean
 
 Mean of a sample from a population = $\bar{x}$ whereas ${\mu}$ = mean of a population.
 
 **Info about samples = *observed*, + info about large populations = often *inferred* from smaller samples** = keep the 2 things separate in symbology
 
+### Selection Bias
+
+**Selection bias** = practice of selectively choosing data — consciously or unconsciously — in a way that leads to a conclusion that is misleading or ephemeral.
+
+
+**Bias** = systematic error
+**Data snooping** = extensive hunting through data in search of something interesting.
+**Vast search effect** = Bias or nonreproducibility resulting from repeated data modeling, or modeling data w/ large #'s of predictor variables, $p$
+
+If you specify a hypothesis + conduct well-designed experiment to test it = can have high confidence in conclusion
+
+Often, one looks @ available data + tries to discern patterns, *but is pattern = real, or just a product of data snooping?* (“If you torture the data long enough, sooner or later it will confess")
+
+Difference between a phenomenon verified when testing a hypothesis via experiment vs. a phenomenon discovered by perusing available
+data can be illuminated w/ thought experiment.
+
+* Someone can flip a coin on H on next 10 tosses, you challenge her (equivalent of an experiment) + she proceeds to toss 10 H
+* Clearly you ascribe some special talent to her b/c $p(10 H straight by chance)$ = 1/1000
+* Do this w/ 20k people = chance *someone* gets 10 H = extremely high (> 99%, or (1-$p$(no 10 H)$)
+* Clearly, selecting, **after the fact**, the person(s) who gets 10 H does not indicate any special talent = most likely luck.
+
+Since **repeated review of large data sets = a key value proposition in DS, selection bias is something to worry about**
+
+Form of selection bias particular concern to DS = **vast search effect** = repeatedly run different models + ask different questions w/ large data set = bound to find something interesting but is the result truly something interesting, or is it the chance outlier?
+
+Can guard against w/ **holdout set(s)** against which to validate performance, + use of **target shuffling = a permutation test, in 
+essence, to test the validity of predictive associations that a data mining model suggests**
+
+*Other typical forms of selection bias in statistics*: Nonrandom sampling (see sampling bias), cherry-picking data, selection of time intervals that accentuate a partiular statistical effect, stopping an experiment when the results look “interesting.”
+
+#### Regression to the Mean
+
+**Regression to the mean** = phenomenon involving successive measurements on a given variable: extreme observations tend to be followed by more central ones, so attaching special focus + meaning to extreme value can lead to a form of selection bias.
+
+Sports = “rookie of the year, sophomore slump” phenomenon = Among athletes who begin career in a given season (rookie class), 1 always performs better generally does not do as well in his 2nd year. Why not?
+
+In nearly all major sports, at least those played w/ a ball or puck, 2 elements play a role in overall performance: Skill + Luck
+
+Regression to the mean = consequence of a particular form of selection bias = select rookie w/ best performance, then skill + good luck = probably contributing., + in next season, skill will still be there but, in most cases, luck will not, so performance regresses
+
+Phenomenon was 1st IDed by Francis Galton in 1886 in connection w/ genetic tendencies (children of extremely tall men tend not to be as tall as their father)
+
+***WARNING***: Regression to the mean =  *distinct* from linear regression statistical modeling method = linear relationship is estimated between predictors + outcome
+
+***KEY IDEAS*** Specifying a hypothesis + *collecting data following randomization + random sampling principles* ensures against bias
+
+* All other forms of data analysis run risk of bias resulting from data collection/analysis process (repeated running of models in data mining, data snooping in research, after-the-fact selection of interesting events)
+
+###Sampling Distribution of a Statistic
+
+**Sampling distribution** = distribution of some sample statistic *over many samples drawn from same population* + much of
+classical statistics = concerned w/ *making* inferences from (small) samples to (very large) populations*.
+
+* **Sample statistic**  = metric calculated for a sample of data drawn from a larger population.
+* **Data distribution** = frequency distribution of individual values in a data set.
+* **Sampling distribution** = frequency distribution of a sample statistic over many samples or resamples.
+* **CLT** = Tendency of sampling distribution to take on a normal shape as sample size rises.
+* **Standard error** = variability (StdDev) of a sample statistic over many samples (*NOT* SD = variability of *individual data values*)
+
+Typically samples = drawn w/ goal of measuring something (w/ a *sample statistic*) or modeling something (w/ a statistical or ML model).
+
+**Since estimate/model is based on a sample, it might be in error = different in a different sample** = therefore interested in how different it might be w/ a key concern= **sampling variability** 
+
+W/ lots of data, could draw additional samples + observe distribution of a sample stat directly
+
+*Typically, will calculate estimate/model using as much data as is easily available, so option of drawing additional samples from population is not readily available*
+
+***WARNING***: Important to distinguish between distribution of the individual DPs (data distribution) + distribution of a sample statistic (sampling distribution)
+
+Distribution of a sample statistic = likely to be more regular + bell-shaped than distribution of data itself + larger a sample statistic is based on = more this is true + larger the sample, narrower the distribution of the sample statistic.
+
+Ex: Annual income for loan applicants to Lending Club  w/ 3 samples of data: a sample of k values, a sample of 1k means of 5 values, + a sample of 1k means of 20 values w/ histogram of each sample:
+
 ```{r,message=F,warning=F}
 library(tidyverse)
+library(ggplot2)
 
-state <- read.csv('../../../../PracticalStatsForDataScientists_50/data/state.csv')
-state %>%
-  summarise(meanPop = mean(Population)
-            ,meanTrimmedPop_10 = mean(Population, trim=.1)
-            ,medianPop = median(Population))
+loans <- read.csv('../../../../PracticalStatsForDataScientists_50/data/loans_income.csv')
 ```
+
+```{r}
+smpl <- data.frame(income=sample(loans$x,1000),type="data_dist")
+smplMean_5 <- data.frame(income=tapply(sample(loans$x,1000*5),rep(1:1000, rep(5,1000)), FUN = mean),type="mean_of_5")
+smplMean_20 <- data.frame(income=tapply(sample(loans$x,1000*20),rep(1:1000, rep(20,1000)), FUN = mean),type="mean_of_20")
+
+income <- rbind(smpl,smplMean_5,smplMean_20) %>%
+  mutate(type = factor(type,levels=c("data_dist","mean_of_5","mean_of_20"),labels=c('Data','Mean of 5','Mean of 20')))
+
+income %>%
+  ggplot(aes(x=income)) +
+  geom_histogram(bins=40) +
+  facet_grid(type ~ .)
+```
+
+
+####CLT
+
+CLT says that means drawn from multiple samples will resemble bell-shaped normal curve even if source population is not normally distributed, provided sample size $n$ = large enough + departure of the data from normality = not too great
+
+CLT allows normal-approximation formulas like **t-distribution** to be used in calculating sampling distributions for inference (**CI's + hypothesis tests**).
+
+CLT = lot of attention in traditional stats texts b/c it underlies machinery of hypothesis tests + CI's so DS's should be aware of this role, but, since formal hypothesis tests + CI's play a small role in DS, + the **bootstrap** = available in *ANY* case, CLT is not so central in DS
+
+#### Standard Error
+
+Std Error =  single metric that sums up variability in sampling distribution for a statistic + can be estimated using a statistic based on the SD $s$ or $\sigma$ of the sample values, + the sample size $n$: $SE = \frac {s} {\sqrt{n}}$
+
+**As $n$ increases, SE decreases** = *square-root of n rule*: in order to reduce SE by a factor of 2, $n$ must be increased by a factor of 4.
+
+Validity of SE formula arises from the CLT (don’t *need* to rely on CLT to understand SE)
+
+* 1. Collect a # of brand new samples from population.
+* 2. For each new sample, calculate the statistic 
+* 3. Calculate SD of the statistics computed in step 2 + use it as estimate of SE
+
+In practice, approach of collecting new samples to estimate SE = typically not feasible (+ statistically very wasteful). Fortunately, it turns out it is not necessary to draw brand new samples + can use **bootstrap resamples** = modern statistics standard way to estimate SE + can be used for virtually any stat + does not rely on CLT or other distributional assumptions.
+
+**REMEMBER**: SD = measures variability of individual DPs + SE = measures variability of a sample metric
+
+###Bootstrap
+
+Bootstrap = easy + effective way to estimate sampling distribution of a stat or of model parameters via drawing additional samples, *w/ replacement* from the sample itself + recalculate the statistic/model for each resample
+
+* **does not necessarily involve any assumptions about the data or the sample stat *being normally distributed***
+
+**Bootstrap sample** = taken w/ replacement from an *observed* data set.
+**Resampling** = process of taking repeated samples from *observed* data --> includes both bootstrap + permutation (shuffling) procedures
+
+imagine bootstrap as replicating original sample thousands/millions of times to get hypothetical population that embodies all knowledge from original sample + is just larger + then can draw samples from this hypothetical population w/ purpose of estimatinga sampling distribution
+
+In practice = not necessary to *actually* replicate sample huge # of time + can simply replace each observation after each draw to  effectively create an infinite population in which probability of an element being drawn remains unchanged from draw to draw
+
+Algorithm for a bootstrap resampling of the mean from sample of size $n$:
+
+* 1. Draw a sample value, record it, replace it.
+* 2. Repeat $n$ times.
+* 3. Record mean of the $n$ resampled values.
+* 4. Repeat steps 1–3 $R$ times.
+* 5. Use the $R$ results to:
+  * a. Calculate their SD (estimates sample mean SE).
+  * b. Produce a histogram or boxplot.
+  * c. Find a CI.
+
+$R$ = # of iterations of the bootstrap = set somewhat arbitrarily: more iterations = more accurate SE estimate or CI estimate
+
+Result = set of sample stats/estimated model parameters which can be examined to see how variable they are.
+
+`boot` package combines these steps in 1 function
+
+
+```{r,message=F,warning=F}
+library(boot)
+
+stat_fun <- function(x,idx) {
+  # Compute median for given sample specified by index = idx
+  median(x[idx])
+}
+(boot_obj <- boot(loans$x, R = 1000, statistic=stat_fun))
+```
+
+Original estimate of median = \$62k + bootstrap distribution indicates this estimate has a bias of about –\$79 + a SE of \$221
+
+Bootstrap can be used w/ multivariate data, where rows = sampled as units + a model might then be run on the bootstrapped data, for example, to estimate **stability**/variability of model parameters, or to improve predictive power. 
+
+**Bootstrap aggregating** (**bagging**) = W/ classification + regression trees (**CART** or **decision trees**), running multiple trees on bootstrap samples + then averaging their predictions (or, w/ classification, taking a majority vote) generally performs better than using a single tree
+
+Repeated resampling of the bootstrap = conceptually simple (Julian Simon, an economist + demographer, published a compendium of resampling examples, including the bootstrap, in 1969 text *Basic Research Methods in Social Science (Random House)*) but also computationally intensive + was not a feasible before widespread availability of CPU power. 
+
+Technique gained its name + took off w/ publication of several journal articles + a book by Stanford statistician Bradley Efron in  late 1970s + early 1980s, + was particularly popular among researchers who use stats but are not statisticians + for use w/ metrics or models where mathematical approximations = not readily available.
+
+**Sampling distribution of the mean = well established since 1908 but sampling distribution of many other metrics has not** Bootstrap can be used for sample size determination + we experiment w/ different values for $n$ to see how the sampling distribution is affected
+
+***WARNING***: Bootstrap does *NOT* compensate for small sample size + does not create new data, nor does it fill in holes in an existing data set = merely informs us about how lots of additional samples would behave when drawn from a population like our original sample.
+
+#### Resampling versus Bootstrapping
+Sometimes "resampling" = used synonymously w/ "bootstrapping", but more often, **resampling** also includes **permutation procedures**  where multiple samples are combined + sampling may be done w/out replacement. I
+
+***KEY IDEAS***: Bootstrap = powerful tool for assessing variability of a sample stat + can be applied in similar fashion in a wide variety of circumstances, w/out extensive study of mathematical approximations to sampling distributions + also allows us to estimate sampling distributions for stats where no mathematical approximation has been developed.
+
+* When applied to predictive models, aggregating multiple bootstrap sample predictions (bagging) can outperform use of a single model.
