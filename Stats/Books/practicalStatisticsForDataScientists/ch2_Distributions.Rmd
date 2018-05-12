@@ -305,3 +305,79 @@ The % associated w/ a CI = **level of confidence** + higher level of confidence 
 * Engineers, who have a need to understand precision of measurements, use CIs perhaps more than most disciplines, + **Modern Engineering Statistics by Tom Ryan (Wiley, 2007)** discusses CIs 
   * It also reviews a tool that is just as useful + gets less attention: **prediction intervals** around a single value, as opposed to a mean or other summary statistic.
 a mean or other summary statistic
+
+### Normal Distribution
+
+Gaussian/Bell-shaped	normal =	iconic in	traditional	stats
+
+* iconic but perhaps	overrated: George	W.	Cobb (statistician	noted	for	contribution	to	philosophy	of	teaching	intro stats,	argued	in	a	November	2015	editorial	in the	*American	Statistician*	that	the	“standard	intro	course,	which	puts	the	normal	at	its center,	had	outlived	the	usefulness	of	its	centrality"
+* common	misconception	= called "normal" b/c	most	data	follows its	distribution
+* Most	vars	used	in	typical	SD	project (+ most	raw	data	as	a	whole) = *NOT*	normally	distributed:
+* Utility	of	the Gaussian	derives	from	the	fact	that	many *stats*	=	normally	distributed	*in	their	sampling	distribution.*	
+* **Even	so,	assumptions	of	normality =	generally	a	last	resort,	used	when	empirical	probability	distributions,	or	bootstrap	distributions, are	not	available**
+
+Gaussian	=	Carl	Friedrich	Gauss, German	mathematician	from	late	18th +	early	19th	century.	
+
+* Another	name =	the	“error”	distribution.	
+* Statistically	speaking,	**error** =the	difference	between	an	actual	value	+	a	statistical	estimate (SD = based	on	errors	from the	mean	of	the	data)
+
+The	fact that	distributions	of	sample	stats	are	often	Gaussian has	made	it	a powerful	tool	in	the	development	of	mathematical	formulas	that	approximate	those distributions
+
+* essential	to	historical	development	of	stats b/c it	permitted mathematical	approximation	of	uncertainty	+	variability
+* raw	data	= typically	not	normal, errors	often	are,	as	are	averages	+	totals	in large	samples. 
+
+68% of data in Gaussian distribution = w/in 1 SD, 95% w/in 2 SD, 99.7% w/in 3 SD
+
+#### Standard Normal + QQ Plots
+
+**Standard  	normal** =	units	on	the	x	are expressed	in	terms	of	SDs	from	mean.	
+
+* To	compare	data to	a	standard	normal	distribution,	**normalization/standardization** = subtract mean from DPs	+ then	divide	by SD = **a	z-score**	(normal	= sometimes	called the	z-distribution)
+* **QQ-Plot** = visually	determine	how	close	a	sample	is	to	Gaussian =	orders	z-scores	from	low	to	high + plots	each value’s	z-score	on the	y-axis
+* x-axis	=	corresponding	quantile	of	a	Gaussian distritbution *for	that	value’s	rank* = **theoretical quantile**	
+* Since	the	data	=	normalized,	units correspond	to	#	of	SDs	away	from	mean
+* If poitns =	roughly	diagonal	line,	sample	distribution	can	be considered	close	to Gaussian
+
+```{r}
+s <- rnorm(100)
+qqnorm(s)
+abline(a=0,b=1,col='red')
+```
+
+***WARNING***: Converting	data	to	z-scores	(standardizing/normalizing data)	does	*NOT*	make data normally	distributed = just	puts	data	on	same	scale	as	standard	normal	distribution, often	for	comparison	purposes.
+
+### Long-tailed distributions
+
+Data	=	generally	not	normally distributed.
+
+**Tail** =	long	narrow	portion	of	a	frequency	distribution,	where	**relatively	extreme	values	occur	at	low frequency**
+**Skew** = 1 tail	of	distribution	=	longer	than	other.
+
+Gaussian is	often	appropriate	+	useful	w/	respect	to distribution	of	errors	+	sample	stats,	typically	does	not	characterize distribution	of	raw	data =	sometimes highly	skewed/asymmetric (income	data)	or discrete (binomial	data)	
+Both	symmetric	+	asymmetric	distributions	may	have	**long tails** =	the	extreme	values	(small	+ large).	
+Long	tails +	guarding	against	them =	widely	recognized	in	practical work.	
+
+* Nassim	Taleb =	**the	black	swan	theory** =	predicts anamolous	events,	such	as	stock	market	crash =	much	more	likely	to	occur than	would	be	predicted	by	the	Gaussian 
+
+Good	example	=	stock	returns.
+
+```{r,message=F,warning=F}
+stocks <- read.csv('../../../../PracticalStatsForDataScientists_50/data/sp500_px.csv')
+```
+```{r}
+nflx <- stocks %>%
+    select(NFLX)
+nflx <- diff(log(nflx[nflx>0]))
+qqnorm(nflx)
+abline(a=0,b=1,col='red',lwd=2)
+```
+
+QQ-Plot	for	daily	stock	returns	for	Netflix =	pts	=	far	below	line	for	low	values	+	far above for	high	values =	means	much	more	likely	to observe	extreme	values	than	would	be	expected	if	data	were Gaussian	Figure, also,	points	= close to	the	line	for	data	w/in 1 SD = Tukey	refers	to this	phenomenon	as	data	being	“normal	in	the	middle,”	but	having	much	longer tails
+
+***NOTE***: Much	statistical	lit.	about	task	of	fitting	statistical	distributions	to	observed data, beware	an	excessively	data-centric	approach	to	this	job,	which	is	as	much	art	as	science. 
+
+* Data	=	variable,	+	often	consistent,	on	its	face,	w/	more	> 1	shape	+	type	of distribution
+* **typical	that	domain	+	statistical	knowledge	must	be	brought	to	bear to	determine	what	type	of	distribution	is	appropriate	to	model	a	given	situation**
+  * might	have	data	on	level	of	internet	traffic	on	a	server	over	many	consecutive	5-sec periods =	useful	to	know	best	distribution	to	model	“events	per	time	period”	 = **Poisson**
+
+***KEY	IDEAS***: Most	data	=	not	Gaussian + assuming	Gaussian	can	lead	to	underestimation	of	extreme	events	(“black	swans”)
