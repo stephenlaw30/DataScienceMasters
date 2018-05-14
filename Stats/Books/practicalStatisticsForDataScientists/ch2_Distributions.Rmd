@@ -381,3 +381,160 @@ QQ-Plot	for	daily	stock	returns	for	Netflix =	pts	=	far	below	line	for	low	value
   * might	have	data	on	level	of	internet	traffic	on	a	server	over	many	consecutive	5-sec periods =	useful	to	know	best	distribution	to	model	“events	per	time	period”	 = **Poisson**
 
 ***KEY	IDEAS***: Most	data	=	not	Gaussian + assuming	Gaussian	can	lead	to	underestimation	of	extreme	events	(“black	swans”)
+
+### Student's/Gossett's t distribution
+
+t distribution = used extensively in depicting distributions of sample statistics (typically sample means) = normally-shaped but w/ thicker + longer tails
+
+* families = different t-distributions depending on how large sample is: larger = more normal
+* widely used as reference basis for distribution of sample means, differerences between 2 sample means, regression parameters, + more
+
+Gossett: “What is the sampling distribution of the mean of a sample drawn from a larger population?” = started w/ resampling experiment of n=4 from a data set of 3k measurements of criminals’ height + left-middle-finger lengths + plotted standardized results (z-scores) on x + frequency on y
+
+Separately derived a function, = **Student’s t** + fit it over the sample results, plotting the comparison
+
+\# of different statistics can be compared, after standardization, to the t-distribution, to estimate CIs in light of sampling variation.
+
+Consider sample of size $n$ w/ calculated sample mean has been calculated. If $s$ = sample SD, a 90% CI around the sample mean is given by: $\bar{x} +/- t_{n-1}(.05) * \frac {s} {n}$ where $t_{n-1}(.05)$ = **value of t-statistic w/ $n-1$ dF** = chops off 5% of t-distribution @ each tailend
+
+Lacking CPUs, statisticians turned to math + functions such as t-distribution to approximate sampling distributions (CPU power in 80s enabled practical resampling experiments, but by then, use of the t-distribution + similar distributions had become deeply embedded in stats)
+
+t-distribution’s accuracy in depicting behavior of a sample stat **requires the distribution of that statistic for that sample be shaped like a normal distribution**: turns out sample stats = often normally distributed, even when underlying population data is NOT (fact led to widespread application of t-distribution) = CLT
+
+***NOTE*** DS don't need to know whole lot about t-distribution + CLT = used in classical statistical inference, not as central to purposes of DS 
+
+* **Understanding + quantifying uncertainty + variation = important to DS**, but **empirical bootstrap sampling** can answer most questions about sampling error. 
+* However, DS routinely encounter t-statistics in output from software (A-B tests, regressions, etc.) = so familiarity is helpful
+
+### Binomial distribution
+
+* **Trial** = event w/ a *discrete* outcome
+* **Success** = outcome of interest for a trial.
+* **Binomial trial/Bernoulli trial** = trial w/ 2 outcomes
+* **Binomial/Bernoulli distribution** = Distribution of # of successes in $x$ trials.
+
+binomial outcomes lie @ heart of analytics since they're often a culmination of a decision or other process (buy/don’t buy, click/don’t click, survive/die, etc.) 
+
+Central to understanding binomial distribution = idea of a set of trials, each w/ 2 possible outcomes w/ *definite probabilities* (need not be 50/50, just must sum to 1) where 1 = a "success" or a "rare" outcome
+
+* success does not imply desirable or beneficial outcome, but indicates the outcome of interest (loan defaults or fraudulent transactions = relatively uncommon events we may be interested in predicting, but are not "good")
+
+**Binomial distribution** = *frequency distribution* of # of successes ($x$) in given # of trials ($n$) w/ specified success probability ($p$) in each trial.
+
+* families = different t-distributions depending on values of $x$, $n$, and $p$.
+
+Binomial distribution answers question like: *"If $p$ of a click converting to a sale = 0.02, what is the $p$ of observing 0 sales in 200 clicks?"*"
+
+```{r}
+# calculate binomial probabilities for 2 successes in 5 trials w/ p = .1
+dbinom(x=2, size=5, p=0.1)
+```
+`0.0729 = 7.4%` probability of observing *exactly* 2 successes in 5 trials, where probability of success for each trial = 10%
+
+Often interested in determining $p$ of $x$ *or fewer* successes in $n$ trials
+
+```{r}
+# prob of seeing x OR LESS in n trials w/ p
+pbinom(2, 5, 0.1)
+```
+`0.9914 = 99%` probability of observing 2 or fewer successes in 5 trials, where the probability of success for each trial = 10%
+
+**Mean of a binomial distribution = $n*p$  = the expected # of successes in $n$ trials for success probability = $p$**, + variance = $n*p(1-p)$ 
+
+W/ large enough # of trials (particularly when $p$ = close to .5), binomial = virtually indistinguishable from the normal 
+
+Calculating binomial probabilities w/ large $n$ = computationally demanding, + most statistical procedures use the normal w/ mean + variance, as an approximation
+
+***KEY IDEAS***: Binomial outcomes = important to model, since they represent, among other things, fundamental decisions (buy or 
+
+* W/ large $n$, + provided $p$ = not too close to 0 or 1, the binomial can be approximated by the normal
+
+### Poisson and Related Distributions
+
+Many processes produce events randomly @ a given overall rate (visitors at a site, cars @ a toll plaza (*events spread over time*),
+imperfections in a square meter of fabric, typos per 100 lines of code (*events spread over space*)
+
+* **Lambda** = rate (per unit of time or space) at which events occur.
+* **Poisson distribution** = frequency distribution of the *# of events* in sampled units of time or space.
+* **Exponential distribution** = frequency distribution of *the time or distance* from 1 event to the next
+* **Weibull distribution** = generalized version of the exponential, in which event rate is allowed to shift over time.
+
+#### Poisson Distributions
+
+From *prior* data we can estimate avg. # of events per unit of time/space, but might also want to know *how different this might be from 1 unit of time/space to another*
+
+Poisson distribution tells us distribution of events per unit of time/space when sampling many such units = useful when addressing *queuing questions* like “How much capacity do we need to be 95% sure of fully processing the internet traffic that arrives on a server in any 5-second period?”
+
+Key parameter in a Poisson distribution = **$\lambda$ = mean # of events that occurs in a specified interval of time/space*** + variance for a Poisson = *also* $\lambda$
+
+Common technique = generate random #'s from a Poisson as part of a queuing simulation.
+
+```{r}
+# get 100 random #'s from a poission distribution w/ lambda = 2
+rpois(100,lambda=2)
+```
+
+**This could represent, for example, if incoming customer service calls average 2/min., this simulate 100 minutes, returning the # of calls in each minute of those 100 minutes**
+
+#### Exponential Distribution
+
+Using same $\lambda$ parameter from Poisson distribution, can also model distribution of *time between events* (between visits to a
+site or cars arriving at a toll, as well as model time to failure or time required per service call)
+
+```{r}
+# get 100 numbers from 2 events per time period
+rexp(100,rate=.2)
+```
+
+See 100 random #'s from an exponential distribution where mean # of events per time period = 2: can use it to simulate 100 intervals, in minutes, between service calls, where avg. rate of incoming calls = 0.2/min
+
+**Key assumption in any simulation study (for either the Poisson or exponential) = the rate, $\lambda$, remains *constant* over the period being considered**
+
+* rarely reasonable in a global sense; traffic on roads/data networks varies by time of day + DOW
+* But, time periods/areas of space *can usually be divided into segments sufficiently homogeneous so that analysis/simulation w/in those periods is valid*
+
+#### Estimating the Failure Rate
+Many applications = event rate $\lambda$ = known/can be estimated from prior data.
+
+For *rare* events = not necessarily so
+
+* Aircraft engine failure = sufficiently rare that, for given engine type, there may be little data on which to base an estimate of time between failures. 
+
+W/ no/little data = little basis on which to estimate an event rate
+
+Can make some guesses: if no events have been seen after 20 hours = can be pretty sure rate is *not* 1/hour. 
+
+Via simulation or direct calculation of probabilities, can assess different hypothetical event rates + estimate threshold values below which the rate is very unlikely to fall.
+
+If there is *some* data but not enough to provide a precise, reliable estimate of rate, a **goodness-of-fit test** can be applied to various rates to determine how well they fit the observed data.
+
+#### Weibull Distribution
+
+In many cases, event rate = not constant over time + if period over which it changes = much longer than typical interval between events, there is no problem; just subdivide the analysis into segments where rates = relatively constant,
+
+If, however, *event rate changes over time of the interval*, exponential/Poisson distributions = no longer useful (likely to be case in mechanical failure where risk of failure increases as time goes by)
+
+Weibull distribution = extension of the exponential = event rate is allowed to change, as specified by a **shape parameter, $\beta$** If $\beta$ > 1,$p$ of an event increases over time, if $\beta$ < 1, it decreases. 
+
+B/c Weibull = used w/ time-to-failure analysis instead of event rate, the 2nd parameter, **scale parameter = eta** = $\eta$ = expressed in terms of **characteristic life**, rather than in terms of rate of events per interval
+
+W/ Weibull, the estimation task now includes estimation of both parameters $\beta$ + $\eta$
+
+```{r}
+# generate 100 random #'s/lifetimes from a Weibull w/ shape = 1.5 + characteristic life of 5K
+rweibull(100,shape=1.5,scale=5000)
+```
+
+***KEY IDEAS***
+
+* Events that occur at a constant rate = # of events per unit of time/space can be modeled as a Poisson distribution.
+  * can also model the time or distance *between* 1 event + the next as an exponential distribution.
+* A changing event rate over time (e.g., increasing probability of device failure) can be modeled w/ the Weibull distribution.
+
+###Summary
+
+In era of big data, principles of **random sampling** remain important when accurate estimates are needed.
+
+* Random selection of data can reduce bias + yield a higher quality data set than from just using conveniently available data. 
+* Knowledge of various sampling + data generating distributions allows us to quantify potential errors in an estimate that might be due to random variation. 
+* At the same time, *bootstrap** (sampling ww/ith replacement from observed data set) = attractive “1 size fits all” method to determine possible error in sample estimates.
