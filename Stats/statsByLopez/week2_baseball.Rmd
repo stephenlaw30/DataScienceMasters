@@ -33,7 +33,7 @@ There's a very strong, positive relationship between Runs and RC, which we can c
 
 Can now check association between a team's totals runs and other quantitative variables.
 ```{r}
-(cor_mtrx <- round(cor(select(teams1, R, RC, AB, H, HR, SO, SB, CS, RA, DP)),3))
+(cor_mtrx <- round(cor(teams1[,c('R', 'RC', 'AB', 'H', 'HR', 'SO', 'SB', 'CS', 'RA', 'DP')]),3))
 ```
 
 Looks like H and HR are the only ones with stronger positive relationships, while RA and AB have a moderate positive relationship, with CS having the only negative relationship, but it's quite weak. This suggests that a team's total runs are influenced heavily by more RC, H, and HR, and less so by RA and AB. We can also view this as a correlation plot
