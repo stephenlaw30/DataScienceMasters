@@ -1,0 +1,279 @@
+---
+title: "ISLR_Ch3_LinearRegression_lab"
+author: "Steve Newns"
+date: "April 20, 2018"
+output: html_document
+---
+# 3.6.2 Simple Linear Regression
+```{r,warning=F,message=F}
+library(MASS)
+library(ISLR)
+```
+
+`MASS` library contains `Boston` data set, which records `medv` (median house value) for 506 neighborhoods around Boston: **seek to predict `medv` using 13 predictors such as `rm` (avg #  of rooms per house), `age` (avg age of houses), + `lstat` (% of households with low socioeconomic status)**
+
+```{r}
+names(Boston)
+```
+
+Start by using `lm()` to fit a simple linear regression model, with `medv` as response + `lstat` as predictor.
+```{r}
+simpleLM <- lm(medv ~ lstat, data = Boston)
+```
+
+Typing `simpleLM` gives some basic info about the model, but  `summary(simpleLM)` gives more detailed info like p-values + std errors for the coefficients, as well as the $R^2$ statistic and F-score
+```{r}
+simpleLM
+summary(simpleLM)
+```
+
+Can use `names()` to find out what other pieces of info are stored in the fit model. 
+```{r}
+names(simpleLM)
+```
+
+Can extract quantities by name (`lm.fit$coefficients`) but it is safer to use **extractor functions** like `coef()` to access them.
+```{r}
+coef(simpleLM)
+```
+
+To obtain a CI for the coefficient estimates, use `confint()`
+```{r}
+confint(simpleLM)
+```
+
+`predict()` can be used to produce CI's *and* **prediction intervals** for the prediction of `medv` for a given value of `lstat`.
+
+  * **CI's** tell you about how well you have determined the parameter of interest
+    * **95% CI** = Repeat an experiment many times, taking a sample for each, + calculate a CI from each sample, we'd expect ~95% of those intervals to include the true value of the population parameter (*have 95% confidence the interval contains the true parameter value*)
+    * Key point = CI's tell you about the likely location of the true population parameter.
+
+  * **Prediction intervals** tell you *where you can expect to see the next DP sampled*. 
+    * Assume the data really are randomly sampled from a Gaussian distribution. 
+    * Collect a sample of data + calculate a PI
+    * Then sample 1 more value from the population
+    * Repeat many times + expect that next value will lie within such a prediction interval in 95% of samples.
+    * Key point = A PI tells you *about the distribution of values*, NOT the uncertainty in determining the true population parameter
+    * PI's must account for both the **uncertainty** in knowing the value of the true population parameter, plus **scatter/noise**
+    * Therefore, **a PI = always wider than a CI (less confident in the ranges)**
+    
+  * CI's give a range for the expected value of $y$ given a value for $x$, $E[y|x]$, and PI's give a range *for $y$ itself*.
+  * Naturally, best guess for $y$ = $E[y|x]$, so both intervals are centered around the same value = $x*\hat{\beta}$, but the intervals have *different standard errors*
+  * We **estimate the expected value of $E[y|x]$ more precisely than we estimate $y$ itself** so **estimating $y$ requires including the variance that comes from the true error term**
+    * Ex: Could get perfect estimates of $\beta$ (coefficients), so an estimate of $E[y|x]$ would be perfect, but we still wouldn't be sure what $y$ itself was b/c *there is a true error term $\epsilon$ we need to consider (irreducible)*. 
+    * Our confidence "interval" would just be a single DP, as we estimate $E[y|x]$ exactly right, but our PI would be wider b/c we take the true error term into account.
+```{r}
+# create a column (vector) of (5,10,15) as *new* lstat values to use to predict `medv`'s value + respective CI with above model
+predict(object = simpleLM, newdata = data.frame(lstat=c(5,10,15)), interval="confidence")
+predict(object = simpleLM, newdata = data.frame(lstat=c(5,10,15)), interval="prediction")
+```
+
+95% CI associated with a `lstat` value = 10 is `(24.47, 25.63)`, and the 95 % **prediction interval** = `(12.828, 37.28)`. As expected, the *CI and PI's are centered around the same point* = a predicted value, `fit`, of `25.05` for `medv` when `lstat` = 10, but latter interval is substantially wider.
+
+Now plot `medv` + `lstat` along w/ the **least squares regression line** using `plot()` and `abline()`
+```{r}
+plot(Boston$lstat,Boston$medv)
+abline(simpleLM, col="red", lwd=3)
+```
+
+There is some evidence for **non-linearity** in this relationship, as seen by the upper-left area of the plot
+
+`abline()` can be used to draw *any* line, not just the least squares regression line. To draw a line with intercept `a` and slope `b`, type `abline(a,b)`. 
+
+```{r}
+par(mfrow=c(2,3))
+plot(Boston$lstat,Boston$medv)
+abline(simpleLM, lwd=3)
+plot(Boston$lstat,Boston$medv)
+abline(simpleLM, lwd=3, col="red")
+plot(Boston$lstat, Boston$medv, col="red")
+plot(Boston$lstat, Boston$medv, pch=20) # change DP shape
+plot(Boston$lstat, Boston$medv, pch="+") # change DP shape
+plot(1:20,1:20,pch =1:20)
+```
+
+Next we examine some **diagnostic plots**. 4 are automatically produced by applying `plot()` directly to the output from a linear model.
+```{r}
+par(mfrow=c(2,2)) # #see all plots together
+plot(simpleLM) # residuals v fitted, QQ, Scale-Location, residuals v leverage
+```
+
+1. **Residuals vs. Fitted** = There looks to be a curving pattern as we move down the x-axis to the right,almost like a fish hook, indicating non-linearity between `lstat` and `medv` such that our residuals are *NOT* **identically and independently distributed (IID)**
+
+2. **Normal Q-Q plot** = empirical quantiles vs. theoretical Standard Normal quantiles. For our model, our fitted quantiles are "too large", indicating a slight-right skew.
+
+    * quantiles from a $N(\mu,\sigma^2)$ population should be linearly related to Standard Normal quantiles
+      * Let $x_p$ = $p$th quantile from a $N(\mu,\sigma^2)$, then the probability of *non-standard normal* $X$ being below a real value $x$ is $P(X <= x) = p$, so clearly, for the *standardized* normal $Z$, we have $P(Z <= (\frac {x_p - \mu} {\sigma})) = p$, and therefore $x_p = \mu + z_p*\sigma$
+
+3. **"Scale/Spread-Location"** = essentially the same as "Residuals vs Fitted", showing if there is a trend to the residuals (if they're spread equally along the ranges of predictors). This again shows the fish-hook pattern indicating non-IID residuals and non-linearity in the relationship.
+
+4. **Residuals vs. Leverage** = tells us which DP's have the greatest influence on the regression (i.e. high leverage points).
+
+    * Not all outliers are influential in linear regression so results wouldn't be much different whether included or not.
+    * Watch for outlying values at the upper right or lower right corners = spots where cases can be influential against a regression line. 
+    * Look for cases outside of a **Cook's distance** (dashed line), meaning they have high **Cook's distance scores** + are influential to the regression results, as the results will be altered if we exclude those cases.
+      * **Cook's distance** = function of the leverage and standardized residual associated w/ each DP
+    * Looks like we have several high leverage points that influence our regression as noted by being quite far from the dotted Cook's distance line and being noted with annotations (`215, 413, 375`) 
+
+Alternatively, can compute residuals from a linear regression fit using `residuals()`, or `rstudent()` to return **studentized residuals**, and we can use this to plot the residuals against the fitted values (1st + 3rd plots above)
+
+  * **studentized residuals** = alternative criterion for IDing outliers
+    * basic idea = delete observations 1 at a time, each time refitting the regression model on the remaining $n-1$ observations
+    * Then, compare the observed response values to their fitted values based on the models with the $i$th observation deleted. 
+    
+  * This produces **deleted residuals**, and standardizing the deleted residuals produces studentized residuals.
+    *  deleted residual $d_i = y_i - \hat{y_i}$ = observed response for $i$th variable minus predicted response based on the estimated model with the $i$th observation deleted
+      
+  * data point $i$ being influential implies the DP "pulls" the estimated regression line towards itself, which means the observed response would be close to the predicted response. 
+    * But, if removed, the estimated regression line would "bounce back" away from the observed response, thereby **resulting in a large deleted residual** (i.e. a DP w/ a large deleted residual suggests the DP is influential)
+        
+  * "Largeness" of deleted residuals depend on units of measurement, just as ordinary residuals do
+    * Solve this by **standardizing** = dividing each deleted residual by an estimate of its standard deviation.
+    * studentized residual, $t_i = \frac {d_i} {\sigma_{d_i}}$  = deleted residual divided by its estimated standard deviation = $\frac {e_i} {\sqrt{MSE_{i}(1-h_{ii})}}$ = ordinary residual $e_i$ divided by a factor that includes the MSE *based on estimated model **w/ ith observation deleted**, $MSE_{i}$*, and the **leverage, $h_{ii}$**
+  
+  * TLDR: studentized residual = just a deleted residual divided by its estimated standard deviation
+    * can also calculate studentized deleted (or externally studentized) residuals using only the results for the model fit to all the observations: $t_i = r_i(\frac {n-p-1} {n-p-r_i^2})^{1/2}$ where $r_i$ = $i$th internally studentized residual, $n$ = # of observations, $p$ = # of regression parameters, *including the intercept*.
+        
+  * In general, studentized residuals = more effective than standardized residuals. 
+  * If an observation has a studentized residual > 3 (in absolute value), can call it an outlier.
+
+Now to plot **studentized residuals** against the fitted values
+```{r}
+par(mfrow=c(2,1))
+plot(x=predict(simpleLM),y=residuals(simpleLM))
+plot(x=predict(simpleLM),y=rstudent(simpleLM))
+```
+
+On the basis of the residual plots, there is some evidence of non-linearity. 
+
+**Leverage statistics** can be computed for any # of predictors using `hatvalues()`.
+```{r}
+#hatvalues(simpleLM)
+plot(hatvalues(simpleLM))
+which.max(hatvalues(simpleLM))
+```
+We see the index of the observation has the largest leverage statistic as 375
+
+### 3.6.3 Multiple Linear Regression
+
+To fit a multiple linear regression model using **least squares**, again use `lm()` w/ `n` predictors
+```{r}
+multLR <- lm(medv ~ lstat + age, Boston)
+summary(multLR)
+```
+
+```{r}
+allMultLR <- lm(medv ~ ., Boston)
+summary(allMultLR)
+```
+
+Can access individual components of a **summary object** by name (`?summary.lm`). Hence `summary(lm.fit)$r.sq` gives us R2 + `summary(lm.fit)$sigma` gives us the **RSE**. `vif()`, part of the `car` package (functions to apply to a fitted regression model) can be used to compute **variance inflation factors**. Most VIF's = low to moderate for this data.
+
+* **VIF** = ratio of the variance of $\beta_j$ when fitting the full model divided by the variance of $\hat{\beta_j}$ if fit on its own
+  * smallest possible = 1 (indicates complete absence of collinearity)
+  * Typically in practice, there's a small amount of collinearity among predictors
+  * Rule of thumb = VIF > 5 or 10 indicates a problematic amount of collinearity. 
+  * $VIF(\beta_j) = \frac {1} {1 - R_{X_j | X_{-j}}^2}$ where $R_{X_j | X_{-j}}^2$ = $R^2$ from a regression of $X_j$ onto all other predictors, $X_{-j}$)
+  * If $R_{X_j | X_{-j}}^2$ = close to 1, collinearity is present, so the VIF will be large.
+```{r,warning=F,message=F}
+#install.packages("car",dependencies=TRUE)
+#update.packages(checkBuilt = TRUE)
+library(car)
+vif(allMultLR)
+```
+
+What if we'd like to perform a regression using all variables but one?
+```{r}
+multLR_noAge <- lm(medv ~ . - age, Boston) # largest p-value in full model
+summary(multLR_noAge)
+```
+
+Alternatively, `update()` can be used.
+```{r}
+multLR_noAge <- update(allMultLR, ~ . - age)
+summary(multLR_noAge)
+```
+
+### 3.6.4 Interaction Terms
+It is easy to include **interaction terms** in a linear model, such as w/ syntax `lstat:black` = interaction term between `lstat` +  `black`. The syntax `lstat*age` simultaneously includes `lstat`, `age`, *and the interaction term `lstat \* age`* as predictors, as it is a shorthand for `lstat+age+lstat:age`
+```{r}
+multLR_interaction <- lm(medv ~ lstat*age, Boston)
+summary(multLR_interaction)
+```
+
+### 3.6.5 Non-linear Transformations of Predictors
+
+`lm()` function can also accommodate non-linear transformations of predictors. Given a predictor $X$, can create a predictor $X^2$
+using `I(X^2)` (`I()` is needed since `^` has a special meaning in a formula)
+```{r}
+multLR_transform <- lm(medv ~ lstat + I(lstat^2), Boston)
+summary(multLR_transform)
+```
+
+The near-0 p-value associated with the quadratic term suggests it leads to an improved model. **Use `?anova()` to further quantify the extent to which the quadratic fit is superior to the linear fit.**
+
+* `anova()` = computes analysis of variance (or deviance) tables for 1+ fitted model objects, tested in order specified whether the model terms are significant
+```{r}
+anova(lm(medv~lstat,Boston),multLR_transform)
+```
+
+`anova()` performs a **hypothesis test** comparing the 2 models w/ a null H0 = the 2 models fit the data equally well, + the alternative H1 = the full model (1st given) is superior. 
+
+Here the **F-statistic** = 135 + the associated p-value = virtually 0. This info provides very clear evidence that the quadratic model is far superior (not surprising, since earlier we saw evidence for non-linearity in the relationship between `medv` + `lstat`
+```{r}
+par(mfrow=c(2,2))
+plot(multLR_transform)
+```
+
+There looks to be no pattern for our normal nor studentized residuals, indicating there is linearity in our fit model such that our residuals *are* identically and independently distributed (IID)
+
+**Normal Q-Q plot** = For our new model, our fitted quantiles are still "too large" in the upper-right, indicating a slight-right skew.
+
+**Residuals vs. Leverage** = Looks like we still have several high leverage points that influence our regression as noted by being quite far from the dotted Cook's distance line and being noted with annotations
+
+In order to create a cubic fit, we can include a predictor of the form `I(X^3)`. However, this approach can start to get cumbersome for higher-order polynomials. A better approach involves using `poly()` to create the polynomial within `lm()`
+```{r}
+# produce a fifth-order polynomial fit
+fifthOrder <- lm(medv ~ poly(lstat,5), Boston)
+summary(fifthOrder)
+```
+
+This suggests that including additional polynomial terms, up to 5th order, leads to an improvement in the model fit! However, further investigation of data reveals that no polynomial terms beyond 5th order have significant p-values in a regression fit. Of course, we are in no way restricted to only using polynomial transformations of the predictors. Here we try a **log transformation.**
+```{r}
+summary(lm(medv ~ log(rm), Boston))
+```
+         
+### 3.6.6 Qualitative Predictors
+`Carseats` = attempt to predict `Sales` (child car seat sales) in 400 locations based on a number of predictors.
+```{r,warning=F,message=F}
+library(ISLR)
+library(tidyverse)
+glimpse(Carseats)
+```
+
+Data includes qualitative predictors (`Shelveloc` = indicator of the quality of the shelving location [space w/in a store in which the car seat is displayed-at each location] taking 3 possible values = Bad, Medium, and Good)
+
+Given a qualitative variable such as `Shelveloc`, R generates dummy variables *automatically*
+```{r}
+carSeatModel1 <- lm(Sales ~ . + Income:Advertising + Price:Age, Carseats)
+summary(carSeatModel1)
+```
+
+`contrasts()` returns the coding R uses for the dummy `contrasts()` variables.
+```{r}
+contrasts(Carseats$ShelveLoc)
+```
+
+R has created a `ShelveLocGood` dummy variable that = 1 if shelving location = good, + 0 otherwise and `ShelveLocMedium` dummy variable = 1 if shelving location = medium, + 0 otherwise. A "bad"" shelving location = 0 for each of the other 2 dummy variables. The fact that the coefficient for `ShelveLocGood`= positive indicates a good shelving location is associated w/ high sales (***relative to a bad location***) + `ShelveLocMedium` = a smaller positive coefficient, indicating a medium shelving location leads to higher sales than a bad shelving location but lower sales than a good shelving location.
+
+### 3.6.7 Writing Functions
+
+Write a simple function that reads in the ISLR and MASS libraries
+```{r}
+LoadLibraries <- function() {
+  library(ISLR)
+  library(MASS)
+  print("Libraries have been loaded")
+}
+LoadLibraries()
+```

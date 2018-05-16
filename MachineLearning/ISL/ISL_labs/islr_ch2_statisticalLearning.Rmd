@@ -456,4 +456,4 @@ Boston %>%
 ```
 
   * Suburbs that average more than eight rooms per dwelling tend to have less crime, less non-retail business acres, less houses bound by the Charles, are *barely* older, a *slightly* larger weighed mean of distance to employment centres, lower index of accessibility to radial highways, higher property tax rate, slightly greater pupil-teacher ratio, much lower value for lower status % of the population, and lower median value of the homes
-  * I'm assuming these are suburbs where families lives, a bit further away from city center to raise such families in neighborhoods
+  * I'm assuming these are suburbs where families live, a bit further away from city center to raise such families in neighborhoods
