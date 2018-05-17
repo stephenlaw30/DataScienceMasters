@@ -140,11 +140,13 @@ $(document).ready(function () {
 </ul>
 <p><strong>2. Carefully explain the differences between the KNN classifier and KNN regression methods.</strong></p>
 <ul>
-<li><strong>KNN classifier</strong> = ID’s the <span class="math inline">\(k\)</span> closest neighbors to a new point, <span class="math inline">\(x_0\)</span>, and then estimates the <strong>conditional probability <span class="math inline">\(P(Y=j|X=x_0)\)</span></strong> for class <span class="math inline">\(j\)</span> as the fraction of DPs in the neighborhood where the response <span class="math inline">\(y\)</span> = class <span class="math inline">\(j\)</span>, and then classifying the new <span class="math inline">\(x_0\)</span> DP to the class <span class="math inline">\(j\)</span> with the highest conditional probability (most neighbors in the neighborhood)</li>
-<li><strong>KNN regression</strong> = ID’s the <span class="math inline">\(k\)</span> closest neighbors to a new point, <span class="math inline">\(x_0\)</span>, and then estimates <span class="math inline">\(f(x_0)\)</span> as the <em>average</em> of all training responses in that neighborhood = <span class="math inline">\(\hat{f}(x_0)\)</span></li>
+<li><strong>KNN classifier</strong> = ID’s the <span class="math inline">\(k\)</span> closest neighbors to a new point, <span class="math inline">\(x_0\)</span>, and then estimates the <strong>conditional probability <span class="math inline">\(P(Y=j|X=x_0)\)</span></strong> for class <span class="math inline">\(j\)</span> as the fraction of DPs in the neighborhood where the response <span class="math inline">\(y\)</span> = class <span class="math inline">\(j\)</span>, and then classifying the new <span class="math inline">\(x_0\)</span> DP to the class <span class="math inline">\(j\)</span> with the highest conditional probability (***most neighbors in the neighborhood***)</li>
+<li><p><strong>KNN regression</strong> = ID’s the <span class="math inline">\(k\)</span> closest neighbors to a new point, <span class="math inline">\(x_0\)</span>, and then estimates <span class="math inline">\(f(x_0)\)</span> as the <em>average</em> of all training responses in that neighborhood = <span class="math inline">\(\hat{f}(x_0)\)</span></p>
+<ul>
 <li>takes an abstract point as input + treats as a <em>real</em> observation + estimates the output <span class="math inline">\(f(x_0)\)</span> it would predict if real</li>
-<li>becomes a function <span class="math inline">\(\hat{f}(x_0)\)</span> that outputs a prediction for any input</li>
+<li>becomes a function <span class="math inline">\(\hat{f}\)</span> that outputs a prediction for any input</li>
 <li><strong>TLDR: it’s a <em>quantitative estimate by averaging the result of the <span class="math inline">\(k\)</span> nearest neighbors</em></strong></li>
+</ul></li>
 </ul>
 <p><strong>3. Suppose we have a data set with 5 predictors, <span class="math inline">\(X_1\)</span> = GPA, <span class="math inline">\(X_2\)</span> = IQ, <span class="math inline">\(X_3\)</span> = Gender (1 = Female, 0 = Male), <span class="math inline">\(X_4\)</span> = Interaction between GPA and IQ, and <span class="math inline">\(X_5\)</span> = Interaction between GPA and Gender. The response <span class="math inline">\(y\)</span> = starting salary after graduation (in thousands of $). Suppose we use least squares to fit the model, and get <span class="math inline">\(\hat{\beta_0}\)</span> = 50, <span class="math inline">\(\hat{\beta_1}\)</span> = 20, <span class="math inline">\(\hat{\beta_2}\)</span> = 0.07, <span class="math inline">\(\hat{\beta_3}\)</span> = 35, <span class="math inline">\(\hat{\beta_4}\)</span> = 0.01, <span class="math inline">\(\hat{\beta_5}\)</span> = -10</strong></p>
 <p><strong>(a) Which answer is correct, and why?</strong></p>
@@ -153,54 +155,63 @@ $(document).ready(function () {
 <li>For a fixed value of IQ and GPA, females earn more on average than males.</li>
 <li><strong>For a fixed value of IQ and GPA, males earn more on average than females provided that the GPA is high enough. </strong>
 <ul>
-<li>Least Squares model for females = <span class="math inline">\(50 + 20X_1 + .07X_2 + 35 + .01X_3 -10X_5\)</span> == 85 + 20(GPA) + .07(IQ) + .01(GPA:IQ) - 10(GP:Gender) == 85 + 10(GPA) + .07(IQ) + .01(GPA:IQ)</li>
-<li>Least Squares model for males = <span class="math inline">\(50 + 20X_2 + .07X_2 + .01X_3\)</span> == 50 + 20(GPA) + .07(IQ) + .01(GPA:IQ)</li>
-<li>Therefore, starting salary for males is greater if GPA is large enough such that GPA &gt;= 3.5 (simplifying, adding the 2 models gives 35 = 10GPA)</li>
+<li>Least Squares model for females = <span class="math inline">\(50 + 20X_1 + .07X_2 + 35 + .01X_3 -10X_5 == 85 + 20(GPA) + .07(IQ) + .01(GPA:IQ) - 10(GP:Gender) == 85 + 10(GPA) + .07(IQ) + .01(GPA:IQ)\)</span></li>
+<li>Least Squares model for males = <span class="math inline">\(50 + 20X_2 + .07X_2 + .01X_3 == 50 + 20(GPA) + .07(IQ) + .01(GPA:IQ)\)</span></li>
+<li>Therefore, starting salary for males is greater if GPA is large enough such that GPA &gt;= 3.5 (simplifying, adding the 2 models gives <span class="math inline">\(35 = 10GPA\)</span>)</li>
 </ul></li>
 <li>For a fixed value of IQ and GPA, females earn more on average than males provided that the GPA is high enough.</li>
 </ul>
 <p><strong>(b) Predict the salary of a female with IQ of 110 and a GPA of 4.0.</strong></p>
 <ul>
-<li>85 + 10(GPA) + .07(IQ) + .01(GPA:IQ) == 85 + 10(4) + .07(110) + .01((110*4)) = 85 + 40 + 7.7 + 4.4 = $137.1K/yr</li>
+<li><span class="math inline">\(85 + 10(GPA) + .07(IQ) + .01(GPA:IQ) == 85 + 10(4) + .07(110) + .01((110*4)) = 85 + 40 + 7.7 + 4.4 = \$137.1K/yr\)</span></li>
 </ul>
 <p><strong>(c) T/F: Since the coefficient for the GPA/IQ interaction term is very small, there is very little evidence of an interaction effect. Justify your answer.</strong></p>
 <ul>
-<li>False. The actual value of the interaction term’s coefficient does not matter in deciding if there’s evidence of an interaction effect is present. What we must do is check the p-value for the coefficient which tests the H0: B^4 = 0 and associate the results with the t-statistic and F score
+<li><strong><em>False</em></strong>. The <em>actual value</em> of the interaction term’s coefficient does <em>NOT</em> matter in deciding if there’s evidence of an interaction effect is present. What we must do is check the p-value for the interaction term’s coefficient which tests <span class="math inline">\(H_{04}: \beta^4 = 0\)</span> and associate the resulting p-value with the <span class="math inline">\(t\)</span>-statistic and F score
 <ul>
-<li><strong>F-statistic</strong> = <span class="math inline">\(\frac {\frac {TSS-RSS} {p}} {\frac {RSS} {n-p-1}}\)</span> = for no relationship between the response and predictors, expect F-statistic to take on a value close to 1</li>
+<li><strong>F-statistic</strong> = <span class="math inline">\(\frac {\frac {TSS-RSS} {p}} {\frac {RSS} {n-p-1}}\)</span> ==&gt; if no relationship between the response and predictors, expect F-statistic to take on a value close to 1</li>
 <li>TSS = <span class="math inline">\(\sum_{i=1}^{n}(y_i - \bar{y})^2\)</span>, RSS = <span class="math inline">\(\sum_{i=1}^{n}(y_i - \hat{y_i})^2\)</span></li>
 </ul></li>
 </ul>
-<p><strong>4. I collect a set of data (n = 100 observations) containing a single predictor and a quantitative response. I then fit a linear regression model to the data, as well as a separate cubic regression, i.e. Y = B0 + B1X + B2X^2 + B3X^3 + e.</strong></p>
+<p><strong>4. I collect a set of data (<span class="math inline">\(n\)</span> = 100 observations) containing a single predictor and a quantitative response. I then fit a linear regression model to the data, as well as a separate cubic regression, i.e. <span class="math inline">\(Y = \beta_0 +\ beta_1X + \beta_2X^2 + \beta_3X^3 + \epsilon\)</span></strong></p>
 <ul>
-<li><strong>(a) Suppose the true relationship between X + Y is linear, i.e. Y = B0 + B1X + e. Consider the <em>training</em> residual sum of squares (RSS) for the <em>linear</em> regression, and also the training RSS for the <em>cubic</em> regression. Would we expect one to be lower than the other, would we expect them to be the same, or is there not enough information to tell? Justify your answer.</strong>
+<li><strong>(a) Suppose the true relationship between <span class="math inline">\(X\)</span> + <span class="math inline">\(Y\)</span> is linear, i.e. <span class="math inline">\(Y = \beta_0 + \beta_1X + \epsilon\)</span>. Consider the <em>training</em> residual sum of squares (<span class="math inline">\(RSS\)</span>) for the <em>linear</em> regression, + also the <em>training</em> RSS for the <em>cubic</em> regression. Would we expect one to be lower than the other, would we expect them to be the same, or is there not enough info to tell?</strong>
 <ul>
-<li>We cannot expect the cubic regression to be better, as it <em>is still a linear model</em>. Therefore, we do not have enough information to tell which training RSS would be lower. We <em>could</em> estimate that by adding the extra cubic term, our least squares fit <em>could</em> be a bit closer to the true regression line, and thereby giving the cubic model a lower training RSS, but it may not.</li>
+<li>We <em>cannot</em> expect the cubic regression to be better, as it <strong><em>is still a linear model and our true relationship is linear</em></strong>. Therefore, we do <em>NOT</em> have enough info to tell which training RSS would be lower.</li>
+<li>We <em>could</em> estimate that by adding the extra cubic term, our least squares fit <em>could</em> be a bit closer to the true regression line, and thereby giving the cubic model a lower training RSS, ***but it may not***.</li>
 </ul></li>
-<li><strong>(b) Answer (a) using test rather than training RSS.* </strong>
+<li><strong>(b) Answer (a) using test rather than training RSS</strong>
 <ul>
-<li>We still do not have enough to make confident estimates, but a conservative one would be that the cubic model <em>could</em> overfit the data (move towards non-linear fits) and therefore its test RSS would be higher.</li>
+<li>We <em>still do not have enough to make confident estimates</em>, but a conservative one would be that the cubic model <em>could</em> overfit the data (move towards non-linear fits) + therefore its test RSS would be higher.</li>
 </ul></li>
-<li><strong>(c) Suppose the true relationship between X + Y is <em>not</em> linear, but we <em>don’t know how far it is from linear</em>. Consider the training RSS for the linear regression + the training RSS for the cubic regression. Would we expect one to be lower than the other, would we expect them to be the same, or is there not enough information to tell? Justify your answer.* </strong>
+<li><strong>(c) Suppose the true relationship between <span class="math inline">\(X\)</span> + <span class="math inline">\(Y\)</span> is <em>not</em> linear, but we <em>don’t know how far it is from linear</em>. Consider the training RSS for the linear regression + the training RSS for the cubic regression. Would we expect one to be lower than the other, would we expect them to be the same, or is there not enough info to tell?</strong>
 <ul>
 <li>Even though we do not know how far the relationship is from linear, the fact that we have added in a higher-order polynomial in the cubic regression would give a more flexible model that would better fit a non-linear relationship, thereby giving a lower training RSS</li>
 </ul></li>
-<li><strong>(d) Answer (c) using test rather than training RSS.* </strong>
+<li><strong>(d) Answer (c) using test rather than training RSS</strong>
 <ul>
-<li>We don’t have enough info say which test RSS would be lower, since we don’t know how far it is from linear. If the true non-linear relationship is <em>closer to linear than cubic</em>, linear regression test RSS could be lower, or vice versa (see: Bias-Variance trade-off)</li>
+<li>We don’t have enough info say which test RSS would be lower, since we don’t know how far it is from linear.</li>
+<li>If the true non-linear relationship is <em>closer to linear than cubic</em>, linear regression test RSS could be lower, or vice versa (see: <strong><em>Bias-Variance trade-off</em></strong>)</li>
 </ul></li>
 </ul>
-<p>**5. Consider the fitted values that result from performing linear regression <em>without an intercept</em>. In this setting, the ith fitted value takes the form y^_i = x_iB, where B = sum_i[x_i*y_i]/sum_k[x_k^2]. Show that we can write y^_i = sum_j[a_j*y_j], and what is a_j?**</p>
+<p><strong>5. Consider the fitted values that result from performing linear regression <em>without an intercept</em>. In this setting, the <span class="math inline">\(i\)</span>th fitted value takes the form <span class="math inline">\(\hat{y}_i = x_i\hat{\beta}\)</span>, where <span class="math inline">\(\hat{\beta} = \frac {\sum_{i=1}^{n}(x_iy_i)} {\sum_{i'=1}^{n}x_{i'}^2}\)</span>. Show that we can write <span class="math inline">\(\hat{y_i} = \sum_{i'=1}^{n}(a_{i'}y_{i'})\)</span>, and what is <span class="math inline">\(a_{i'}\)</span>?</strong></p>
 <ul>
 <li><strong>Note: We interpret this result by saying that the fitted values from linear regression are <em>linear combinations</em> of the response values.</strong></li>
-<li>Plugging in sum_i[x_i*y_i]/sum_k[x_k^2] for B in y^_i = x_iB, we get y^_i = x_i(sum_j[x_j*y_j]/sum_k[x_k^2]), flipping around terms, we get sum_j[(x_i*x_j)/sum_k[x_k^2]]*y_i so a_j = (x_i*x_j)/sum_k[x_k^2]]</li>
+<li>Plugging in <span class="math inline">\(\frac {\sum_{i=1}^{n}(x_iy_i)} {\sum_{i'=1}^{n}x_{i'}^2}\)</span> for <span class="math inline">\(\hat{\beta}\)</span> in <span class="math inline">\(\hat{y}_i = x_i\hat{\beta}\)</span>, we get <span class="math inline">\(\hat{y}_i = x_i\frac {\sum_{i=1}^{n}(x_iy_i)} {\sum_{i'=1}^{n}x_{i'}^2}\)</span>, flipping around terms, we get <span class="math inline">\(\sum_{i=1}^{n} \frac {(x_iy_i)} {\sum_{i'=1}^{n}x_{i'}^2}\hat{y_i}\)</span> so <span class="math inline">\(a_{i'} = \sum_{i=1}^{n} \frac {(x_iy_i)} {\sum_{i'=1}^{n}x_{i'}^2}\)</span><br />
+</li>
+<li>see <a href="https://blog.princehonest.com/stat-learning/" class="uri">https://blog.princehonest.com/stat-learning/</a></li>
 </ul>
-<p><strong>6. Using (3.4), argue that in the case of simple linear regression, the least squares line always passes through the point (x?, y?).</strong></p>
+<p><strong>6. Using (3.4), argue that in the case of simple linear regression, the least squares line always passes through the point <span class="math inline">\((\bar{x}, \bar{y})\)</span>.</strong></p>
 <ul>
-<li>least square line equation: y = B0^ + B1^*x, so if we substitute x_bar for x, we get y = B0^ + B1^*x_bar</li>
-<li>(3.4) hows us that the intercept = (0, x_bar - B1*y_bar)</li>
-<li>Plug in f(x_bar) into the linear equation which gives us x = x_bar, y = B0 + B1*x_bar</li>
-<li>Plugging in optimal values of B0 into the equation gives y = (y_bar - B1<em>x_bar + B1</em>x_bar, which simplifies to y = y_bar when x = x_bar</li>
+<li>(3.4):
+<ul>
+<li><span class="math inline">\(\hat{\beta_1} = \frac {\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})} {\sum_{i=1}^{n}(x_i - \bar{x})^2}\)</span></li>
+<li><span class="math inline">\(\hat{\beta_0} = \bar{y} - \hat{\beta_1}\bar{x}\)</span></li>
+</ul></li>
+<li>least square line equation: <span class="math inline">\(\hat{y} = \hat{\beta_0} + \hat{\beta_1}x\)</span>, so if we substitute <span class="math inline">\(\bar{x}\)</span> for <span class="math inline">\(x\)</span>, we get <span class="math inline">\(y = \hat{\beta_0} + \hat{\beta_1}\bar{x}\)</span></li>
+<li>(3.4) hows us that the intercept = <span class="math inline">\(\hat{\beta_0} = (0, \bar{x} - \hat{\beta_1}\hat{y})\)</span></li>
+<li>Plug in <span class="math inline">\(f(\bar{x})\)</span> into the linear equation which gives us <span class="math inline">\(x = \bar{x}\)</span> and <span class="math inline">\(y = \beta_0 + \beta_1\bar{x}\)</span></li>
+<li>Plugging in optimal values of <span class="math inline">\(\beta_0\)</span> into the equation gives <span class="math inline">\(y = (\bar{y} - \beta_1\bar{x} + \beta_1\bar{x}\)</span>, which simplifies to <span class="math inline">\(y = \bar{y}\)</span> when <span class="math inline">\(x = \bar{x}\)</span></li>
 </ul>
 <p><strong>7. It is claimed in the text that in the case of simple linear regression of Y onto X, the R2 statistic (3.17) is equal to the square of the correlation between X and Y (3.18). Prove that this is the case. For simplicity, you may assume that ?x = ?y = 0.</strong></p>
 <ul>
