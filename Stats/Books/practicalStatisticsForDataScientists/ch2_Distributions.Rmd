@@ -11,7 +11,7 @@ Proliferation of data of varying quality + relevance reinforces need for **sampl
 
 **Population** = *unknown* distribution, only thing available = sample of said population + the ***sample's *empirical* distribution** retrived via a sampling procedure
 
-* traditional stats = population parametes that **require strong assumptions**, modern stats = sample statistics where **such assumptions are not needed**
+* traditional stats = population parameters that **require strong assumptions**, modern stats = sample statistics where **such assumptions are not needed**
 
 DS should focus on sampling procedures + data *actually at hand*, sometimes from **a physical process that can be modeled** (flipping coins = binomial distribution)
 

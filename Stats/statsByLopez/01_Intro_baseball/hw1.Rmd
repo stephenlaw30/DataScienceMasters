@@ -26,6 +26,7 @@ What element of the `mlb11` data set corresponds to the 10th row and 6th column?
 ```{r}
 mlb11[10,6]
 mlb11$team[10]
+names(mlb11)[6]
 ```
 **The value `.258` corresponds to the Houston Astros' BA**
 
@@ -38,7 +39,8 @@ library(ggplot2)
 #hist(mlb11$at_bats)
 #histogram(~at_bats, data = mlb11)
 
-fav_stats(mlb11$at_bats)
+mosaic::favstats(mlb11$at_bats)
+#lattice::histogram(~at_bats,mlb11)
 iqr(mlb11$at_bats)
 
 ggplot(mlb11, aes(x=at_bats)) + 
@@ -63,10 +65,10 @@ ggplot(mlb11, aes(stolen_bases,homeruns)) +
 cor(mlb11$stolen_bases,mlb11$homeruns)
 ```
 
-**Appears to be no real (barely a weak) negative relationship between stolen bases and homeruns, which is confirmed by the vew low (in absolute value) negative correlation.**
+**There ppears to be no real relationship between stolen bases and homeruns, which is confirmed by the vew low (in absolute value) negative correlation.**
 
 ## Question 5.
-Create a new variable, `AboveAveWins`, representing whether or not the team won more than half of its games (there are 162 games in a season).  How many teams won 82 games or more?
+Create a new variable, `AboveAveWins`, representing whether or not the team won more than half of its games (162 games in a season). How many teams won 82 games or more?
 ```{r}
 mlb11 <- mlb11 %>%
   mutate(AboveAveWins = if_else(wins > 162/2,1,0))
@@ -107,6 +109,9 @@ ggplot(mlb11, aes("",hits)) +
   ylab("Home Runs") +
   coord_flip() +   
   ggtitle("Home Runs by Stolen Bases")
+
+#lattice::histogram( ~ hits, mlb11)
+#lattice::bwplot( ~ hits, mlb11)
 ```
  
  **The boxplot displays the high outlier, while the histogram displays the unimodal shape of the distribution.**
