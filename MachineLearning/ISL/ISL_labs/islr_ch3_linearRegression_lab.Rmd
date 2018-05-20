@@ -48,7 +48,7 @@ confint(simpleLM)
     * **95% CI** = Repeat an experiment many times, taking a sample for each, + calculate a CI from each sample, we'd expect ~95% of those intervals to include the true value of the population parameter (*have 95% confidence the interval contains the true parameter value*)
     * Key point = CI's tell you about the likely location of the true population parameter.
 
-  * **Prediction intervals** tell you *where you can expect to see the next DP sampled*. 
+  * **Prediction intervals** = *range where you can expect to see the next DP sampled fall into*. 
     * Assume the data really are randomly sampled from a Gaussian distribution. 
     * Collect a sample of data + calculate a PI
     * Then sample 1 more value from the population
@@ -56,10 +56,11 @@ confint(simpleLM)
     * Key point = A PI tells you *about the distribution of values*, NOT the uncertainty in determining the true population parameter
     * PI's must account for both the **uncertainty** in knowing the value of the true population parameter, plus **scatter/noise**
     * Therefore, **a PI = always wider than a CI (less confident in the ranges)**
+    * alternate definition: "an interval associated w/ a random variable yet to be observed, w/ a specified probability of the random variable lying w/in the interval"
     
-  * CI's give a range for the expected value of $y$ given a value for $x$, $E[y|x]$, and PI's give a range *for $y$ itself*.
-  * Naturally, best guess for $y$ = $E[y|x]$, so both intervals are centered around the same value = $x*\hat{\beta}$, but the intervals have *different standard errors*
-  * We **estimate the expected value of $E[y|x]$ more precisely than we estimate $y$ itself** so **estimating $y$ requires including the variance that comes from the true error term**
+  * CI's give a range for the *expected value* of $y$ *given* a value for $x$, $E[y|x]$, and PI's give a range *for $y$ itself*.
+  * Naturally, best guess for $y$ = $E[y|x]$, so both intervals are centered around the same value = $x\hat{\beta}$, but the intervals have *different standard errors*
+  * We **estimate the expected value of $E[y|x]$ more precisely than we estimate $y$ itself**, so **estimating $y$ requires including the variance that comes from the true error term**
     * Ex: Could get perfect estimates of $\beta$ (coefficients), so an estimate of $E[y|x]$ would be perfect, but we still wouldn't be sure what $y$ itself was b/c *there is a true error term $\epsilon$ we need to consider (irreducible)*. 
     * Our confidence "interval" would just be a single DP, as we estimate $E[y|x]$ exactly right, but our PI would be wider b/c we take the true error term into account.
 ```{r}
@@ -68,7 +69,7 @@ predict(object = simpleLM, newdata = data.frame(lstat=c(5,10,15)), interval="con
 predict(object = simpleLM, newdata = data.frame(lstat=c(5,10,15)), interval="prediction")
 ```
 
-95% CI associated with a `lstat` value = 10 is `(24.47, 25.63)`, and the 95 % **prediction interval** = `(12.828, 37.28)`. As expected, the *CI and PI's are centered around the same point* = a predicted value, `fit`, of `25.05` for `medv` when `lstat` = 10, but latter interval is substantially wider.
+95% CI associated with a `lstat` value = 10 is `(24.47, 25.63)`, and the 95 % **prediction interval** = `(12.828, 37.28)`. As expected, the *CI and PI's are centered around the same point* = a predicted value, `fit` = $x\hat{\beta}$ = `25.05` for `medv` when `lstat` = $x$ = 10, but latter prediction interval is substantially wider to account for $\epsilon$
 
 Now plot `medv` + `lstat` along w/ the **least squares regression line** using `plot()` and `abline()`
 ```{r}
@@ -99,11 +100,28 @@ plot(simpleLM) # residuals v fitted, QQ, Scale-Location, residuals v leverage
 ```
 
 1. **Residuals vs. Fitted** = There looks to be a curving pattern as we move down the x-axis to the right,almost like a fish hook, indicating non-linearity between `lstat` and `medv` such that our residuals are *NOT* **identically and independently distributed (IID)**
+  * ***This plot assess whether the observed error (residuals, $\epsilon$) is consistent with stochastic (random) error***
+    * ex: When rolling a die, you shouldn’t be able to predict which # will show on any given toss, but we *can* assess a *series* of tosses to determine whether the displayed # follow a random pattern or not
+    * If 6 shows up more frequently than randomness dictates, we know something is wrong w/ our understanding (**mental model**) of how the die actually behaves so we adjust the mental model + playing style to factor in the higher frequency of 6's + the new mental model better reflects the outcome.
+  * shouldn’t be able to predict the error for any given observation so for a series of observations, determine whether residuals are consistent w/ random error + if residuals suggest a model is systematically incorrect, we should aim to improve the model
+  * residuals should not be either systematically high or low + should be centered on 0 throughout the range of fitted values (i.e. model = correct, on average, for all fitted values)
+  * In OLS: random errors = assumed to produce residuals that're normally distributed + therefore OLS residuals should fall in a symmetrical pattern w/ have a constant spread throughout the range.
+  * A non-random pattern in the residuals indicates the **deterministic portion** (*predictor(s)*) of the model is/are not capturing some explanatory info that is “leaking” into the residuals. 
+    * A missing variable, missing higher-order term of a variable in the model to explain the curvature, missing interaction between terms already in the model, etc.
+  * 2 more specific ways predictive info can sneak into the residuals:
+    * residuals should not be correlated w/ another variable. 
+      * If we can predict residuals w/ another variable, that variable should be included in the model
+    * Adjacent residuals should not be correlated w/ each other (autocorrelation).
+      * If you can use 1 residual to predict the next, some predictive info is present that's not captured by predictors.
+      * Typically, this situation involves *time-ordered/sequential* observations.
+        * Ex: residual is more likely to be followed by another residual w/ the same sign = adjacent residuals are positively correlated
+      * can include a variable that captures the relevant time-related info, or use a time series analysis
 
 2. **Normal Q-Q plot** = empirical quantiles vs. theoretical Standard Normal quantiles. For our model, our fitted quantiles are "too large", indicating a slight-right skew.
 
     * quantiles from a $N(\mu,\sigma^2)$ population should be linearly related to Standard Normal quantiles
       * Let $x_p$ = $p$th quantile from a $N(\mu,\sigma^2)$, then the probability of *non-standard normal* $X$ being below a real value $x$ is $P(X <= x) = p$, so clearly, for the *standardized* normal $Z$, we have $P(Z <= (\frac {x_p - \mu} {\sigma})) = p$, and therefore $x_p = \mu + z_p*\sigma$
+    * If Q-Q plot points form a relatively straight line = quantiles of the dataset nearly match the theoretical quantiles of the dataset
 
 3. **"Scale/Spread-Location"** = essentially the same as "Residuals vs Fitted", showing if there is a trend to the residuals (if they're spread equally along the ranges of predictors). This again shows the fish-hook pattern indicating non-IID residuals and non-linearity in the relationship.
 
