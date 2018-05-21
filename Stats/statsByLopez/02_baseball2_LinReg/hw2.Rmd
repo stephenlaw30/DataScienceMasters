@@ -1,0 +1,104 @@
+---
+title: "HW 2"
+author: Your name here
+output: html_document
+---
+
+```{r knitr_options , include=FALSE}
+#Here's some preamble, which makes ensures your figures aren't too big
+knitr::opts_chunk$set(fig.width=6, fig.height=3.6, warning=FALSE,message=FALSE)
+library(mosaic)
+library(tidyverse)
+library(ggplot2)
+library(Lahman)
+data(Teams)
+data(Pitching)
+```
+
+For this lab, we will be using data provided in the `Lahman` package. 
+
+## Question 1
+
+Let's use the `Teams` data set (recall: to load this data set from the Lahman package, run the command `data(Teams)`). Using every season since 1970, fit a multiple regression model of runs as a function of singles, doubles, triples, home runs, and walks.
+```{r}
+head(Teams)
+```
+
+```{r}
+teams_1 <- Teams %>% filter(yearID >= 1970) %>%
+  mutate(X1B = H - X2B - X3B - HR) # derive singles from total hits
+
+fit_1 <- lm(R ~ X1B + X2B + X3B + HR + BB, teams_1)
+msummary(fit_1)
+fit_2 <- lm(R ~ X1B, teams_1)
+msummary(fit_2)
+fit_3 <- lm(R ~ X2B, teams_1)
+msummary(fit_3)
+fit_4 <- lm(R ~ X3B, teams_1)
+msummary(fit_4)
+fit_5 <- lm(R ~ HR, teams_1)
+msummary(fit_5)
+fit_6 <- lm(R ~ BB, teams_1)
+msummary(fit_6)
+```
+
+
+## Question 2
+
+Refer to the fit in question 1. Identify the y-intercept, as well as the slopes for singles, doubles, triples, home runs and walks (do not interpret).
+
+```{r}
+paste0('intercept: ',fit_1$coefficients[1])
+c('slopes/coefficients: ',fit_1$coefficients[2:length(fit_1$coefficients)])       
+```
+
+## Question 3
+
+Refer to the fit in question 1. Interpret the slope coefficient estimate for triples.
+
+* The above coefficients $\beta_p$, we see that one extra single is predicted to increase runs, *on average and all else held constant*, by .339 runs, one extra double is predicted to increase runs, *on average and all else held constant*, by .618 runs, one extra triple is predicted to increase runs, *on average and all else held constant*, by 1.24 runs, one extra home run is predicted to increase runs, *on average and all else held constant*, by 1.335 runs, and one extra walk taken is predicted to increase runs, *on average and all else held constant*, by .311 runs.
+* For the simple models, we see that one extra single is predicted to increase runs, *on average and all else held constant*, by .5 runs, one extra double is predicted to increase runs, *on average and all else held constant*, by 1.702 runs, one extra triple is predicted to increase runs, *on average and all else held constant*, by .8676 runs, one extra home run is predicted to increase runs, *on average and all else held constant*, by 1.82714 runs, and one extra walk taken is predicted to increase runs, *on average and all else held constant*, by .79762 runs.
+
+
+## Question 4
+
+Use the fit in question 1 to generate a set of predicted runs scored for each team in your data set. 
+
+```{r}
+teams_1 <- teams_1 %>%
+  mutate(predicted_runs = predict(fit_1,teams_1))
+head(teams_1)
+```
+
+What is the correlation between your predicted runs and the number of actual runs? How does this compare to the correlation between created runs and actual runs that we found in Lab 2?
+
+```{r}
+cor(teams_1$R,teams_1$predicted_runs)
+```
+
+There is an incredibly high $r$ value for this correlation, indicating a very strong positive relationship between `R` and `predicted_runs`. This is slightly higher than in Lab 2 (.93)
+
+## Question 6
+
+Using the output from Question 1, discuss the relative importance of each type of productive at bat (singles, doubles, triples, home runs, walks) with respect to run generation. Does anything surprise you?
+
+```{r}
+msummary(fit_1)
+```
+
+Each predictor appears to be significantly important to `R`, as indicated by their $p$-values, and it appears that doubles are 2x as important as singles and home runs are 2x as important as doubles, and walks are as important as singles (seen by the coefficients)
+
+## Question 7
+
+Pick another variable in the `Teams` data set, and add it to your regression model. Interpret it's slope.  Also, does this new variable appear to be significantly associated with runs scored, given the other variables in the model?
+
+```{r}
+names(teams_1)
+```
+
+```{r}
+fit_7 <- lm(R ~ X1B + X2B + X3B + HR + BB + SO, teams_1)
+msummary(fit_7)
+```
+
+The coefficient for the new variable `SO` is significant with respect to `R`, and it suggests that for each `SO`, `R` will decrease by -.09284 runs.
