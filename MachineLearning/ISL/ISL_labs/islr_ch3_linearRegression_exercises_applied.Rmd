@@ -1,96 +1,17 @@
 ---
-title: "ISLR_Ch3_LinearRegression_exercises"
+title: "ISLR_Ch3_LinearRegression_exercises_conceptual"
 author: "Steve Newns"
 date: "April 20, 2018"
 output: html_document
 ---
-```{r,message=F,warning=F}
-library(tidyverse)
-```
-## 3.7 Exercises
-### Conceptual
-**1. Describe the null hypotheses to which the p-values given in Table 3.4 (hyperplane) correspond. Explain what conclusions you can draw based on these p-values. Your explanation should be phrased in terms of sales, TV, radio, and newspaper, rather than in terms of the coefficients of the linear model.**
-
-* $H_{01}$ : There is no relationship between TV and Sales ($\beta_1$ = 0)
-* $H_{02}$ : There is no relationship between Radio and Sales ($\beta_2$ = 0)
-* $H_{03}$ : There is no relationship between Newspaper and Sales ($\beta_3$ = 0)
-* If our **p-values** (*probability of observing any value >= $|t|$ in absolute value, assuming $\beta_x$ = 0*) for any of these predictors are below our threshold (here, it's .05), then we have the confidence to reject the null hypothesis $H_0$ that there is no relationship between the specified predictor and `Sales` such that the values we've observed are not due to chance.
-
-**2. Carefully explain the differences between the KNN classifier and KNN regression methods.**
-
-* **KNN classifier** = ID's the $k$ closest neighbors to a new point, $x_0$, and then estimates the **conditional probability $P(Y=j|X=x_0)$** for class $j$ as the fraction of DPs in the neighborhood where the response $y$ = class $j$, and then classifying the new $x_0$ DP to the class $j$ with the highest conditional probability (\*\*\*most neighbors in the neighborhood\*\*\*)
-* **KNN regression** = ID's the $k$ closest neighbors to a new point, $x_0$, and then estimates $f(x_0)$ as the *average* of all training responses in that neighborhood = $\hat{f}(x_0)$
-  
-    * takes an abstract point as input + treats as a *real* observation + estimates the output $f(x_0)$ it would predict if real
-    * becomes a function $\hat{f}$ that outputs a prediction for any input
-    * **TLDR: it's a *quantitative estimate by averaging the result of the $k$ nearest neighbors***
-
-**3. Suppose we have a data set with 5 predictors, $X_1$ = GPA, $X_2$ = IQ, $X_3$ = Gender (1 = Female, 0 = Male), $X_4$ = Interaction between GPA and IQ, and $X_5$ = Interaction between GPA and Gender. The response $y$ = starting salary after graduation (in thousands of $). Suppose we use least squares to fit the model, and get $\hat{\beta_0}$ = 50, $\hat{\beta_1}$ = 20, $\hat{\beta_2}$ = 0.07, $\hat{\beta_3}$ = 35, $\hat{\beta_4}$ = 0.01, $\hat{\beta_5}$ = -10**
-
-**(a) Which answer is correct, and why?**
-  
-  * For a fixed value of IQ and GPA, males earn more on average than females.
-  * For a fixed value of IQ and GPA, females earn more on average than males.
-  * **For a fixed value of IQ and GPA, males earn more on average than females provided that the GPA is high enough. **
-    * Least Squares model for females = $50 + 20X_1 + .07X_2 + 35 + .01X_3 -10X_5 == 85 + 20(GPA) + .07(IQ) + .01(GPA:IQ) - 10(GP:Gender) == 85 + 10(GPA) + .07(IQ) + .01(GPA:IQ)$
-    * Least Squares model for males = $50 + 20X_2 + .07X_2 + .01X_3 == 50 + 20(GPA) + .07(IQ) + .01(GPA:IQ)$
-    * Therefore, starting salary for males is greater if GPA is large enough such that GPA >= 3.5 (simplifying, adding the 2 models gives $35 = 10GPA$)
-  * For a fixed value of IQ and GPA, females earn more on average than males provided that the GPA is high enough.
-
-**(b) Predict the salary of a female with IQ of 110 and a GPA of 4.0.**
-  
-  * $85 + 10(GPA) + .07(IQ) + .01(GPA:IQ) == 85 + 10(4) + .07(110) + .01((110*4)) = 85 + 40 + 7.7 + 4.4 = \$137.1K/yr$
-
-**(c) T/F: Since the coefficient for the GPA/IQ interaction term is very small, there is very little evidence of an interaction effect. Justify your answer.**
-  
-  * ***False***. The *actual value* of the interaction term's coefficient does *NOT* matter in deciding if there's evidence of an interaction effect is present. What we must do is check the p-value for the interaction term's coefficient which tests $H_{04}: \beta^4 = 0$ and associate the resulting p-value with the $t$-statistic and F score
-    * **F-statistic** = $\frac {\frac {TSS-RSS} {p}} {\frac {RSS} {n-p-1}}$ ==> if no relationship between the response and predictors, expect F-statistic to take on a value close to 1
-    * TSS = $\sum_{i=1}^{n}(y_i - \bar{y})^2$, RSS = $\sum_{i=1}^{n}(y_i - \hat{y_i})^2$
-
-**4. I collect a set of data ($n$ = 100 observations) containing a single predictor and a quantitative response. I then fit a linear regression model to the data, as well as a separate cubic regression, i.e. $Y = \beta_0 +\ beta_1X + \beta_2X^2 + \beta_3X^3 + \epsilon$**
-
-* **(a) Suppose the true relationship between $X$ + $Y$ is linear, i.e. $Y = \beta_0 + \beta_1X + \epsilon$. Consider the *training* residual sum of squares ($RSS$) for the *linear* regression, + also the *training* RSS for the *cubic* regression. Would we expect one to be lower than the other, would we expect them to be the same, or is there not enough info to tell?**
-    * We *cannot* expect the cubic regression to be better, as it ***is still a linear model and our true relationship is linear***. Therefore, we do *NOT* have enough info to tell which training RSS would be lower. 
-    * We *could* estimate that by adding the extra cubic term, our least squares fit *could* be a bit closer to the true regression line, and thereby giving the cubic model a lower training RSS, \*\*\*but it may not\*\*\*.
-* **(b) Answer (a) using test rather than training RSS**
-    * We *still do not have enough to make confident estimates*, but a conservative one would be that the cubic model *could* overfit the data (move towards non-linear fits) + therefore its test RSS would be higher.
-* **(c) Suppose the true relationship between $X$ + $Y$ is *not* linear, but we *don't know how far it is from linear*. Consider the training RSS for the linear regression + the training RSS for the cubic regression. Would we expect one to be lower than the other, would we expect them to be the same, or is there not enough info to tell?**
-    * Even though we do not know how far the relationship is from linear, the fact that we have added in a higher-order polynomial in the cubic regression would give a more flexible model that would better fit a non-linear relationship, thereby giving a lower training RSS
-* **(d) Answer (c) using test rather than training RSS**
-    * We don't have enough info say which test RSS would be lower, since we don't know how far it is from linear. 
-    * If the true non-linear relationship is *closer to linear than cubic*, linear regression test RSS could be lower, or vice versa (see: ***Bias-Variance trade-off***)
-
-**5. Consider the fitted values that result from performing linear regression *without an intercept*. In this setting, the $i$th fitted value takes the form $\hat{y}_i = x_i\hat{\beta}$, where $\hat{\beta} = \frac {\sum_{i=1}^{n}(x_iy_i)} {\sum_{i'=1}^{n}x_{i'}^2}$. Show that we can write $\hat{y_i} = \sum_{i'=1}^{n}(a_{i'}y_{i'})$, and what is $a_{i'}$?**
-
-  * **Note: We interpret this result by saying that the fitted values from linear regression are *linear combinations* of the response values.**
-  * Plugging in $\frac {\sum_{i=1}^{n}(x_iy_i)} {\sum_{i'=1}^{n}x_{i'}^2}$ for $\hat{\beta}$ in $\hat{y}_i = x_i\hat{\beta}$, we get $\hat{y}_i = x_i\frac {\sum_{i=1}^{n}(x_iy_i)} {\sum_{i'=1}^{n}x_{i'}^2}$, flipping around terms, we get $\sum_{i=1}^{n} \frac {(x_iy_i)} {\sum_{i'=1}^{n}x_{i'}^2}\hat{y_i}$ so $a_{i'} = \sum_{i=1}^{n} \frac {(x_iy_i)} {\sum_{i'=1}^{n}x_{i'}^2}$     
-  * see https://blog.princehonest.com/stat-learning/ 
-
-**6. Using (3.4), argue that in the case of simple linear regression, the least squares line always passes through the point $(\bar{x}, \bar{y})$.**
-
-  * (3.4):
-    * $\hat{\beta_1} = \frac {\sum_{i=1}^{n}(x_i - \bar{x})(y_i - \bar{y})} {\sum_{i=1}^{n}(x_i - \bar{x})^2}$
-    * $\hat{\beta_0} = \bar{y} - \hat{\beta_1}\bar{x}$
-  * least square line equation:  $\hat{y} = \hat{\beta_0} + \hat{\beta_1}x$, so if we substitute $\bar{x}$ for $x$, we get $y = \hat{\beta_0} + \hat{\beta_1}\bar{x}$
-  * (3.4) hows us that the intercept = $\hat{\beta_0} = (0, \bar{y} - \hat{\beta_1}\bar{x})$
-  * Plug in $\beta_0$ from (3.4) into the linear equation gives us $\hat{y} = \bar{y} - \hat{\beta_1}\bar{x} + \hat{\beta_1}x$
-  * This simplifies to $\hat{y} = \bar{y}$ when $x = \bar{x}$
-  * So, the only way to get $\hat{y} = \bar{y} - \hat{\beta_1}\bar{x} + \hat{\beta_1}x = 0$ is if  $\hat{y} = \bar{y}$ and$x = \bar{x}$, which would mean $(\bar{x}, \bar{y})$ is on the line
-  * http://www.science.smith.edu/~jcrouser/SDS293/assignments/solutions/a1-solution.pdf 
-  
-**7. It is claimed in the text that in the case of simple linear regression of $Y$ onto $X$, the $R^2$ statistic (3.17) is equal to the square of the correlation between $X$ and $Y$ (3.18). Prove that this is the case. For simplicity, you may assume that $\bar{x} = \bar{y} = 0$**
-  
-  * We know $R^2 = \frac {TSS - RSS} {TSS} = 1 - \frac {RSS} {TSS} = 1 - \frac {\sum_{i=1}^{n}(y_i - \hat{y_i})^2} {\sum_{i=1}^{n}(y_i - \bar{y_i})^2}$.
-  * $R = Cor(X,Y) = \frac {\sum_{i=1}^{n}(x_i - \bar{x_i})(y_i - \bar{y_i})} {\sqrt{\sum_{i=1}^{n}(x_i - \bar{x_i})^2}\sqrt{\sum_{i=1}^{n}(y_i - \bar{y_i})^2}}$
-  * Having $\hat{y_i} = \hat{\beta_i}x_i$, write $R^2 = 1 - \frac{\sum_i(y_i - \sum_jx_jy_j/\sum_jx_j^2 x_i)^2}{\sum_jy_j^2} = \frac{\sum_jy_j^2 - (\sum_iy_i^2 - 2\sum_iy_i(\sum_jx_jy_j/\sum_jx_j^2)x_i + \sum_i(\sum_jx_jy_j/\sum_jx_j^2)^2x_i^2)}{\sum_jy_j^2}$
-  * This goes to $\frac{2(\sum_ix_iy_i)^2/\sum_jx_j^2 - (\sum_ix_iy_i)^2/\sum_jx_j^2}{\sum_jy_j^2} = \frac{(\sum_ix_iy_i)^2}{\sum_jx_j^2\sum_jy_j^2} = Cor(X, Y)^2 = R^2$
-  
 ### Applied
-8. This question involves the use of simple linear regression on the Auto data set.
 
+**8. This question involves the use of simple linear regression on the Auto data set.**
 **(a) Use the lm() function to perform a simple linear regression with `mpg` as the response and `horsepower` as the predictor. Use the summary() function to print the results. Comment on the output. For example:**
 ```{r,warning=F,message=F}
 library(ISLR)
+library(tidyverse)
+library(ggplot2)
 data(Auto)
 
 lm1 <- lm(mpg~horsepower,Auto)
@@ -320,7 +241,8 @@ y <- rnorm(100)
 summary(lm(y~x+0))$coefficients
 summary(lm(x~y+0))$coefficients
 ```
-**(c) Generate an example in R with n = 100 observations in which the coefficient estimate for the regression of X onto Y is the same as the coefficient estimate for the regression of Y onto X.**
+
+**(c) Generate an example in R with $n$= 100 observations in which the coefficient estimate for the regression of $X$ onto $Y$ is the same as the coefficient estimate for the regression of $Y$ onto $X$.**
 ```{r}
 set.seed(1)
 x <- rnorm(100)
@@ -330,36 +252,44 @@ summary(lm(x~y+0))$coefficients
 ```
 
 **13. In this exercise you will create some simulated data + will fit simple linear regression models to it. Make sure to use set.seed(1) prior to starting part (a) to ensure consistent results.**
-**(a) Using the rnorm() function, create a vector, x, containing 100 observations drawn from a N(0, 1) distribution. This represents a feature, X.**
+**(a) Using rnorm(), create a vector, `x`, containing 100 observations drawn from an $N(0, 1)$ distribution. This represents a feature, X.**
 ```{r}
 set.seed(1)
 x <- rnorm(100) # N(0,1) by default
 ```
-**(b) Using the rnorm() function, create a vector, eps, containing 100 observations drawn from a N(0, 0.25) distribution i.e. a normal distribution with mean zero and variance 0.25.**
+
+**(b) Using the rnorm() function, create a vector, `eps`, containing 100 observations drawn from an $N(0, 0.25)$ distribution i.e. a normal distribution with $\mu$ = 0 and variance $\sigma$ = 0.25.**
 ```{r}
 eps <- rnorm(100,sd=sqrt(.25))
 ```
-**(c) Using x and eps, generate a vector y according to the model `Y = -1 +0.5X + eps. (3.39) What is the length of the vector y? What are the values of B0 and B1 in this linear model?**
+
+**(c) Using `x` and `eps`, generate a vector `y` according to the model $Y = -1 +0.5X + \epsilon$. (3.39) What is the length of the vector `y`? What are the values of $\beta_0$ and $\beta_1$ in this linear model?**
 ```{r}
 y <- -1 + .5*x + eps
 head(y)
 length(y) 
 ```
-  * We are given the values for B0 = -1 and B1 = .5 
-**(d) Create a scatterplot displaying the relationship between x and y. Comment on what you observe.**
+ 
+  * We are given the values for $\beta_0$ = -1 and $\beta_1$ = .5 
+
+**(d) Create a scatterplot displaying the relationship between `x` and `y`. Comment on what you observe.**
 ```{r}
 ggplot(aes(x,y),data=data.frame(x,y)) + 
   geom_point(color="red") + 
   theme_bw()
 #plot(x,y)
 ```
+  
   * We have a mostly linear model, with some noise introduced by our `eps` vector of irreducible error.
-**(e) Fit a least squares linear model to predict y using x. Comment on the model obtained. How do B^0 and B^1 compare to B0 and B1?**
+
+**(e) Fit a least squares linear model to predict `y` using `x`. Comment on the model obtained. How do $\hat{\beta_0}$ and $\hat{\beta_1}$ compare to $\beta_0$ and $\beta_1$?**
 ```{r}
 lm_eps <- lm(y~x)
 summary(lm_eps)
 ```
-  * They are virtually identical, with a lower B^0 and *slightly* lower B^1, which can be rounded to B1
+
+  * They are virtually identical, with a lower $\hat{\beta_0}$ and *slightly* lower $\hat{\beta_1}$, which can be rounded to match $\beta_1$
+
 **(f) Display the least squares line on the scatterplot obtained in (d). Draw the population regression line on the plot, in a different color. Use the legend() command to create an appropriate legend.**
 ```{r}
 ggplot(aes(x,y),data=data.frame(x,y)) + 
@@ -367,14 +297,15 @@ ggplot(aes(x,y),data=data.frame(x,y)) +
   theme_bw() + 
   geom_abline(intercept = -1.01885, slope = 0.49947)
 ```
+
 **(g) Now fit a polynomial regression model that predicts y using x and x2. Is there evidence that the quadratic term improves the model fit? Explain your answer.**
 ```{r}
 lm_poly <- lm(y~poly(x,2))
 summary(lm_poly)
 ```
-  * R2 has increased (technically), but the second-order polynomial is not significant, meaning there's no evidence that the quadratic term improves model fit.
+  * $R^2$ has increased (technically), but the second-order polynomial is not significant, meaning there's no evidence that the quadratic term improves model fit.
   
-**(h) Repeat (a)-(f) w/ less noise in the data (reduce variance in epsilon generation). The model (3.39) should remain the same. Describe your results.**
+**(h) Repeat (a)-(f) w/ less noise in the data (reduce variance in $\epsilon$ generation). The model (3.39) should remain the same. Describe your results.**
 ```{r}
 set.seed(1)
 x1 <- rnorm(100) # N(0,1) by default
@@ -392,6 +323,7 @@ ggplot(aes(x1,y1),data=data.frame(x1,y1)) +
   theme_bw() + 
   geom_abline(intercept = -1.00843, slope = 0.49976)
 ```
+
 **(i) Repeat (a)-(f) after modifying the data generation process in such a way that there is more noise in the data. The model (3.39) should remain the same. You can do this by increasing the variance of the normal distribution used to generate the error term  in (b). Describe your results.**
 ```{r}
 set.seed(1)
@@ -415,7 +347,8 @@ ggplot(aes(x2,y2),data=data.frame(x2,y2)) +
   theme_bw() + 
   geom_abline(intercept = -1.02665, slope = 0.49925)
 ```
-**(j) What are the confidence intervals for B0 and B1 based on the original, noisier, + less noisy data sets? Comment on your results.**
+
+**(j) What are the confidence intervals for $\beta_0$ and $\beta_1$ based on the original, noisier, + less noisy data sets? Comment on your results.**
 ```{r}
 confint(lm_eps)
 confint(lm_eps1)
@@ -430,37 +363,49 @@ x1 <- runif(100)
 x2 <- 0.5*x1 + rnorm(100)/10
 y <- 2 + 2*x1 + 0.3*x2 + rnorm(100)
 ```
-**The last line corresponds to creating a linear model in which y = a function of x1 + x2. Write out the form of the linear model. What are the regression coefficients?**
-  * Model = `y = B0 + B1x1 + B2x2 + eps` where B0 = B1 = 2, B2 = .3, and epsilon is 100 random numbers between 0-1 from the normal distribution
-**(b) What is the correlation between x1 and x2? Create a scatterplot displaying the relationship between the variables.**
+
+**The last line corresponds to creating a linear model in which $y$ = a function of $x_1$ + $x_2$ Write out the form of the linear model. What are the regression coefficients?**
+  
+  * Model = $y = \hat{\beta_0} + \hat{\beta_1}x_1 + \hat{\beta_2}x_2 + \epsilon$ where $\hat{\beta_0}$ = $\hat{\beta_1}$ = 2, $\hat{\beta_2}$ = .3, and $\epsilon$ is 100 random numbers between 0-1 from the normal distribution
+  
+**(b) What is the correlation between $x_1$ and $x_2$? Create a scatterplot displaying the relationship between the variables.**
 ```{r}
 cor(x1,x2)
 ggplot(aes(x1,x2),data=data.frame(x1,x2)) + 
   geom_point(color="red") + 
   theme_bw() 
 ```
+  
   * There's a pretty strong positive correlation between both predictors
-**(c) Using this data, fit a least squares regression to predict y using x1 + x2. Describe the results obtained. What are B^0, B^1, and B^2? How do these relate to the true B0, B1, and B2? Can you reject the null H0: B1 = 0? How about the null hypothesis H0: B2 = 0?**
+
+**(c) Using this data, fit a least squares regression to predict $y$ using $x_1$ and $x_2$. Describe the results obtained. What are $\hat{\beta_0}, \hat{\beta_1}, \hat{\beta_2}$? How do these relate to the true $\beta_0, \beta_1, \beta_2$? Can you reject $H_01: \beta_1 = 0$? How about the $H_02: \beta_2 = 0$?**
 ```{r}
 lm_14 <- lm(y~x1+x2)
 summary(lm_14)
 ```
-  * Our B^0 has slightly increased from 2 to 2.1305, while our B^1 has decreased by over .5 from 2 down to 1.4396, while B^3 has increased from .3 to 1.0097. We cannot reject the null H0: B2 = 0, but we *may* be able to reject the null H0: B1 = 0, depending on our threshold for doing so (is 1 * enough?)
-**(d) Now fit a least squares regression to predict y using only x1. Comment on your results. Can you reject the null hypothesis H0 : B1 = 0?**
+  
+  * Our $\hat{\beta_0}$ has slightly increased from 2 to 2.1305, while our $\hat{\beta_1}$ has decreased by over .5 from 2 down to 1.4396, while $\hat{\beta_3}$ has increased from .3 to 1.0097. We cannot reject the null $H_02: \beta_2 = 0$, but we *may* be able to reject the null $H_01: \beta_1 = 0$, depending on our threshold for doing so (is 1 `*` enough?)
+
+**(d) Now fit a least squares regression to predict $y$ using only $x_1$. Comment on your results. Can you reject $H_01: \beta_1 = 0$?**
 ```{r}
 lm_14_2 <- lm(y~x1)
 summary(lm_14_2)
 ```
-**(e) Now fit a least squares regression to predict y using only x2. Comment on your results. Can you reject the null H0 : B1 = 0?**
-  * It seems that now we can reject the null H0 : B1 = 0
+
+* Now we can reject $H_01: \beta_1 = 0$
+
+**(e) Now fit a least squares regression to predict $y$ using only $x_2$. Comment on your results. Can you reject the null H0 : B1 = 0?**
 ```{r}
 lm_14_3 <- lm(y~x2)
 summary(lm_14_3)
 ```
-  * It seems that now we can reject the null H0 : B1 = 0
+
+* Now we can reject $H_02: \beta_2 = 0$
+
 **(f) Do the results obtained in (c)-(e) contradict each other? Explain your answer.**
+  
   * No, each predictor can only influence the response in isolation, with no other effects from the other predictors.
-  * **We know this because r_x1x2 = .835, i.e .x1 and x2 are collinear**
+  * **We know this because $r_{x_1,x_2}$ = .835, i.e .$x_1$ and $x_2$ are collinear**
   * Therefore, we cannot (or it is difficult to) distinguish the individual effects of each predictor in isolation that we can see in the simple linear models with 1 predictor
   
 **(g) Now suppose we obtain one additional observation, which was unfortunately mismeasured.**
@@ -469,6 +414,7 @@ x1 <- c(x1, 0.1)
 x2 <- c(x2, 0.8)
 y <- c(y,6)
 ```
+
 **Re-fit the linear models from (c) to (e) using this new data. What effect does this new observation have on the each of the models? In each model, is this observation an outlier? A high-leverage point? Both? Explain your answers.**
 ```{r}
 lm_14 <- lm(y~x1+x2)
@@ -486,11 +432,12 @@ summary(lm_14_3)
 par(mfrow=c(2,2))
 plot(lm_14_3,main="x2")
 ```
-  * It now appears that we can see some individual effect from x2 in the multiple linear regression model (as opposed to x1 in the original multiple regression), while both individual effects are still clearly visible in the simple models.
-  * R2 has increased in the multiple model and the x2 model, but decreased in the x1 model
-  * Looking at the x1 plots, we see that observation 101 is indeed an outlier (Residuals vs. leverage), and that it's fitted quantiles is "too large", indicating an overestimation.
+  
+  * It now appears that we can see some individual effect from $x_2$ in the multiple linear regression model (as opposed to x1 in the original multiple regression), while both individual effects are still clearly visible in the simple models.
+  * $R^2$ has increased in the multiple model and the $x_2$ model, but decreased in the $x_1$ model
+  * Looking at the $x_1$ plots, we see that observation 101 is indeed an outlier (Residuals vs. leverage), and that it's fitted quantiles is "too large", indicating an overestimation.
   * We can also see it clearly annotatedin the residuals vs. fitted and scale-location plots as an outlier (>2 or <-2)
-  * It is a high-leverage point for the x2 model, as well as in the multiple regression.
+  * It is a high-leverage point for the $x_2$ model, as well as in the multiple regression.
 
 **15. Using Boston data set, try to predict per capita crime rate using the other variables in this data set. In other words, per capita crime rate is the response, and the other variables are the predictors.**
 **(a) For each predictor, fit a simple linear regression model to predict the response. Describe your results. In which of the models is there a statistically significant association between the predictor and the response? Create some plots to back up your assertions.**
@@ -509,15 +456,20 @@ df_singles <- as.data.frame(data_frame(formula = paste('crim ~', names),
                                          if_else(p.value < .05,"*","no"))))
 (df_singles <- df_singles %>% filter(!term=="(Intercept)"))
 ```
+  
   * Each variable, in isolation, has a statistically significant association with the response `crim` *except* for being on the Charles River (`chas`).
-**(b) Fit a multiple regression model to predict the response using all of the predictors. Describe your results. For which predictors can we reject the null hypothesis H0: Bj = 0?**
+  
+**(b) Fit a multiple regression model to predict the response using all of the predictors. Describe your results. For which predictors can we reject $H_{0j} = \beta_j = 0$?**
 ```{r}
 fullBostonCrim <- lm(crim~.,Boston)
 summary(fullBostonCrim)
 ```
-  * The variables for which we can reject the null H0: Bj = 0 are `rad`, `dis`, less so `medv`, and less so `zn`, `black`. So, looking at the coefficients, we can see that an increase of 1 unit in the index of accessibility to radial highways would increase per capita crime rate by .588 units, an increase of 1 unit in the weighted mean of distances to five Boston employment centres would decrease per capita crime rate by .987 units, and an increase in in median home value of $1K would mean a decrease of .198 units for crime rate.
+  
+  * The variables for which we can reject the null $H_{0j} = \beta_j = 0$ are `rad`, `dis`, less so `medv`, and less so `zn`, `black`. So, looking at the coefficients, we can see that an increase of 1 unit in the index of accessibility to radial highways would increase per capita crime rate by .588 units, an increase of 1 unit in the weighted mean of distances to five Boston employment centres would decrease per capita crime rate by .987 units, and an increase in in median home value of $1K would mean a decrease of .198 units for crime rate.
+
 **(c) How do results from (a) compare to results from (b)? Create a plot displaying univariate regression coefficients from (a) on x-axis, + multiple regression coefficients from (b) on y-axis (i.e. each predictor is displayed as a single DP**
-  * The multiple linear regression has eliminated signicant associations indicated by the simple linear regression models for indus, nox, rm, age, tax, ptratio, and lstat, and decreased the significance of zn, black, and medv, and for dis and rad (but these last 3 ar still significant)
+  
+  * The multiple linear regression has eliminated signicant associations indicated by the simple linear regression models for `indus`, `nox`, `rm`, `age`, `tax`, `ptratio`, and `lstat`, and decreased the significance of `zn`, `black`, and `medv`, and for `dis` and `rad` (but these last 3 are still significant)
 ```{r}
 simpEstimate <- fullBostonCrim$coefficients[2:length(fullBostonCrim$coefficients)]
 coeffs <- df_singles %>%
@@ -530,7 +482,8 @@ coeffs <- df_singles %>%
 ggplot(coeffs,aes(simpEstimate,multEstimate)) + 
   geom_point()
 ```
-**(d) Is there evidence of non-linear association between any of the predictors + the response? To answer this question, for each predictor X, fit a model of the form `Y = B0 + B1X + B2X^2 + B3X^3 + epsilon`**
+
+**(d) Is there evidence of non-linear association between any of the predictors + the response? To answer this question, for each predictor X, fit a model of the form $Y = \hat{\beta_0} + \hat{\beta_1}X + \hat{\beta_2}X^2 + \hat{\beta_3}X^3 + \epsilon$**
 ```{r}
 df <- as.data.frame(data_frame(formula = paste('crim ~ ', names, " + I(", names, "^2)", " + I(", names, "^3)", sep=""),
                          model = map(formula, lm, data = Boston))) %>%
@@ -541,33 +494,5 @@ df <- as.data.frame(data_frame(formula = paste('crim ~ ', names, " + I(", names,
                                          if_else(p.value < .05,"*","no"))))
 df %>% filter(!term=="(Intercept)")
 ```
-* It appears that indus, nox, dis, medv, less so, ptratio, and (barely) age have a non-linear relationship with crimtitle: "Untitled"
-author: "Steve Newns"
-date: "May 18, 2018"
-output: html_document
----
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
+* It appears that `indus`, `nox`, `dis`, `medv`, less so, `ptratio`, and (barely) `age` have a non-linear relationship with `crim`
