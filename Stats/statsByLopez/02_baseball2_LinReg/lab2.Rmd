@@ -1,0 +1,221 @@
+---
+title: "lab2"
+author: "Steve Newns"
+date: "May 21, 2018"
+output: html_document
+---
+
+##Correlation and regression using the Lahman database for baseball
+
+`Lahman` package = gold mine for statisticians interested in studying baseball
+
+Below = explore parts of `Lahman` package + also link to the statistical concepts in a bivariate analysis, including correlation, regression, and R-squared.
+
+```{r,warning=F,message=F}
+library(Lahman) # 25 datasets
+library(mosaic)
+library(ggplot2)
+library(tidyverse)
+
+# list of the data frames available
+LahmanData %>%
+  arrange(desc(nobs))
+```
+***1. Which data frames in the Lahman package has the largest number of observations? Which have the fewest?***
+
+* most = `Fielding`, least = `TeamsHalf`
+
+```{r}
+data(Teams)
+head(Teams)
+tail(Teams)
+```
+
+`Teams` = team-level info for every year of baseball season, from 1871 - 2014. Make subset to focus on the modern era of baseball, which is generally considered 1970 onwards.
+```{r}
+teams_1 <- Teams %>% filter(yearID >= 1970)
+```
+
+* 2.1 Write a command to generate the names of the Teams data.
+* 2.2 Write a command that gives you the dimensions of the Teams data.
+* 2.3 Identify the observation in row 500 and column 10.
+```{r}
+names(teams_1)
+dim(teams_1)
+teams_1[500,10]
+```
+
+Create a few missing team-level variables needed for the lab: `X1B` (# of singles), `TB` (total bases), `RC` (runs created),
+and `RC_new` (a newer runs created formula) 
+```{r}
+teams_1 <- teams_1 %>%
+  mutate(X1B = H - X2B - X3B - HR,
+         TB = X1B + 2*X2B + 3*X3B + 4*HR,
+         RC = (H+BB)*TB/(AB+BB),
+         RC_new = (H+BB-CS)*(TB+.55*SB)/(AB+BB))
+```
+
+1st formula for RC = the basic one, while the 2nd uses a tweak for SB.
+
+### Bivariate analysis
+#### Correlation and scatter plots
+Using teams_1, quantify the strength, shape, + direction of the association between RC + runs.
+```{r}
+lattice::xyplot(R ~ RC, teams_1, main="Runs by Runs Created, 1970-2015")
+paste0('r (RC): ',cor(R ~ RC, data = teams_1))
+paste0('R2 (RC): ',cor(R ~ RC, data = teams_1)**2)
+
+lattice::xyplot(R ~ RC_new, teams_1, main="Runs by Runs Created, 1970-2015")
+paste0('r (RC_new): ',cor(R ~ RC_new, data = teams_1))
+paste0('R2 (RC_new): ',cor(R ~ RC_new, data = teams_1)**2)
+```
+
+**3. Which variable - RC or RC.new - shows a stronger link with runs? What does this entail about the updated stolen bases formula?**
+  
+* `Rc_new` shows a slightly stronger positive association with `R`, which suggest `SB` plays a factor in increasing the number of `R`
+
+Now, ID some additional ways of quantifying the association between 2 variables: look at the relationship between a team’s HR + its R
+```{r}
+paste0('r (R~HR): ',cor(R ~ HR, data = teams_1))
+paste0('R2 (R~HR): ',cor(R ~ HR, data = teams_1)**2)
+```
+
+**4. Interpret the correlation coefficient and the R-squared values between home runs and runs.**
+  
+  * Only about 57% of the variability in `R` is explained by `HR`, and the $r$ values of .75 suggests a strong positive relationship between `HR` and `R`
+
+From intro stats, remember **simple linear regression (SLR)**: $\hat{y}_i = \hat{\beta_0} + \hat{\beta_1}*x_i$, where $\hat{y}_i$ = predicted value of an outcome variable given $x_i$, while $\hat{\beta_p}$ = estimated parameters = intercepts and slopes 
+
+In our example, we can plug in our variable names: $\hat{R}_i = \hat{\beta_0} + \hat{\beta_1}HR_i$
+
+**5. Make a scatter plot of R as a function of HR. Using the function, make educated guesses for $\hat{\beta_0}$ and  $\hat{\beta_1}$**
+```{r}
+lattice::xyplot(R ~ HR, teams_1, main="Runs by Home Runs, 1970-2015")
+```
+
+* guess for $\hat{\beta_0}$ = 500, for $\hat{\beta_1}$ = 1.5
+
+Fortunately, we don’t *have* to make educated guesses. 
+```{r}
+fit_1 <- lm(R ~ HR, teams_1)
+msummary(fit_1)
+```
+home runs using the R command lm().
+fit.1 <- lm(R ~ HR, data = Teams.1)
+summary(fit.1)
+There’s a ton of stuff in the code above, most of which is useful.
+First, the summary() code gives the regression output, as well as other model characteristics.
+**6. Write the estimated regression line. Does the actual estimated regression line resemble your guesses from question 5)?**
+
+* $\hat{R}_i = 442.05664 + 1.82714HR_i$
+
+**7. Interpret both the intercept and the slope (for HR) in the estimated regression equation. Is the intercept a useful term here?**
+
+* This intercept suggests teams would score 442 runs even if they hit no home runs, but the intercept really just serves to set the y-axis start.
+* The slope for `HR` suggests that for each `HR`, teams score, on average, 1.82 more runs
+
+**8. Estimate the number of runs that a team with 250 home runs would score.**
+```{r}
+442.05664 + 1.82714*250
+```
+
+Can also plot an estimated regression line, assuming we’ve already stored a linear model.
+```{r}
+plotModel(fit_1,col='red')
+```
+
+R knows `fit_1` contains a linear model of `R` as a function of `HR`. Hopefully this reflects the line of best fit you would’ve drawn by hand.
+
+**9. Is the link between home runs and runs significant? How can you tell?**
+```{R}
+msummary(fit_1)
+```
+
+* Yes, which is signified via its' \*\*\* rating in the table and it's $p$-value being much less than .05
+
+Related note on significance testing: turn attention to another variable with a lesser link to runs, `SB`
+```{r}
+fit_2 <- lm(R ~ SB, teams_1)
+msummary(fit_2)
+cor.test(teams_1$R, teams_1$SB)
+```
+
+In the 1st output, the **relative significance of the slope parameter** $\hat{\beta_1}$ (as judged by a $p$−value = 0.00875) is identical to the **relative significance of the test for the significance of the correlation coefficient** ($p$−value = 0.008751)
+
+**10. Use a similar code to determine if there is there a significant linear association between team runs and the number of times that team was caught stealing?**
+```{r}
+fit_3 <- lm(R ~ CS, teams_1)
+msummary(fit_3)
+cor.test(teams_1$R, teams_1$CS)
+```
+
+### Analyzing several variables simultaneously
+
+Now look at how one would analyze a subset of variables to judge which are most strongly associated with team success. 1st, reduce data set from several dozen columns to only the ones we're interested in studying.
+```{r}
+teams_3 <- teams_1 %>% select(R, RC_new, RC, RA, HR, SO, attendance)
+
+# calculate pairwise correlation coefficient between each variable.
+(cor_matrix <- round(cor(teams_3),3))
+```
+
+**11. Of the variables listed, which boast the strongest and weakest correlations with runs scored?**
+
+* Strongest: `{RC, RC_new, HR}`
+* Weakest: `{SO, attendance, RA}`
+
+As is usual in the case w/ observational data like this, strong links between 2 variables do *NOT* entail that 1 variable causes the other. While hitting `HR`s will likely cause teams to score more `R`, it is not neccessarily the case that higher attendence causes teams to score more `R`s.
+
+**12. Think of 1 reason why attendence and runs are significantly correlated besides saying that attendence causes teams to score more runs.**
+
+* Teams that score more may be better teams, and better teams tend to draw a larger crowd
+
+### Plotting correlations
+
+```{r}
+library(corrplot)
+corrplot(cor_matrix, method="number")
+corrplot(cor_matrix, method="circle", type = "lower")
+```
+
+### Better team metrics: on base, slugging, OPS
+
+Perhaps other functions of traditional baseball stat are worth looking at: on base percentage (`OBP`), slugging percentage (`SLG`), and `OPS`, = sum of `OBP` and `SLG`.
+```{r}
+teams_1 <- teams_1 %>%
+  mutate(OBP = (H + BB)/(AB + BB),
+         SLG = (X1B + 2*X2B + 3*X3B + 4*HR)/AB,
+         OPS = OBP + SLG)
+cor_matrix <- round(cor(select(teams_1, R, RC, OBP, SLG, OPS)),2)
+corrplot(cor_matrix, method="number")
+```
+
+### Repeatability
+
+In addition to wanting a metric to correlate w/ success + to reflect individual talent, it is worth looking at *how well a metric can predict a future, unknown performance*, which requires careful coding to make a new data frame that arranges the team-level data by franchise + year, + then calculates `R` in the following year as `next.R`
+```{r}
+teams_2 <- teams_1 %>%
+  arrange(franchID, yearID) %>%
+  group_by(franchID) %>%
+  mutate(next_R = lead(RC))
+head(teams_2)
+```
+
+To close, look @ which team-level variables most strongly correlate w/ future `RS` in `next_r`
+```{r}
+cor_matrix <- round(cor(select(ungroup(teams_2), next_R, R, RC, OBP, SLG, OPS, HR, X1B),
+                  use="pairwise.complete.obs"),2)
+corrplot(cor_matrix, method="number")
+```
+
+**14. Which variables appear to be the best at predicting a team’s runs scored in the following year? Which appears to be the worst?**
+
+* Best = `{SLG, OPS}`, Worst = `{X1B, OBP}`
+
+**15. Related: Compare the correlation of singles (`X1B`) to `next_R` and `R`, as well as `HR` to `next_R` and `R`. Think carefully about how this would impact your recommendations of how to build a team. Which measures should be looked at most closely? Which measures appear to be mostly noise?**
+
+```{r}
+cor(teams_2$next_R,teams_2$X1B)
+```
+
+**16. For fun: Go to the Shiny app [here](https://istats.shinyapps.io/guesscorr/). Take a few guesses, and then click View scatterplot of correlation between your guesses and actual correlation. How good are you at guessing the correlation coefficient?**
