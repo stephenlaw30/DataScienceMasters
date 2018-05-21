@@ -1,0 +1,195 @@
+---
+title: "lab3"
+author: "Steve Newns"
+date: "May 21, 2018"
+output: html_document
+---
+## Pitcher prediction using the Lahman database for
+
+* Gain more experience w/ `Lahman` package, while also learning model comparison tools using multivariate regression. 
+* Apply tools to derive predictions of pitcher performance.
+
+```{r,warning=F,message=F}
+library(Lahman)
+library(mosaic)
+library(ggplot2)
+library(tidyverse)
+
+
+data(Teams)
+head(Teams)
+tail(Teams)
+```
+`Teams` = team-level info for every year of baseball season, from 1871 - 2014. Reduce data frame to only recent seasons
+```{R}
+teams_1 <- Teams %>% filter(yearID >= 1970)
+head(teams_1)
+```
+
+### Comparing multiple regression models.
+
+Old saying in statistics, attributed to George Box: *all models are wrong, some are useful*. In practice, we *never* know if a regression model is correctly specified; e.g, that it *truly* is the case that $y$, $x_1$, ... and $x_{p???1}$ are linearly related. All we can do is hope, + try a few analytical tools.
+
+Try to come up with a few models of `RA`, 1st via a recap of multiple regression.
+```{R}
+fit_1 <- lm(RA ~ HRA + BBA + SOA + HA, teams_1)
+#summary(fit_1)
+msummary(fit_1) # less unnecessary output
+```
+
+**1. Write the estimated model above.**
+  
+  * $RA = -154 + 1.249HRA + .3605BBA - .07275SOA + .3982HA$
+
+**2. Using the model in question (1), interpret the coefficient on HRA.**
+  
+  * For each home run allowed, we predict RA to increase by .3982 runs
+  
+**3. Note that this coefficient estimate is noticeably different than the one found on the identical data in Lecture 3 ($\beta_1 = 2.00$). Can you explain the difference?**
+
+  * Other factors have some interaction with `HRA`, resulting in a different effect magnitude of `HRA`
+  
+After fitting a linear regression model, it is appropriate to **check assumptions**. 1st, check the appropriateness of the normal distribution for residuals.
+```{R}
+par(mfrow=c(2,2))
+plot(fit_1)
+```
+
+  * See a mild U-shape in the residuals, with some high leverage points in the Residuals vs. Leverage Plot. But, the main cloud/cluster in the Residuals plot seems random
+
+Get a closer look at the Q-Q plot
+```{r}
+qqnorm(fit_1$resid)
+qqline(fit_1$residuals,col='red',lwd=2)
+```
+
+  * This looks pretty normal (DP's line up along the Q-Q linewell, with some deviations at the endpoints of the line)
+
+Get closer look at residuals vs fitted values: check for the **assumptions of independence** among the residuals + the **constant variance** assumption.
+  *  variance of error terms = constant w/ mean = 0 (centered around horizontal line $y=0$)
+
+To check these assumptions, you should use a residuals versus fitted values plot. Below is the plot from the regression analysis I did for the fantasy football article mentioned above. The errors have constant variance, with the residuals scattered randomly around zero. If, for example, the residuals increase or decrease with the fitted values in a pattern, the errors may not have constant variance.
+```{r}
+lattice::xyplot(fit_1$resid ~ fit_1$fitted)
+```
+
+**4. What do the residual plots suggest about the assumptions of our linear regression model? What about the model makes it possibly a poor fit?**
+  * Multicollinearity could be causing the poor fit, or the true relationship may not be linear
+  * Could predict greater residual values for lower fitted values, as all are > 0
+
+Speaking of residuals, lets take a deeper look at individual predictions: 1970 Braves allowed 185 HR, 478 walks, struck out 960 batters, + gave up 1451 H. Braves = 1st row of our data set.
+
+**5. Calculate how many runs our model predicts that Braves to have scored. What is the residual for the number of runs allowed by the Braves? Did our model overestimate or underestimate Atlanta's performance?**
+```{r}
+braves_y_hat <- -154 + 1.249*(185) + .3605*(478) - .07275*(960) + .3982*(1451)
+braves_residual <- teams_1[1,'RA'] - braves_y_hat
+paste0('Fitted Braves RA: ',braves_y_hat)
+paste0('True Braves RA: ',teams_1[1,'RA'])
+paste0('Braves Residual (1970): ',braves_residual)
+```
+
+  * Our model *underestimated* Atlanta's performance, as seen from the positive residual.
+
+### R-squared
+There are lots of ways to measure the success of a regression model + most common metric = **$R^2$ = fraction of variability in the outcome which is explained by the regression model**
+
+Larger $R^2$ = in principal, better. Using our model, we would interpret $R^2$ as follows: *90% of the variability in RA by a team can be explained by the linear model w/ `HRA`, `BBA`, `SOA`, and `HA`. While popular, traditional $R^2$ = also flawed. Let's see how. 
+Create 2 new variables, `rand1` + `rand2` = **random normal variables**.
+```{r}
+set.seed(0)
+teams_1 <- teams_1 %>%
+  mutate(rand1 = rnorm(nrow(teams_1)),
+         rand2 = rnorm(nrow(teams_1)))
+
+teams_1 %>%
+  select(yearID, teamID, rand1, rand2) %>%
+  head()
+```
+
+See what happens when we include `rand1` + `rand2` to our regression fit.
+```{r}
+fit_2 <- lm(RA ~ HRA + BBA + SOA + HA + rand1 + rand2, teams_1)
+msummary(fit_2)
+```
+
+Even w/ added random noise, $R^2$ went up = *not a good thing*, at least when it comes to making model comparisons. *$R^2$ cannot go down*, so $R^2$ = not useful for model comparisons, but more to gain a sense of how much of a drop in the variability in the outcome can be explained by the model's fit.
+
+In place of $R^2$, R also shows a formula for an **$adjusted R^2$ =  penalizes models for adding unneeded parameters (bring in no additional info)**. *However, this metric also has weaknesses*.
+
+#### Akaike information criterion
+
+1 method of *comparing several regression models simultaneously* (as to pick the 1 or 2 best fits) = **Akaike information criterion (AIC) = a function of the model fit + its # of parameters)** = $2k - 2ln(\hat{L})$ where $k$ = # of parameters, $\hat{L}$ = maximum value of the **likelihood function** for the model
+
+* AIC = estimator of the *relative* quality of statistical models for a given set of data. 
+* Given a collection of models for the data, AIC estimates quality of each, *relative to each of the other models*, providing means for model selection.
+* founded on **information theory**: offers an estimate of the relative info lost when a given model is used to represent the process that generated the data. (In doing so, it deals w/ the trade-off betweenmodel goodness of fit + model simplicity)
+* AIC does NOT provide a test of a model in the sense of testing a null hypothesis = ***tells nothing about the absolute quality of a model, only quality relative to other models, so if ALL candidate models fit poorly, AIC will not give any warning of that***
+* Lower AIC = better, as adding useless variables serves only to increase AIC (in general, at least).
+* AIC can be easily calculated w/ `AIC()`
+```{r}
+AIC(fit_1)
+```
+
+1 downside of AIC = no natural scale w/ which to make comparisons. However, it's useful to compare several models at once.
+
+**6. Which model is preferred, and why?**
+```{r}
+AIC(fit_1)
+AIC(fit_2)
+```
+
+* Model 2, compared to models 1, as its $AIC$ is lower, and its $Adjusted R^2$ is higher
+
+#### Player prediction.
+
+Based on the models, it is obvious that on a team-level, including `HA` significantly improves the link to `RA`. As evidence, the $R^2$ values jumped from about 79% to 90% when including `H`. Additionally, the coefficient on `HA` is quite significant.
+Can including hits improve our prediction of pitchers? Let's find out.
+This first code creates new variables, including non home-run hits (nonHRhits), our old FIP formula, and a
+new FIP formula.
+data(Pitching)
+Pitchers.1 <- filter(Pitching, yearID >= 2000, IPouts > 500)
+Pitchers.1 <- mutate(Pitchers.1,
+nonHRhits = H - HR,
+FIP.org = ((13*HR) + 3*(BB + HBP) - 2*SO)/(IPouts),
+FIP.new = ((13*HR) + 5*nonHRhits + 3*(BB + HBP) - 2*SO)/(IPouts))
+Pitchers.1[3,]
+Note that as one guess, I valued nonHRhits as worth more than walks and hit by pitches, but less than home
+runs. Our goal, at this point, is to identify whether or not FIP.new can better predict future performance,
+relative to FIP.old.
+Next, we create a set of new variables, for each pitcher's metrics in the following season.
+Pitchers.2 <- Pitchers.1 %>%
+arrange(playerID, yearID) %>%
+group_by(playerID) %>%
+mutate(f.ERA = lead(ERA), f.FIP.org = lead(FIP.org), f.FIP.new = lead(FIP.new))
+Finally, let's look at the correlations between our advanced methods and the more traditional method, ERA.
+library(corrplot)
+cor.matrix <- cor(select(ungroup(Pitchers.2),
+f.ERA, f.FIP.org, f.FIP.new, ERA, FIP.org, FIP.new),
+use="pairwise.complete.obs")
+corrplot(cor.matrix, method = "number")
+3
+7. In terms of predicting era in the following season (f.ERA), which metric is best? Why is it inappropriate
+to use answer with one of the other future variables (f.FIP.org or f.FIP.new)?
+8. Which of the three metrics (ERA, FIP.org, FIP.new) is most closely linked to its own calculation in the
+following season? Recall, this is relevant - the more repeatable metrics are more the better.
+9. Play around with the code below, and come up with your own formulas for FIP.new. Your goal should
+be to outperform ERA and FIP.org at predicting ERA in the following season. Feel free to change
+around the weights for each of the current variables, or to try inclusion of other variables, including
+wild pitches (WP), intentional walks (IBB), saves (SV), etc.
+Pitchers.1 <- filter(Pitching, yearID >= 2000, IPouts > 50)
+Pitchers.1 <- mutate(Pitchers.1,
+nonHRhits = H - HR,
+FIP.org = ((13*HR) + 3*(BB + HBP) - 2*SO)/(IPouts),
+FIP.new = ((13*HR) + 5*nonHRhits + 3*(BB + HBP) - 2*SO)/(IPouts))
+Pitchers.2 <- Pitchers.1 %>%
+arrange(playerID, yearID) %>%
+group_by(playerID) %>%
+mutate(f.ERA = lead(ERA), f.FIP.org = lead(FIP.org), f.FIP.new = lead(FIP.new))
+cor.matrix <- cor(select(ungroup(Pitchers.2),
+f.ERA, f.FIP.org, f.FIP.new, ERA, FIP.org, FIP.new),
+use="pairwise.complete.obs")
+corrplot(cor.matrix, method = "number")
+10. Using the code above, play around with the outs cutoff (IPouts) of 500, which is shown in the first line.
+What happens to the correlations when using more of fewer outs? Are there any difference in these
+changes between the within-year and between year comparisons?
+4
