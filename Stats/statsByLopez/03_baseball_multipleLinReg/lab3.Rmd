@@ -66,9 +66,8 @@ qqline(fit_1$residuals,col='red',lwd=2)
   * This looks pretty normal (DP's line up along the Q-Q linewell, with some deviations at the endpoints of the line)
 
 Get closer look at residuals vs fitted values: check for the **assumptions of independence** among the residuals + the **constant variance** assumption.
-  *  variance of error terms = constant w/ mean = 0 (centered around horizontal line $y=0$)
-
-To check these assumptions, you should use a residuals versus fitted values plot. Below is the plot from the regression analysis I did for the fantasy football article mentioned above. The errors have constant variance, with the residuals scattered randomly around zero. If, for example, the residuals increase or decrease with the fitted values in a pattern, the errors may not have constant variance.
+  * Variance of error terms = constant w/ mean = 0 (centered around horizontal line $y=0$)
+  * If residuals increase or decrease w/ the fitted values in a pattern, errors may not have constant variance.
 ```{r}
 lattice::xyplot(fit_1$resid ~ fit_1$fitted)
 ```
@@ -94,6 +93,7 @@ paste0('Braves Residual (1970): ',braves_residual)
 There are lots of ways to measure the success of a regression model + most common metric = **$R^2$ = fraction of variability in the outcome which is explained by the regression model**
 
 Larger $R^2$ = in principal, better. Using our model, we would interpret $R^2$ as follows: *90% of the variability in RA by a team can be explained by the linear model w/ `HRA`, `BBA`, `SOA`, and `HA`. While popular, traditional $R^2$ = also flawed. Let's see how. 
+
 Create 2 new variables, `rand1` + `rand2` = **random normal variables**.
 ```{r}
 set.seed(0)
@@ -142,54 +142,66 @@ AIC(fit_2)
 
 #### Player prediction.
 
-Based on the models, it is obvious that on a team-level, including `HA` significantly improves the link to `RA`. As evidence, the $R^2$ values jumped from about 79% to 90% when including `H`. Additionally, the coefficient on `HA` is quite significant.
-Can including hits improve our prediction of pitchers? Let's find out.
-This first code creates new variables, including non home-run hits (nonHRhits), our old FIP formula, and a
-new FIP formula.
+Based on the models, it is obvious that on a team-level, including `HA` significantly improves the link to `RA`. As evidence, the $R^2$ values jumped from about 79% to 90% when including `H`. Additionally, the coefficient on `HA` is quite significant. Can including hits improve the prediction of pitchers?
+
+Create new variables, including non home-run hits (`nonHRhits`), our old **FIP** formula, and a *new* **FIP** formula.
+```{r}
 data(Pitching)
-Pitchers.1 <- filter(Pitching, yearID >= 2000, IPouts > 500)
-Pitchers.1 <- mutate(Pitchers.1,
-nonHRhits = H - HR,
-FIP.org = ((13*HR) + 3*(BB + HBP) - 2*SO)/(IPouts),
-FIP.new = ((13*HR) + 5*nonHRhits + 3*(BB + HBP) - 2*SO)/(IPouts))
-Pitchers.1[3,]
-Note that as one guess, I valued nonHRhits as worth more than walks and hit by pitches, but less than home
-runs. Our goal, at this point, is to identify whether or not FIP.new can better predict future performance,
-relative to FIP.old.
-Next, we create a set of new variables, for each pitcher's metrics in the following season.
-Pitchers.2 <- Pitchers.1 %>%
-arrange(playerID, yearID) %>%
-group_by(playerID) %>%
-mutate(f.ERA = lead(ERA), f.FIP.org = lead(FIP.org), f.FIP.new = lead(FIP.new))
-Finally, let's look at the correlations between our advanced methods and the more traditional method, ERA.
+pitchers_1 <- Pitching %>%
+  filter(yearID >= 2000, IPouts > 500) %>%
+  mutate(nonHRhits = H - HR,
+         FIP_old = ((13*HR) + 3*(BB + HBP) - 2*SO)/(IPouts),
+         FIP_new = ((13*HR) + 5*nonHRhits + 3*(BB + HBP) - 2*SO)/(IPouts))
+
+pitchers_1[3,]
+```
+
+Note that as 1 guess, we valued `nonHRhits` as worth *more* than walks + hit by pitches, but *less* than HRs. Our goal, at this point: *To ID whether or not `FIP_new` can better predict future performance, relative to `FIP_old`* 
+
+Create a set of new variables, for each pitcher's metrics in the following season.
+```{r}
+pitchers_2 <- pitchers_1 %>%
+  arrange(playerID, yearID) %>%
+  group_by(playerID) %>%
+  mutate(f_ERA = lead(ERA),
+         f_FIP_old = lead(FIP_old),
+         f_FIP_new = lead(FIP_new))
+```
+
+Look at the correlations between our advanced methods + the more traditional method, ERA.
+```{r}
 library(corrplot)
-cor.matrix <- cor(select(ungroup(Pitchers.2),
-f.ERA, f.FIP.org, f.FIP.new, ERA, FIP.org, FIP.new),
-use="pairwise.complete.obs")
-corrplot(cor.matrix, method = "number")
-3
-7. In terms of predicting era in the following season (f.ERA), which metric is best? Why is it inappropriate
-to use answer with one of the other future variables (f.FIP.org or f.FIP.new)?
-8. Which of the three metrics (ERA, FIP.org, FIP.new) is most closely linked to its own calculation in the
-following season? Recall, this is relevant - the more repeatable metrics are more the better.
-9. Play around with the code below, and come up with your own formulas for FIP.new. Your goal should
-be to outperform ERA and FIP.org at predicting ERA in the following season. Feel free to change
-around the weights for each of the current variables, or to try inclusion of other variables, including
-wild pitches (WP), intentional walks (IBB), saves (SV), etc.
-Pitchers.1 <- filter(Pitching, yearID >= 2000, IPouts > 50)
-Pitchers.1 <- mutate(Pitchers.1,
-nonHRhits = H - HR,
-FIP.org = ((13*HR) + 3*(BB + HBP) - 2*SO)/(IPouts),
-FIP.new = ((13*HR) + 5*nonHRhits + 3*(BB + HBP) - 2*SO)/(IPouts))
-Pitchers.2 <- Pitchers.1 %>%
-arrange(playerID, yearID) %>%
-group_by(playerID) %>%
-mutate(f.ERA = lead(ERA), f.FIP.org = lead(FIP.org), f.FIP.new = lead(FIP.new))
-cor.matrix <- cor(select(ungroup(Pitchers.2),
-f.ERA, f.FIP.org, f.FIP.new, ERA, FIP.org, FIP.new),
-use="pairwise.complete.obs")
-corrplot(cor.matrix, method = "number")
-10. Using the code above, play around with the outs cutoff (IPouts) of 500, which is shown in the first line.
-What happens to the correlations when using more of fewer outs? Are there any difference in these
-changes between the within-year and between year comparisons?
-4
+cor_matrix <- cor(select(ungroup(pitchers_2), f_ERA, f_FIP_old, f_FIP_new, ERA, FIP_old, FIP_new),
+                  use="pairwise.complete.obs")
+corrplot(cor_matrix, method = "number")
+```
+
+**7. In terms of predicting era in the following season (`f_ERA`), which metric is best? Why is it inappropriate to use answer with one of the other future variables (`f_FIP_old` or `f_FIP_new`)?**
+
+* In terms of predicting `ERA` in the next season, it appeats that either FIP formula. We can't use the other future formulas because they are using data from the future that we do not have in the "prior" season.
+
+**8. Which of the three metrics (`ERA`, `FIP_old`, `FIP_new`) is most closely linked to its own calculation in the following season? Recall, this is relevant - the more repeatable metrics are more the better.**
+
+* Looking at correlations between present and future metrics, the strongsest association is between `FIP_new`, and `f_FIP_new` with $r$ = .61
+
+**9. Play around w/ the code below +  come up w/ new formulas for `FIP_new` w/the goal to outperform `ERA` + `FIP_old` at predicting `ERA` in the following season. Feel free to change around the weights for each of the current variables, or to try inclusion of other variables, including wild pitches (`WP`), intentional walks (`IBB`), saves (`SV`), etc.
+```{r}
+pitchers_1 <- Pitching %>%
+  filter(yearID >= 2000, IPouts > 50) %>%
+  mutate(nonHRhits = H - HR,
+         FIP_old = ((13*HR) + 3*(BB + HBP) - 2*SO)/(IPouts),
+         FIP_new = ((13*HR) + 5*nonHRhits + 3*(BB + HBP) - 2*SO)/(IPouts))
+
+pitchers_2 <- pitchers_1 %>%
+  arrange(playerID, yearID) %>%
+  group_by(playerID) %>%
+  mutate(f_ERA = lead(ERA),
+         f_FIP_old = lead(FIP_old),
+         f_FIP_new = lead(FIP_new))
+
+cor_matrix <- cor(select(ungroup(pitchers_2), f_ERA, f_FIP_old, f_FIP_new, ERA, FIP_old, FIP_new),
+                  use="pairwise.complete.obs")
+corrplot(cor_matrix, method = "number")
+```
+
+**10. Using the code above, play around w/ the outs cutoff (`IPouts`) of 500, which is shown in the 1st line. What happens to the correlations when using more of fewer outs? Are there any difference in these changes between the within-year and between year comparisons?**
