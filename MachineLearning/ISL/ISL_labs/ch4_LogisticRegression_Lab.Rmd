@@ -7,8 +7,14 @@ output: html_document
 ## 4.6.1 The Stock Market Data
 
 Begin by examining some numerical + graphical summaries of `Smarket` data (`ISLR` library) = % returns for S&P 500 stock index over 1,250 days, from the beginning of 2001 until end of 2005. For each date, we have recorded the % returns for each of the 5 previous trading days, `Lag1` through `Lag5` + recorded `Volume` (# of shares traded on previous day, in billions), `Today` (% return on date in question) + `Direction` (whether market was Up/Down on this date)
+```{r,echo=F}
+knitr::opts_chunk$set(warning=FALSE,message=FALSE)
+```
 ```{r,warning=F}
 library(ISLR)
+library(mosaic)
+library(ggplot2)
+
 names(Smarket)
 dim(Smarket)
 summary(Smarket)
@@ -16,17 +22,20 @@ pairs(Smarket)
 ```
 
 `cor()` = produce matrix w/ all of pairwise correlations among predictors in a data set (ignoring `Direction` = qualitative)
-```{r}
+```{r,warning=F}
 library(tidyverse)
+library(corrplot)
+
 Smarket[,1:8] %>%
   #select(Year,Lag1,Lag2,Lag3,Lag4,Lag5,Volume,Today) %>%
   cor()
+
+corrplot(cor(dplyr::select(Smarket,-Direction),
+                  use="pairwise.complete.obs"), method = "number", type = "lower")
 ```
 
-As expected, correlations between lag variables + today's returns = ~0 = appears to be little correlation between today's + previous days' returns, w/ only substantial correlation = between Year and Volume. 
+As expected, correlations between `lag` variables + today's returns = ~0 == appears to be little correlation between today's + previous days' returns, w/ only substantial correlation = between `Year` and `Volume`. 
 ```{r}
-library(ggplot2)
-
 Smarket %>%
   mutate(rowNum = as.numeric(row.names(Smarket))) %>%
   ggplot(aes(rowNum,Volume)) + 
@@ -35,32 +44,32 @@ Smarket %>%
 #plot(Smarket$Volume)
 ```
 
-By plotting the data we see Volume is increasing over time == average # of shares traded daily increased from 2001 to 2005.
+By plotting the data we see `Volume` is *slightly* increasing over time == average # of shares traded daily increased from 2001 to 2005.
 
 ## 4.6.2 Logistic Regression
 
-Next, we will fit a logistic regression model in order to predict Direction using Lag1-Lag5 + Volume via `glm()` = fits generalized linear models (class of models that includes logistic regression) 
+Next, we will fit a logistic regression model in order to predict `Direction` using `Lag1`-`Lag5` + `Volume` via `glm()` = fits **generalized linear models** (class of models that includes logistic regression) 
 
 * like `lm()` but must pass in argument `family=binomial` to tell R to run a logistic regression rather than some generalized linear model
 
 ```{r}
-glm_fit <- glm(Direction~.-Year-Today,Smarket,family = "binomial")
-summary(glm_fit)
+glm_fit <- glm(Direction ~ . - Year - Today, Smarket, family = "binomial")
+msummary(glm_fit)
 ```
 
-Smallest p-value here is associated w/ Lag1 + negative coefficient suggests if the market had a positive return yesterday, it is less likely to go up today. However, at a value of 0.15, the p-value is still relatively large, and so there is no clear evidence of a real association between Lag1 and Direction.
+Smallest $p$-value here is associated w/ `Lag1` + negative coefficient suggests if the market had a positive return yesterday, it is less likely to go up today. However, at a value of 0.15, the $p$-value is still relatively large, and so there is no clear evidence of a real association between `Lag1` and `Direction`.
 
-Use `coef()` function in order to access just the coefficients for this fitted model + `summary()` function to access particular
-aspects of the fitted model, such as the p-values for the coefficients
+Use `coef()` in order to access just the coefficients for this fitted model + `summary()` to access particular aspects of the fitted model, such as the $p$-values for the coefficients
 ```{r}
 coef(glm_fit)
 summary(glm_fit)$coef
+print('just p-values: ')
 summary(glm_fit)$coef[,4]
 ```
 
-`predict()` = predict the probability market will go up, given values of the predictors w/ `type="response"` to tell R to output probabilities of the form`P(Y = 1|X)`, as opposed to other info, such as the **logit**
+`predict()` = predict the probability market will go up, given values of the predictors w/ `type="response"` to tell R to output probabilities of the form $P(Y = 1|X)$, as opposed to other info, such as the **logit**
 
-* If no data set is supplied to predict() function, probabilities are computed for the training data used to fit the logistic regression model. 
+* If no data set is supplied to `predict()`, probabilities are computed for the *training* data used to fit the model. 
 
 ```{r}
 glm_probs <- predict(glm_fit,type="response") # no newdata arg =  predict probability on training data used to fit model
@@ -73,45 +82,47 @@ We know these values correspond to the probability of market going *up*, rather 
 contrasts(Smarket$Direction)
 ```
 
-To make a prediction as to whether the market will go up/down on a particular day, must convert predicted probabilities into class labels, Up or Down. Create a vector of class predictions based on whether predicted probability of a market increase is > or <  0.5.
+To make a prediction as to whether the market will go up/down on a particular day, must convert predicted probabilities into class labels, `Up` or `Down` in a vector of class predictions based on whether predicted probability of a market increase is > or <  0.5.
 ```{r}
 glm_preds <- rep("Down",1250)   # create vector of 1250 Down elements.
 glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
 (cm <- table(glm_preds,Smarket$Direction)) # confusion matrix
 
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
 accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
-cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+#cat("\nFOR PREDICTING DOWN:")
+#cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+#cat("\nSpecificity (TN rate): ",specificity)
+#cat("\nPrecision (Positive Predictive Value): ",precision)
+#cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
 
+library(caret)
+
+cat("\n")
+confusionMatrix(as.factor(glm_preds), Smarket$Direction) 
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
 ```
 
-Diagonal elements of a confusion matrix = correct predictions, while off-diagonals = incorrect predictions. Hence our logistic regression model correctly predicted market would go up on 507 days + that it would go down on 145 days, for a total of 507 + 145 = 652 correct predictions = 52.2 % of the time. 
+Diagonal elements of a confusion matrix = correct predictions, while off-diagonals = incorrect predictions. Hence our logistic regression model correctly predicted market would go up on 507 days + correctly predicted it would go down on 145 days, for a total of 507 + 145 = 652 correct predictions = correct 52.2% of the time. 
 
-At first glance, it appears that the logistic regression model is working a little better than random guessing. **However, this result is misleading** b/c we trained + tested on the *same set* of 1250 observations. **In other words, 100% - 52.2% = 47.8% = the training error rate, which is often overly optimistic as it tends to *underestimate* test error rate.** 
+At first glance, it appears that the logistic regression model is working a little better than random guessing (50%). **However, this result is misleading** b/c we trained + tested on the *same set* of 1250 observations. **In other words, 100% - 52.2% = 47.8% = the training error rate, which is often *overly optimistic* as it tends to *underestimate* TEST error rate.** 
 
-To better assess accuracy of the logistic regression model = fit the model using part of the data + then examine how well it predicts *held out data* = will yield a more realistic error rate, in the sense that in practice we will be interested in our model's performance *out-of-sample*, and *not* on training data (days in the future for which market's movements are unknown)
+To better assess accuracy of the model: fit the model using *subset* of the data + then examine how well it predicts *held out data* = will yield a more realistic error rate, in the sense that, in practice, we are interested in model's performance *out-of-sample*, and *not* on training data (i.e. days in the future for which market's movements are unknown)
 
 1st create a vector corresponding to observations from 2001-2004 + use it to create a held out data set of observations from 2005.
 ```{r}
 train <- subset(Smarket,Year<2005)
 test <- subset(Smarket,Year>=2005)
 dim(test)
-
-#train_vector <- (Smarket$Year < 2005) # vector of booleans
-#Smarket_05 <- Smarket[!train_vector,]
 ```
 
 Now fit a logistic regression model using only training (before 2005)
 ```{r}
 glm_train <- glm(Direction~.-Year-Today,train,family = "binomial")
-summary(glm_train)
+msummary(glm_train)
 ```
 
 Thn obtain predicted probabilities of the stock market going up for each of the days in test (days in 2005)
@@ -125,26 +136,25 @@ glm_test_preds <- rep("Down",252)   # create vector of 252 (test length) Down el
 glm_test_preds[glm_test_probs>.5] <- "Up" # set index of elements where p > .5 to Up
 (cm <- table(glm_test_preds,test$Direction)) # confusion matrix
 
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
+cat("\n")
+confusionMatrix(as.factor(glm_test_preds), test$Direction) 
 cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
 ```
+
 Results = rather disappointing, as test error rate = 52% = *worse than random guessing*! Of course, this result = not all that surprising, given one wouldn't generally expect to be able to use previous days' returns to predict future market performance.
 
-Recall this logistic regression model had very underwhelming `pvalues` associated w/ all predictors + the smallest p-value, though not very small, corresponded to `Lag1`. Perhaps by removing variables that appear not to be helpful in predicting Direction, we can
-obtain a more effective model. After all, using predictors that have no relationship w/ the response tends to cause a deterioration in test error rate (since such predictors cause an increase in variance w/out a corresponding decrease in bias), so removing such predictors may in turn yield an improvement. 
+Recall this logistic regression model had very underwhelming $p$-values associated w/ all predictors + the smallest $p$-value, though not very small, corresponded to `Lag1`. Perhaps by removing variables that appear not to be helpful in predicting `Direction`, we can
+obtain a more effective model. After all, using predictors that have no relationship w/ the response tends to cause a deterioration in test error rate (since ***such predictors cause an increase in variance w/out a corresponding decrease in bias***), so removing such predictors may in turn yield an improvement. 
 
-Refit the regression using just Lag1 and Lag2 (seemed to have the highest predictive power in original model)
+Refit the regression using just `Lag1` and `Lag2` (seemed to have the highest predictive power in original model)
 ```{r}
 glm_lag12 <- glm(Direction ~ Lag1 + Lag2, train, family = "binomial")
-summary(glm_lag12)
+msummary(glm_lag12)
 
 # obtain predicted probabilities
 glm_lag12_probs <- predict(glm_lag12,test,type="response")
@@ -154,29 +164,30 @@ glm_lag12_preds <- rep("Down",252)   # create vector of 252 (test length) Down e
 glm_lag12_preds[glm_lag12_probs>.5] <- "Up" # set index of elements where p > .5 to Up
 (cm <- table(glm_lag12_preds,test$Direction)) # confusion matrix
 
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+cat("\n")
+confusionMatrix(as.factor(glm_lag12_preds), test$Direction) 
+cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)```
 ```
 
-Now results appear to be a little better = 56% of daily movements have been correctly predicted (`accuracy`). *It is worth noting that in this case, a much simpler strategy of predicting the market will increase every day will also be correct 56% of the time!* Hence, in terms of overall error rate, the logistic regression method is no better than a naive approach. However, the confusion matrix shows that on days when logistic regression predicts an increase in the market, it has a 58% accuracy rate (`TP rate`), which suggests a possible trading strategy of buying on days when the model predicts an increasing market + avoiding trades on days when a decrease is predicted. Of course one would need to investigate more carefully whether this small improvement was real or just due to random chance.
+Now results appear to be a little better = 56% of daily movements have been correctly predicted (`accuracy`). *It is worth noting that in this case, a much simpler strategy of predicting that the market will increase every day will also be correct 56% of the time!* Hence, in terms of overall error rate, the logistic regression method is no better than a naive approach. 
 
-## 4.6 Lab: Logistic Regression, LDA, QDA, and KNN 161
-Suppose we want to predict returns associated w/ particular values of Lag1 and Lag, like when Lag1 + Lag2 = 1.2 + 1.1, respectively, and on a day when they equal 1.5 + -0.8 -->  do this via predict().
+However, the confusion matrix shows that on days when logistic regression predicts an increase in the market, it has a 58% accuracy rate (`TP rate`), which suggests a possible trading strategy of buying on days when the model predicts an increasing market + avoiding trades on days when a decrease is predicted. Of course ***one would need to investigate more carefully whether this small improvement was real or just due to random chance***.
+
+## 4.6 Lab: Logistic Regression, LDA, QDA, and KNN
+
+Suppose we want to predict probabilites associated w/ particular values of `Lag1` and `Lag2`, like when `Lag1 + Lag2 = 1.2 + 1.1`, respectively, and on a day when they equal `1.5 + -0.8` --> do this via `predict()`.
 ```{r}
 predict(glm_lag12, newdata = data.frame(Lag1 = c(1.2,1.5), Lag2 = c(1.1,-.8)), type = "response")
 ```
 
 ## 4.6.3 Linear Discriminant Analysis
 
-Now we will perform **LDA** on `Smarket` using `lda()` from `MASS` (identical to lm() + glm() except for absence of `family` arg) 
+Now we will perform **LDA** on `Smarket` using `lda()` from `MASS` (identical to `lm()` + `glm()`except for absence of `family` arg) 
 ```{r}
 library(MASS)
 lda_fit <- lda(Direction ~ Lag1 + Lag2, train)
@@ -185,11 +196,13 @@ plot(lda_fit)
 summary(lda_fit)
 ```
 
-LDA result indicates that Pi1^ = 0.492 + Pi2^ = 0.508; in other words, 49.2% of training observations correspond to days during which the market went down. It also provides **group means** = the average of *each predictor within each class*, + are used by LDA as estimates of mu_k. These suggest there's a tendency for the previous 2 days' returns to be negative on days when the market increases, + a tendency for the previous days' returns to be positive on days when the market declines. The **coefficients of linear discriminants** provides the linear combination of Lag1 + Lag2 that're used to form the LDA decision rule. In other words, these = the **multipliers of the elements of `X = x` in (4.19)**. If `.642\*Lag1 - .514\*Lag2` is large, LDA classifier will predict market increase, + if small, LDA classifier will predict a market decline. 
+LDA result indicates that $\hat{\pi}_{1}$ = 0.492 + $\hat{\pi}_{2}$ = 0.508; in other words, 49.2% of training observations correspond to days during which the market went down and 50.8% to days when it went up. It also provides **group means** = the average of *each predictor within each class (up/down in `lag1` and `lag2` respectively*, + are used by LDA as estimates of $\mu_k$. 
 
-The plots show the **linear discriminants** obtained by computing `.642\*Lag1 - .514\*Lag2` for *each training observation*.
+These suggest there's a tendency for the previous 2 days' returns to be negative on days when the market increases, + a tendency for the previous days' returns to be positive on days when the market declines. The **coefficients of linear discriminants** provides the linear combination of `Lag1` + `Lag2` that're used to form the LDA decision rule. In other words, these = the **multipliers of the elements of $X = x$ in (4.19)**. If $.642Lag1 - .514Lag2$ is large, LDA classifier will predict market increase, + if small, LDA classifier will predict a market decline. 
 
-predict() will return a list w/ 3 elements = **`class`** = LDA's predictions about the movement of the market, **`posterior`** = a matrix whose `k`th column contains the posterior probability that the corresponding observation belongs to the kth class, computed from (4.10) and **`x`** = contains the linear discriminants, described earlier.
+The plots show the **linear discriminants** obtained by computing $.642Lag1 - .514Lag2$ for *each training observation*.
+
+`predict()` will return a list w/ 3 elements = **`class`** = LDA's predictions about the movement of the market, **`posterior`** = a matrix whose $k$th column contains the posterior probability that the corresponding observation belongs to the $k$th class, computed from (4.10) and **`x`** = contains the linear discriminants, described earlier.
 ```{r}
 lda_preds <- predict(lda_fit,test)
 names(lda_preds)
