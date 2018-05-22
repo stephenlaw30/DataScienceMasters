@@ -20,8 +20,9 @@ data(Teams)
 head(Teams)
 tail(Teams)
 ```
+
 `Teams` = team-level info for every year of baseball season, from 1871 - 2014. Reduce data frame to only recent seasons
-```{R}
+```{r}
 teams_1 <- Teams %>% filter(yearID >= 1970)
 head(teams_1)
 ```

@@ -1,0 +1,159 @@
+---
+title: "HW 3"
+author: "Your name here"
+output: pdf_document
+---
+
+```{r knitr_options , include=FALSE}
+#Here's some preamble, which makes ensures your figures aren't too big
+knitr::opts_chunk$set(fig.width=6, fig.height=3.6, warning=FALSE,message=FALSE)
+
+library(mosaic)
+library(Lahman)
+library(corrplot)
+library(tidyverse)
+library(ggplot2)
+
+data(Teams)
+data(Pitching)
+data(Batting)
+```
+
+For this homework, we will be using data provided in the `Lahman` package. 
+
+# Part 1
+
+Our first goal is to use variables in the `Teams` data set to identify the model that best fits the number of runs scored `RS` for a team in a single season. We'll use all seasons since 1970. Several models are proposed. 
+
+```{r}
+teams_1 <- Teams %>%
+  filter(yearID >=1970) %>%
+  mutate(X1B = H - X2B - X3B - HR)
+
+fit_1 <- lm(R ~ X1B + X2B + X3B + HR, data = teams_1)
+fit_2 <- lm(R ~ X1B + X2B + X3B + HR + BB, data = teams_1)
+fit_3 <- lm(R ~ X1B + X2B + X3B + HR + BB + SO, data = teams_1)
+fit_4 <- lm(R ~ X1B + X2B + X3B + HR + BB + SO + CS, data = teams_1)
+fit_5 <- lm(R ~ X1B + X2B + X3B + HR + BB + SO + CS + lgID, data = teams_1)
+fit_6 <- lm(R ~ X1B + X2B + X3B + HR + BB + SO + CS + lgID + SB, data = teams_1)
+
+options(scipen=999) # disables R's scientific notation.
+```
+
+## Question 1
+
+Using the AIC criteria, which of the six models would you recommend for measuring runs scored on a team-wide level?  From a baseball perspective, what does your choice suggest about certain measurements as far as their link to runs scored?
+
+```{r}
+models <- c(fit_1,fit_2,fit_3,fit_4,fit_5,fit_6)
+df <- data.frame(model = c(1:6), AIC = c(AIC(fit_1),AIC(fit_2),AIC(fit_3),AIC(fit_4),AIC(fit_5),AIC(fit_6)))
+df %>%
+  arrange(AIC)
+```
+
+* Model 6 has the lowest AIC, which suggests it should be recommended for measuring runs scored on a team-wide level. This suggests that all hitting stats `{X1B, X2B, X3B, HR, BB}`, stealing stats = `{CS, SB}`, and two other stats `lgID` and `SO` are important. In other words, on a team-level, the low AIC for model 6 suggests each predictor in the model are valuable, as far as understanding `RS`.
+
+## Question 2
+
+One of the coefficients in `fit_5` and `fit_6` is `lgID`. Generate a table of the `lgID` in your data set. What does this variable refer to?
+
+```{r}
+table(teams_1$lgID)
+```
+
+* It's the count of AL and NL team seasons since 1970
+
+## Question 3
+
+Using the code below, the coefficient for `league = "NL"` is negative. Interpret this coefficient. What about baseball's rules make it important to consider which league each team played in?
+
+```{r, eval = FALSE}
+msummary(fit_5)
+```
+
+* This model output suggests than, on a team-level, with all else held constant, being a team in the NL decreases `R` by 5.6 runs, on average. This may be due to the fact that the AL has a DH, who is typically a "better" batter than the pitcher, and should, in theory, increase `R`.
+
+## Question 4
+
+Interpret the R-squared from `fit_5`, and produce model checks to determine if the assumptions for linear regression are appropriate. 
+* This high adjusted $R^2$ value of .921 suggests that ~92% of the variability in `R` is explained by the predictors in model 5.
+```{r}
+par(mfrow=c(2,2))
+plot(fit_5)
+```
+
+* It appears we may have 1 high leverage point (297), and a good number of outliers (>2 in absolute value for standardized residuals)
+* I would lean towards saying our residuals do not display too much of pattern, at least for fitted values 500 onward.
+* The Q-Q plot suggests our data is normal, with maybe a slight right skew implied by the upper-right corner
+
+## Question 5
+
+The first team in the data set is the Atlanta Braves, who scored 736 runs in 1970. Using `fit_5`, estimate how many runs your model expected the Braves to score. Did the Braves outperform expectations (score more runs) or underperform expectations (score fewer runs)? 
+
+```{r}
+paste0('predicted: ',-111.725804 + teams_1$X1B[1]*0.293206 + 0.777658*teams_1$X2B[1] + 1.180348*teams_1$X3B[1] + 1.436679*teams_1$HR[1] + 0.317548*teams_1$BB[1] - 0.086487*teams_1$SO[1] + 0.099361*teams_1$CS[1] - 5.582670*1) # b/c in NL
+paste0('actual: ',teams_1$R[1])
+```
+
+* Our model *just* underestimates `R` for the Atlanta Braves in 1970, so the Braves outperformed expectations
+
+# Part II
+
+In this part, we'll use the `Hitting` data set, and explore the properties of runs created. In this code, we look at three formulas for runs created: `RC1`, `RC2`, and `RC3`. 
+
+```{r}
+batting_1 <- Batting %>% 
+ filter(yearID >=1971, AB > 500) %>%
+ mutate(X1B = H - X2B - X3B - HR, 
+        TB = X1B + 2*X2B + 3*X3B + 4*HR, 
+        RC1 = (H + BB)*TB/(AB + BB),
+        RC2 = (H + BB - CS)*(TB + (0.55*SB))/(AB+BB),
+        RC3 = ((H + BB - CS + HBP - GIDP)*(TB + (0.26*(BB - IBB + HBP))) + 
+          (0.52*(SH+SF+SB)))/(AB+BB+HBP+SH+SF))
+
+batting_2 <- batting_1 %>%
+  arrange(playerID, yearID) %>%
+  group_by(playerID) %>%
+  mutate(f_RC1 = lead(RC1), f_RC2 = lead(RC2), f_RC3 = lead(RC3)) %>%
+  na.omit()
+
+cor.matrix <- cor(select(ungroup(batting_2), 
+                         f_RC1, f_RC2, f_RC3, RC1, RC2, RC3), 
+                  use="pairwise.complete.obs")
+corrplot(cor.matrix, method = "number")
+```
+
+## Question 6
+
+Which of the three runs created metrics more strongly correlates with its own future performance in the following year?  Is that a good thing or a bad thing?
+
+* It appears that `RC3` correlates the strongest with its own future performance in the following year. This means `RC3` is the ***most repeatable*** statistic, which is the marker of a good/useful statistic
+* Other 2 stats are equal, and not far off from their future performance
+
+## Question 7
+
+Which of the three runs created metrics more strongly correlates with `f_RC1`? What does this suggest?
+
+* It appears that `RC3` correlates the strongest with `f_RC1`, but `f_RC3` is basically the same. This suggests
+
+## Question 8
+
+Make a pair of scatter plots: `f.RC1` versus `RC1`, and `f.RC3` versus `RC3`. Is the difference in correlations between each pair of variables obvious in the scatter plots?
+
+## Question 9
+
+In place of correlation, a useful tool for measuring predictive accuracy is mean absolute error (MAE). In R, the MAE between two variables of the same length can be calculated as follows:
+
+```{r}
+x <- c(6, 10, 10)
+y <- c(10, 10, 8)
+MAE <- mean(abs(x-y))
+MAE
+```
+
+Calculate the MAE between between each of the following three variable pairs: `RC1` and `f.RC1`, `RC2` and `f.RC2`, and `RC3` and `f.RC3`.
+
+## Question 10
+
+Interpret the MAE between `RC1` and `f.RC1`. Is there a noticeable difference between your MAE's found in question 9?  What does this suggest about the more complicated `RC3` formula?
+
