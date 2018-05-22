@@ -46,17 +46,20 @@ confint(simpleLM)
 
   * **CI's** tell you about how well you have determined the parameter of interest
     * **95% CI** = Repeat an experiment many times, taking a sample for each, + calculate a CI from each sample, we'd expect ~95% of those intervals to include the true value of the population parameter (*have 95% confidence the interval contains the true parameter value*)
-    * Key point = CI's tell you about the likely location of the true population parameter.
+    * Key point = CI's tell you about the likely location of the true population parameter
+    * only tell you about the parameter of interest + nothing about the distribution of individual values
 
   * **Prediction intervals** = *range where you can expect to see the next DP sampled fall into*. 
+    * ***A type of confidence interval***
     * Assume the data really are randomly sampled from a Gaussian distribution. 
     * Collect a sample of data + calculate a PI
     * Then sample 1 more value from the population
     * Repeat many times + expect that next value will lie within such a prediction interval in 95% of samples.
     * Key point = A PI tells you *about the distribution of values*, NOT the uncertainty in determining the true population parameter
     * PI's must account for both the **uncertainty** in knowing the value of the true population parameter, plus **scatter/noise**
-    * Therefore, **a PI = always wider than a CI (less confident in the ranges)**
+    * Therefore, **a PI = always wider than a CI (less confident in the ranges) = b/c of the added uncertainty involved in predicting a *single* response vs the mean response**
     * alternate definition: "an interval associated w/ a random variable yet to be observed, w/ a specified probability of the random variable lying w/in the interval"
+    * PI = range that's likely to contain the response value of a single *new* observation given specified settings of predictors in a model (range for the mean rather than the distribution of individual DP's like in CI's)
     
   * CI's give a range for the *expected value* of $y$ *given* a value for $x$, $E[y|x]$, and PI's give a range *for $y$ itself*.
   * Naturally, best guess for $y$ = $E[y|x]$, so both intervals are centered around the same value = $x\hat{\beta}$, but the intervals have *different standard errors*
