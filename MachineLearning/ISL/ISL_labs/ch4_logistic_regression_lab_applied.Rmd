@@ -1,0 +1,269 @@
+---
+title: "ch4_logistic_regression_lab_applied"
+author: "Steve Newns"
+date: "May 23, 2018"
+output: html_document
+---
+
+
+## Applied
+**10. This question should be answered using the Weekly data set from ISLR package = similar to `Smarket` data but contains 1089 weekly returns for 21 years, from beginning of 1990 to end of 2010**
+```{r}
+library(ISLR)
+```
+**(a) Produce some numerical and graphical summaries of the Weeklydata. Do there appear to be any patterns?**
+```{r}
+summary(Weekly)
+pairs(Weekly)
+
+library(tidyverse)
+Weekly[,1:8] %>%
+  cor()
+
+library(ggplot2)
+
+Weekly %>%
+  mutate(rowNum = as.numeric(row.names(Weekly))) %>%
+  ggplot(aes(rowNum,Volume)) + 
+    geom_point() + 
+    labs(x="Index",main="Volume of trades over Time")
+#plot(Smarket$Volume)
+```
+
+* Looks like an exponential increase starting @ index = ~700-900, and Year and Volume look to have an exponential relationship as well.
+
+**(b) Use the full data set to perform a logistic regression with Direction = response + the 5 lag variables + Volume as predictors. Use summary() to print the results. Do any of the predictors appear to be statistically significant? If so, which ones?**
+```{r}
+glm_fit <- glm(Direction ~ . - Year - Today, Weekly, family="binomial")
+summary(glm_fit)
+```
+
+* It appears that Lag2 is statistically significant (barely)
+
+**(c) Compute the confusion matrix + overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression.**
+```{r}
+glm_probs <- predict(glm_fit,type="response") # no newdata arg =  predict probability on training data used to fit model
+
+glm_preds <- rep("Down",nrow(Weekly))   # create vector of 1089 Down elements.
+glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
+True <- Weekly$Direction
+(cm <- table(glm_preds,True)) # confusion matrix
+
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+cat("\nFOR PREDICTING DOWN:")
+cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+
+library(caret)
+#loads library "caret"
+cat("\n")
+confusionMatrix(as.factor(glm_preds), Weekly$Direction) 
+```
+
+* Our logistic regression model has an accuracy of 56% with a training error rate of 44%. For this days the market did increase, we were right ~56.5% of the time (Neg Pred Value), and for those days where the market did not increase, we were correct 53% of the time (Pos Pred Value). With a sensitivity of 11% and specificity of 92%, this model is good at predicting when the market will go up, but not so much as to when it will go down.
+
+**(d) Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010).**
+```{r}
+train <- subset(Weekly,Year%in% c(1990:2008))
+test <- subset(Weekly,Year >= 2009)
+
+glm_fit <- glm(Direction ~ Lag2, train, family="binomial")
+summary(glm_fit)
+
+glm_probs <- predict(glm_fit,test,type="response") # no newdata arg =  predict probability on training data used to fit model
+
+glm_preds <- rep("Down",nrow(test))   # create vector of 1089 Down elements.
+glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
+True <- test$Direction
+(cm <- table(glm_preds,True)) # confusion matrix
+
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+cat("\nFOR PREDICTING DOWN:")
+cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nNegative Predictive Value: ",npv)
+cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+
+#library(caret)
+#cat("\n")
+#confusionMatrix(as.factor(glm_preds), Weekly$Direction) 
+```
+
+* Our logistic regression model has an accuracy of 62.5% with a training error rate of 37.5%. For the days the market did increase, we were right ~62% of the time (Neg Pred Value), and for those days where the market did not increase, we were correct 64% of the time (Pos Pred Value). With a sensitivity of 21% and specificity of 92%, this model is good at predicting when the market will go up, but not so much as to when it will go down.
+ 
+**(e) Repeat (d) using LDA.**
+```{r}
+lda_fit <- lda(Direction ~ Lag2, train)
+#summary(lda_fit)
+
+plot(lda_fit)
+
+lda_preds <- predict(lda_fit,test)
+#names(lda_preds)
+True <- test$Direction
+(cm <- table(lda_preds$class,True)) # confusion matrix
+
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+cat("\nFOR PREDICTING DOWN:")
+cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nNegative Predictive Value: ",npv)
+cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+```
+
+* Our LDA model is the same as our logistic regression.
+
+**(f) Repeat (d) using QDA.**
+
+```{r}
+qda_fit <- qda(Direction ~ Lag2, train)
+qda_preds <- predict(qda_fit,test)
+
+True <- test$Direction
+(cm <- table(qda_preds$class,True)) # confusion matrix
+
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+cat("\nFOR PREDICTING DOWN:")
+cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nNegative Predictive Value: ",npv)
+cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+```
+
+* Our QDA model has an accuracy of ~59% with a training error rate of ~41%. For the days the market did increase, we were right ~58% of the time (Neg Pred Value), and for those days where the market did not increase, we were never correct (Pos Pred Value). With a sensitivity of 0% and specificity of 100%, this model perfectly predicts when the market will go up, but always fails to correctly predict when will go down.
+* ***he proportion of negatives that are correctly identified as such (e.g. the percentage of healthy people who are correctly identified as not having the condition).***
+* So, even thought the QDA predicted "Up" every day, it was accurate > 58% of the time.
+
+**(g) Repeat (d) using KNN with K = 1.**
+```{r, eval=F}
+train_x_k <- train$Lag2
+test_x_k <- test$Lag2
+train_labels <- train$Direction
+
+set.seed(1)
+
+knn_preds <- knn(train = train_x, test = test_x, cl = train_labels, k = 1) # cl = class labels
+
+(cm <- table(knn_preds,test$Direction)) # confusion matrix
+
+sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
+specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
+precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+cat("\nFOR PREDICTING DOWN:")
+cat("\nSensitivity (TP rate or Recall): ",sensitivity)
+cat("\nSpecificity (TN rate): ",specificity)
+cat("\nPrecision (Positive Predictive Value): ",precision)
+cat("\nNegative Predictive Value: ",npv)
+cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
+cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+```
+
+* Our KNN model with K = 1 has an accuracy of ~48% with a training error rate of ~52%. For the days the market did increase, we were right ~56% of the time (Neg Pred Value), and for those days where the market did not increase, we correct 39% of the time (Pos Pred Value). With a sensitivity of 42% and specificity of 52%, we've correctly predicted 42% of days when the market went down and correctly predicted 52% of days when the market went up.
+
+**(h) Which of these methods appears to provide the best results on this data?**
+
+* We have accuracies of 62.5% for our logistic regression and our LDA models, and an accuracy of ~59% with our QDA model, and finally an accuracy of 48% with our KNN model.
+
+**(i) Experiment with different combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classifier.**
+
+**11. In this problem, you will develop a model to predict whether a given car gets high or low gas mileage based on the Auto data set.**
+
+**(a) Create a binary variable, mpg01, that contains a 1 if mpg contains a value above its median, and a 0 if mpg contains a value below its median. You can compute the median using the median()function. Note you may find it helpful to use the data.frame() function to create a single data set containing both mpg01 and the other Auto variables.**
+
+**(b) Explore the data graphically in order to investigate the association between mpg01 and the other features. Which of the other features seem most likely to be useful in predicting mpg01? Scatterplots and boxplots may be useful tools to answer this question. Describe your findings.**
+
+**(c) Split the data into a training set and a test set.**
+
+**(d) Perform LDA on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained?**
+
+**(e) Perform QDA on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained?**
+
+**(f) Perform logistic regression on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained?**
+
+**(g) Perform KNN on the training data, with several values of K, in order to predict mpg01. Use only the variables that seemed most associated with mpg01 in (b). What test errors do you obtain? Which value of K seems to perform the best on this data set?**
+
+**12. This problem involves writing functions.**
+
+**(a) Write a function, Power(), that prints out the result of raising 2 to the 3rd power. In other words, your function should compute 23 and print out the results.**
+
+* **Hint: Recall that x^a raises x to the power a. Use the print() function to output the result.**
+
+**(b) Create a new function, Power2(), that allows you to pass any two numbers, x and a, and prints out the value of x^a. You can do this by beginning your function with the line**
+> Power2=function (x,a){
+**You should be able to call your function by entering, for instance,**
+> Power2 (3,8) 
+**on the command line. This should output the value of 38, namely, 6, 561.**
+
+**(c) Using the Power2() function that you just wrote, compute 103, 817, and 1313.**
+
+**(d) Now create a new function, Power3(), that actually returns the result x^a as an R object, rather than simply printing it to the screen. That is, if you store the value x^a in an object called result within your function, then you can simply return() this return() result, using the following line:**
+
+return(result)
+**The line above should be the last line in your function, before the } symbol.**
+
+**(e) Now using the Power3() function, create a plot of f(x) = x2. The x-axis should display a range of integers from 1 to 10, and the y-axis should display x2. Label the axes appropriately, and use an appropriate title for the figure. Consider displaying either the x-axis, the y-axis, or both on the log-scale. You can do this by using log=''x'', log=''y'', or log=''xy'' as arguments to the plot() function.**
+
+**(f) Create a function, PlotPower(), that allows you to create a plot of x against x^a for a fixed a and for a range of values of x. For instance, if you call**
+> PlotPower (1:10,3)
+**then a plot should be created with an x-axis taking on values 1, 2,..., 10, and a y-axis taking on values 13, 23,..., 103.**
+
+**13. Using the Boston data set, fit classification models in order to predict whether a given suburb has a crime rate above or below the median. Explore logistic regression, LDA, and KNN models using various subsets of the predictors. Describe your findings.**title: "Untitled"
+author: "Steve Newns"
+date: "May 23, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

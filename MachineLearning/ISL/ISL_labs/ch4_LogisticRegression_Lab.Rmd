@@ -34,7 +34,7 @@ corrplot(cor(dplyr::select(Smarket,-Direction),
                   use="pairwise.complete.obs"), method = "number", type = "lower")
 ```
 
-As expected, correlations between `lag` variables + today's returns = ~0 == appears to be little correlation between today's + previous days' returns, w/ only substantial correlation = between `Year` and `Volume`. 
+As expected, correlations between `Lag` variables + today's returns = ~0, so appears to be little correlation between today's + previous days' returns, w/ only substantial correlation = between `Year` and `Volume`. 
 ```{r}
 Smarket %>%
   mutate(rowNum = as.numeric(row.names(Smarket))) %>%
@@ -48,9 +48,9 @@ By plotting the data we see `Volume` is *slightly* increasing over time == avera
 
 ## 4.6.2 Logistic Regression
 
-Next, we will fit a logistic regression model in order to predict `Direction` using `Lag1`-`Lag5` + `Volume` via `glm()` = fits **generalized linear models** (class of models that includes logistic regression) 
+Next, we will fit a logistic regression model in order to predict `Direction` using `Lag1`-`Lag5` + `Volume` via `glm()` = fits **generalized linear models** (*class of models* that includes logistic regression) 
 
-* like `lm()` but must pass in argument `family=binomial` to tell R to run a logistic regression rather than some generalized linear model
+* like `lm()` but must pass in argument `family=binomial` for a logistic regression rather than some generalized linear model
 
 ```{r}
 glm_fit <- glm(Direction ~ . - Year - Today, Smarket, family = "binomial")
@@ -59,22 +59,20 @@ msummary(glm_fit)
 
 Smallest $p$-value here is associated w/ `Lag1` + negative coefficient suggests if the market had a positive return yesterday, it is less likely to go up today. However, at a value of 0.15, the $p$-value is still relatively large, and so there is no clear evidence of a real association between `Lag1` and `Direction`.
 
-Use `coef()` in order to access just the coefficients for this fitted model + `summary()` to access particular aspects of the fitted model, such as the $p$-values for the coefficients
+`coef()` accesses just the coefficients for this fitted model + `msummary()` access particular aspects of the fitted model, such as the $p$-values for the coefficients
 ```{r}
 coef(glm_fit)
 summary(glm_fit)$coef
-print('just p-values: ')
-summary(glm_fit)$coef[,4]
+summary(glm_fit)$coef[,4] # just p-values
 ```
 
-`predict()` = predict the probability market will go up, given values of the predictors w/ `type="response"` to tell R to output probabilities of the form $P(Y = 1|X)$, as opposed to other info, such as the **logit**
+`predict()` = predict probability market will go up, given values of the predictors w/ `type="response"` to output probabilities of the form $P(Y = 1|X)$, as opposed to other info, such as the **logit**
 
 * If no data set is supplied to `predict()`, probabilities are computed for the *training* data used to fit the model. 
 
 ```{r}
 glm_probs <- predict(glm_fit,type="response") # no newdata arg =  predict probability on training data used to fit model
 head(glm_probs)
-#contrasts(Direction)
 ```
 
 We know these values correspond to the probability of market going *up*, rather than down, b/c `contrasts()` indicates R has created a dummy variable w/ 1 = Up
@@ -82,10 +80,10 @@ We know these values correspond to the probability of market going *up*, rather 
 contrasts(Smarket$Direction)
 ```
 
-To make a prediction as to whether the market will go up/down on a particular day, must convert predicted probabilities into class labels, `Up` or `Down` in a vector of class predictions based on whether predicted probability of a market increase is > or <  0.5.
-```{r}
-glm_preds <- rep("Down",1250)   # create vector of 1250 Down elements.
-glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
+To make a prediction as to whether the market will go up/down on a particular day, must convert predicted probabilities into class labels, `Up` or `Down`, w/in a vector of class predictions based on whether predicted probability of a market increase is > or <  0.5 (or some other chosen threshold)
+```{r,warning=F,message=F}
+glm_preds <- rep("Down",1250)   # create vector of '1250' Down elements.
+glm_preds[glm_probs>.5] <- "Up" # set value of records  where p > .5 to 'Up'
 (cm <- table(glm_preds,Smarket$Direction)) # confusion matrix
 
 sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
@@ -101,16 +99,15 @@ accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
 library(caret)
 
-cat("\n")
 confusionMatrix(as.factor(glm_preds), Smarket$Direction) 
 cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
 ```
 
-Diagonal elements of a confusion matrix = correct predictions, while off-diagonals = incorrect predictions. Hence our logistic regression model correctly predicted market would go up on 507 days + correctly predicted it would go down on 145 days, for a total of 507 + 145 = 652 correct predictions = correct 52.2% of the time. 
+Diagonal elements of a confusion matrix = *correct* predictions, while off-diagonals = *incorrect*. Hence our model correctly predicted market would go up on 507 days + correctly predicted it would go down on 145 days, for a total of 507 + 145 = 652 correct predictions = correct 52.2% of the time. 
 
-At first glance, it appears that the logistic regression model is working a little better than random guessing (50%). **However, this result is misleading** b/c we trained + tested on the *same set* of 1250 observations. **In other words, 100% - 52.2% = 47.8% = the training error rate, which is often *overly optimistic* as it tends to *underestimate* TEST error rate.** 
+At first glance, it appears the logistic regression model is working a little better than random guessing (50%). **However, this result is misleading** b/c we trained + tested on the *same set* of 1250 observations. **In other words, 100% - 52.2% = 47.8% = the *TRAINING* error rate, which is often *overly optimistic* as it tends to *underestimate* TEST error rate.** 
 
-To better assess accuracy of the model: fit the model using *subset* of the data + then examine how well it predicts *held out data* = will yield a more realistic error rate, in the sense that, in practice, we are interested in model's performance *out-of-sample*, and *not* on training data (i.e. days in the future for which market's movements are unknown)
+To better assess model accuracy: fit the model using *subset* of the data + then examine how well it predicts using *held out data* = will yield a more realistic error rate, in the sense that, in practice, we're interested in model's performance *out-of-sample*, and *not* on training data (i.e. days in the future for which market's movements are unknown)
 
 1st create a vector corresponding to observations from 2001-2004 + use it to create a held out data set of observations from 2005.
 ```{r}
@@ -125,7 +122,7 @@ glm_train <- glm(Direction~.-Year-Today,train,family = "binomial")
 msummary(glm_train)
 ```
 
-Thn obtain predicted probabilities of the stock market going up for each of the days in test (days in 2005)
+Then obtain predicted probabilities of the stock market going up for each of the days in test (days in 2005)
 ```{r}
 glm_test_probs <- predict(glm_train,test,type="response")
 ```
@@ -141,14 +138,13 @@ specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN 
 precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
 accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-cat("\n")
 confusionMatrix(as.factor(glm_test_preds), test$Direction) 
 cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
 ```
 
-Results = rather disappointing, as test error rate = 52% = *worse than random guessing*! Of course, this result = not all that surprising, given one wouldn't generally expect to be able to use previous days' returns to predict future market performance.
+Results = rather disappointing, as test error rate = 52%, and *>50% = worse than random guessing*! Of course, this result = not all that surprising, given one wouldn't generally expect to be able to use previous days' returns to predict future market performance.
 
-Recall this logistic regression model had very underwhelming $p$-values associated w/ all predictors + the smallest $p$-value, though not very small, corresponded to `Lag1`. Perhaps by removing variables that appear not to be helpful in predicting `Direction`, we can
+Recall this model had very underwhelming $p$-values associated w/ all predictors + the smallest $p$-value, though not very small, corresponded to `Lag1`. Perhaps by removing variables that appear not to be helpful in predicting `Direction`, we can
 obtain a more effective model. After all, using predictors that have no relationship w/ the response tends to cause a deterioration in test error rate (since ***such predictors cause an increase in variance w/out a corresponding decrease in bias***), so removing such predictors may in turn yield an improvement. 
 
 Refit the regression using just `Lag1` and `Lag2` (seemed to have the highest predictive power in original model)
@@ -164,19 +160,15 @@ glm_lag12_preds <- rep("Down",252)   # create vector of 252 (test length) Down e
 glm_lag12_preds[glm_lag12_probs>.5] <- "Up" # set index of elements where p > .5 to Up
 (cm <- table(glm_lag12_preds,test$Direction)) # confusion matrix
 
-sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
 accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-cat("\n")
 confusionMatrix(as.factor(glm_lag12_preds), test$Direction) 
 cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)```
 ```
 
-Now results appear to be a little better = 56% of daily movements have been correctly predicted (`accuracy`). *It is worth noting that in this case, a much simpler strategy of predicting that the market will increase every day will also be correct 56% of the time!* Hence, in terms of overall error rate, the logistic regression method is no better than a naive approach. 
+Results appear to be a little better = 56% of daily movements have been correctly predicted (`accuracy`). *It is worth noting that in this case, the much simpler strategy of just predicting that the market will increase every day will **also** be correct 56% of the time!* Hence, in terms of overall error rate, the logistic regression method is no better than a naive approach. 
 
-However, the confusion matrix shows that on days when logistic regression predicts an increase in the market, it has a 58% accuracy rate (`TP rate`), which suggests a possible trading strategy of buying on days when the model predicts an increasing market + avoiding trades on days when a decrease is predicted. Of course ***one would need to investigate more carefully whether this small improvement was real or just due to random chance***.
+However, the confusion matrix shows that, on days when logistic regression predicts an increase in the market, it has a 58% accuracy rate (`Neg Pred Value`), which suggests a possible trading strategy of buying on days when the model predicts an increasing market + avoiding trades on days when a decrease is predicted. Of course ***one would need to investigate more carefully whether this small improvement was real or just due to random chance***.
 
 ## 4.6 Lab: Logistic Regression, LDA, QDA, and KNN
 
@@ -198,7 +190,11 @@ summary(lda_fit)
 
 LDA result indicates that $\hat{\pi}_{1}$ = 0.492 + $\hat{\pi}_{2}$ = 0.508; in other words, 49.2% of training observations correspond to days during which the market went down and 50.8% to days when it went up. It also provides **group means** = the average of *each predictor within each class (up/down in `lag1` and `lag2` respectively*, + are used by LDA as estimates of $\mu_k$. 
 
-These suggest there's a tendency for the previous 2 days' returns to be negative on days when the market increases, + a tendency for the previous days' returns to be positive on days when the market declines. The **coefficients of linear discriminants** provides the linear combination of `Lag1` + `Lag2` that're used to form the LDA decision rule. In other words, these = the **multipliers of the elements of $X = x$ in (4.19)**. If $.642Lag1 - .514Lag2$ is large, LDA classifier will predict market increase, + if small, LDA classifier will predict a market decline. 
+These suggest there's a tendency for the previous 2 days' returns to be negative on days when the market increases, + a tendency for the previous days' returns to be positive on days when the market declines. The **coefficients of linear discriminants** provides the ***linear combination*** of `Lag1` + `Lag2` that're used to form the **LDA decision rule**. In other words, these $\beta$ = the **multipliers of the elements of $(X = x)$ w/in $\sigma_k(x) = x^{T}\sum^{-1}\mu_k - \frac {1} {2} \mu_k^{T}\sum^{-1}\mu_k + log(\pi_k)$**. 
+
+*  vector/matrix version of $\sigma_k(x) = x\frac {\mu_k} {\sigma^2} - \frac {\mu_k^2} {2\sigma^2} + log(\pi_k)$
+
+If $.642Lag1 - .514Lag2$ is large, LDA classifier will predict market increase, + if small, LDA classifier will predict a market decline. 
 
 The plots show the **linear discriminants** obtained by computing $.642Lag1 - .514Lag2$ for *each training observation*.
 
@@ -207,82 +203,78 @@ The plots show the **linear discriminants** obtained by computing $.642Lag1 - .5
 lda_preds <- predict(lda_fit,test)
 names(lda_preds)
 lda_preds$class
-
-(cm <- table(lda_preds$class,test$Direction)) # confusion matrix
-
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
-
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+head(lda_preds$posterior)
+head(lda_preds$x)
 ```
 
-Applying a 50 % threshold to our posterior probabilities allows us to recreate the predictions contained in `lda.pred$class`.
+```{r}
+(cm <- table(lda_preds$class,test$Direction)) # confusion matrix
+
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+confusionMatrix(as.factor(lda_preds$class), test$Direction) 
+cat("\nTest Error Rate: ", 1 - accuracy)
+```
+
+Applying a 50% threshold to our posterior probabilities allows us to recreate the predictions contained in `lda.pred$class`.
 ```{r}
 head(lda_preds$posterior)
 sum(lda_preds$posterior[,1] >= .5) # check posterior probabilities of Down that are above or equal to threshold
 sum(lda_preds$posterior[,1] < .5) # check posterior probabilities of Down that are below threshold
 ```
 
-Notice the posterior probability output by the model = probability market will decrease:
+Notice the **posterior probability output by the model = probability market will decrease**:
 ```{r}
 data.frame("prob of down" = lda_preds$posterior[1:20,1],"classification"=lda_preds$class[1:20])
 ```
 
-Suppose we wish to predict a market decrease *only if very certain market will indeed decrease on that day* == if posterior probability is at least 90%.
+Suppose we wish to predict a market decrease *only if we're very certain market will indeed decrease on that day* == i.e. if posterior probability is at least 90%.
 ```{r}
 sum(lda_preds$posterior[,1] >= .9) # check posterior probabilities of Down that are above or equal to threshold
 sum(lda_preds$posterior[,1] < .9) # check posterior probabilities of Down that are below threshold
 ```
 
-No days in 2005 meet that threshold! In fact, the greatest posterior probability of decrease in all of 2005 = 52.02 %.
+No days in 2005 meet that threshold! In fact, the greatest posterior probability of decrease in all of 2005 = 52.02%.
 
 ## 4.6.4 Quadratic Discriminant Analysis
 
-Now fit a QDA model to Smarket via `qda()` from `MASS` w/ syntax is identical to that of lda().
+Now fit a QDA model to Smarket via `qda()` from `MASS` w/ syntax identical to that of `lda()`.
 ```{r}
 qda_fit <- qda(Direction ~ Lag1 + Lag2, train)
 qda_fit
 ```
 
-Output contains group means but does not contain the coefficients of the linear discriminants, b/c a QDA classifier involves a
-*quadratic*, rather than a linear, function of the predictors. `predict()` works in exactly the same fashion as for LDA.
+Output contains group means but does *not* contain the coefficients of the linear discriminants, b/c a QDA classifier involves a
+*quadratic* function, rather than a linear function, of the predictors. `predict()` works in exactly the same fashion as for LDA.
 ```{r}
 qda_preds <- predict(qda_fit,test)
 names(qda_preds)
 qda_preds$class
-
-(cm <- table(qda_preds$class,test$Direction)) # confusion matrix
-
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
-
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
 ```
 
-Interestingly, QDA predictions = accurate ~60 % of the time, even though the 2005 data was not used to fit the model. This level of accuracy is quite impressive for stock market data, which is known to be quite hard to model accurately. This suggests the quadratic form assumed by QDA may capture the true relationship more accurately than linear forms assumed by LDA + logistic regression. However, we recommend evaluating this method's performance on a larger test set before betting that this approach will consistently beat the market
+```{r}
+(cm <- table(qda_preds$class,test$Direction)) # confusion matrix
+
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+
+confusionMatrix(as.factor(qda_preds$class), test$Direction) 
+cat("\nTest Error Rate: ", 1 - accuracy)
+```
+
+Interestingly, QDA predictions = accurate ~60 % of the time, even though the 2005 (test) data was not used to fit the model. This level of accuracy is quite impressive for stock market data, which is known to be quite hard to model accurately. 
+
+*This suggests the quadratic form assumed by QDA may capture the true relationship more accurately than linear forms assumed by LDA + logistic regression*. However, we recommend evaluating this method's performance on a *larger* test set before betting that this approach will consistently beat the market
 
 ## 4.6.5 K-Nearest Neighbors
 
-Perform KNN using `knn()` from `class` library which works differently from other classification model-fitting functions = `knn()` forms predictions w/ a single command vs. 2-step approach used before + requires 4 inputs.
+Perform KNN using `knn()` from `class` library, which works differently from other classification model-fitting functions, since `knn()` requires 4 inputs + forms predictions w/ a single command vs. 2-step approach used before.
 
-* matrix containing predictors associated w/ training data = `train.X`
-* matrix containing predictors associated w/ test data = `test.X`
-* vector containing class labels for training = `train.Direction`
+* matrix containing predictors associated w/ training data = `train_x`
+* matrix containing predictors associated w/ test data = `test_x`
+* vector containing class labels for training = `train_labels`
 * value for `K` = # of nearest neighbors to be used by classifier.
 
-Use `cbind()` to bind Lag1 + Lag2 together into 2 matrices, 1 for training + 1 for test
+Use `cbind()` to bind `Lag1` + `Lag2` together into 2 matrices, 1 for training + 1 for test
 ```{r}
 library(class)
 
@@ -290,7 +282,8 @@ train_x <- cbind(train$Lag1,train$Lag2)
 test_x <- cbind(test$Lag1,test$Lag2)
 train_labels <- train$Direction
 ```
-Now knn() can be used to predict the market's movement for dates in 2005. Set a random seed before knn() b/c if several observations = tied as nearest neighbors, R will randomly break the tie. Therefore, a seed must be set in order to ensure reproducibility of results.
+
+Now use `knn()` to predict market movement for dates in 2005. Set a random seed before `knn()` b/c if several observations = tied as nearest neighbors, R randomly breaks the tie. Therefore, a seed must be set in order to ensure reproducibility of results.
 ```{r}
 set.seed(1)
 
@@ -298,20 +291,13 @@ knn_preds <- knn(train = train_x, test = test_x, cl = train_labels, k = 1) # cl 
 
 (cm <- table(knn_preds,test$Direction)) # confusion matrix
 
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+confusionMatrix(as.factor(knn_preds), test$Direction) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-Results using K = 1 = not very good = only 50% of test observations = correctly predicted. Of course, it may be that K = 1 gives an
-overly flexible fit to the data. Below, we repeat the analysis using K = 3.
+Results using $K = 1$ = not very good = only 50% accuracy on test observations. Of course, it may be that $K = 1$ gives an overly-flexible fit to the data. Below, repeat the analysis using $K = 3$.
 
 ```{r}
 set.seed(1)
@@ -320,19 +306,13 @@ knn_preds <- knn(train = train_x, test = test_x, cl = train_labels, k = 3) # cl 
 
 (cm <- table(knn_preds,test$Direction)) # confusion matrix
 
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+confusionMatrix(as.factor(knn_preds), test$Direction) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-Results have improved slightly. But increasing K further turns out to provide no further improvements. 
+Results have improved slightly. But increasing $K$ further turns out to provide no further improvements. 
 ```{r}
 set.seed(1)
 
@@ -340,19 +320,13 @@ knn_preds <- knn(train = train_x, test = test_x, cl = train_labels, k = 8) # cl 
 
 (cm <- table(knn_preds,test$Direction)) # confusion matrix
 
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+confusionMatrix(as.factor(knn_preds), test$Direction) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-It appears that for this data, QDA provides best results of above methods.
+It appears that ***for this data, QDA provides best results of above methods***
 
 ### 4.6.6 An Application to Caravan Insurance Data
 
@@ -363,13 +337,13 @@ dim(Caravan)
 prop.table(table(Caravan$Purchase))
 ```
 
-B/c KNN classifier predicts class of a given test observation by IDing observations that're nearest to it, **scale of the variables matters**. Any variables on a large scale = have a much larger effect on distance between observations, + therefore on the KNN classifier, than variables on a small scale. 
+***B/c KNN classifier predicts class of a given test observation by IDing observations that're nearest to it, SCALE of the variables matters***. Any variables on a *large scale* = have a much *larger effect* on distance between observations, + therefore on the KNN classifier, than variables on a small scale. 
 
-* Ex: data set w/ 2 variables, salary + age (measured in dollars +years, respectively): As far as KNN is concerned, a difference of $1k in salary = enormous compared to a difference of 50 years in age. Consequently, salary drives KNN classification results + age will have almost no effect, contrary to intuition that salary difference = $1k = quite small compared to age difference of 50 years
+* Ex: data set w/ 2 variables, `salary` + `age` (measured in $ + years, respectively): As far as KNN is concerned, a difference of $1k in `salary` = enormous compared to a difference of 50 years in age. Consequently, salary drives KNN classification results + age will have almost no effect, contrary to intuition that `salary` difference = $1k = quite small compared to age difference of 50 years
 
-Furthermore importance of scale to KNN classifier leads to another issue: if we measured salary in Japanese yen or age in minutes, we'd get quite different results from if these 2 variables are measured in dollars and years.
+Furthermore, importance of scale to KNN classifier leads to another issue: if we measured `salary` in Japanese yen or `age` in minutes, we'd get quite different results from if these 2 variables are measured in $ and years.
 
-Good way to handle = **standardize the data so that all standardized variables have mean = zero + a SD = 1**, so all variables will be on a comparable scale. `scale()` does this. In standardizing the data, exclude col 86 (qualitative `Purchase`)
+Good way to handle = **standardize the data so that all standardized variables have $\mu$ = zero + a $\sigma$ = 1**, so all variables will be on a comparable scale. `scale()` does this. In standardizing the data, exclude col 86 (the qualitative `Purchase`)
 ```{r}
 std_x <- scale(Caravan[,-86])
 var(Caravan[,1])
@@ -378,7 +352,7 @@ var(std_x[,1])
 var(std_x[,2])
 ```
 
-Now every col of std_x has a SD = 1 + mean = 0 ==> now split observations into a test set w/ 1st 1K observations + a training set w/remaining observations + fit a KNN model on training data w/ K = 1, + evaluate its performance on test data.
+Now every col of `std_x` has a $\sigma$ = 1 + $\mu$ = 0 ==> now split observations into a test set w/ 1st 1K observations + a training set w/remaining observations + fit a KNN model on training data w/ $K = 1$, + evaluate its performance on test data.
 ```{r}
 train_x <- std_x[-(1:1000),]
 test_x <- std_x[1:1000,]
@@ -389,23 +363,16 @@ set.seed(1)
 
 knn_preds <- knn(train_x,test_x,train_y,k=1)
 
-(cm <- table(knn_preds,test_y)) # confusion matrix
+cm <- table(knn_preds,test_y) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
-
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+confusionMatrix(as.factor(knn_preds), test_y) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-KNN error rate on the 1k test observations = just under 12%. At first glance, this may appear to be fairly good. However, since only 6% of customers purchased insurance, we could get the error rate down to 6% by always predicting `No`, regardless of the values of the predictors.
+KNN error rate on the 1k test observations = just under 12%. At first glance, this may appear to be fairly good. ***However, since only 6% of customers purchased insurance, we could get the error rate down to 6% by always predicting `No`, regardless of the values of the predictors.***
 
-Suppose there is some non-trivial cost to trying to sell insurance to a given individual (ex: salesperson must visit each potential customer). If company tries to sell insurance to a random selection of customers, success rate will be only 6%, which may be far too low given costs involved. Instead, company would like to try to sell insurance only to customers likely to buy. So, *overall* error rate = not of interest +, instead, the fraction of individuals *correctly predicted to buy insurance* = IS of interest. Turns out `K = 1` ==> does far better than random guessing among customers predicted to buy insurance. Among 77 such customers, 9, or 11.7%, actually *do* purchase insurance (**Sensitivity**) = double the rate one would obtain from random guessing.
+Suppose there is some non-trivial cost to trying to sell insurance to a given individual (ex: salesperson must visit each potential customer). If company tries to sell insurance to a random selection of customers, success rate will be only 6%, which may be far too low given costs involved. Instead, company would like to try to sell insurance only to customers likely to buy. So, *overall* error rate = not of interest +, instead, the *fraction of individuals correctly predicted to buy insurance* IS of interest (`Neg Pred Value`). Turns out $K = 1$ does far better than random guessing among customers predicted to buy insurance. Among 77 such customers, 9, or 11.7%, actually *do* purchase insurance = double the rate one would obtain from random guessing.
 
 ```{r}
 train_x <- std_x[-(1:1000),]
@@ -417,21 +384,14 @@ set.seed(1)
 
 knn_preds <- knn(train_x,test_x,train_y,k=3)
 
-(cm <- table(knn_preds,test_y)) # confusion matrix
+cm <- table(knn_preds,test_y) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
-
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+confusionMatrix(as.factor(knn_preds), test_y) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-Using `K = 3`, success rate increases to 20%
+Using $K = 3$, success rate (`Neg Pred Value`) increases to 20%
 
 ```{r}
 train_x <- std_x[-(1:1000),]
@@ -443,23 +403,16 @@ set.seed(1)
 
 knn_preds <- knn(train_x,test_x,train_y,k=5)
 
-(cm <- table(knn_preds,test_y)) # confusion matrix
+cm <- table(knn_preds,test_y) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
-
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+confusionMatrix(as.factor(knn_preds), test_y) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-W/ `K = 5`, success rate = 26.7%, > 4X the rate resulting from random guessing. It appears KNN is finding some real patterns in a difficult data set.
+W/ $K = 5$, success rate = 26.7% => 4X the rate resulting from random guessing  (6% for always predicting `No`). It appears KNN is finding some real patterns in a difficult data set.
 
-As a comparison, fit a logistic regression model to the data w/ 0.5 as a threshold predicted probability cut-off for the classifier, 
+As a comparison, fit a logistic regression model to the data w/ 0.5 as a threshold/cut-off for predicted probability for the classifier:
 ```{r}
 train <- Caravan[-(1:1000),]
 test <- Caravan[1:1000,]
@@ -470,367 +423,24 @@ glm_probs <- predict(glm_fit, test, type="response")
 glm_preds <- rep("No",1000)
 glm_preds[glm_probs > .5] <- "Yes"
 
-(cm <- table(glm_preds,test$Purchase)) # confusion matrix
+cm <- table(glm_preds,test$Purchase) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
-
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+confusionMatrix(as.factor(glm_preds), test$Purchase) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-We have a problem: only 7 test observations are predicted to purchase insurance. **Even worse, we are wrong about all of these!** However, we are **not required to use a cut-off of 0.5**. If we instead predict a purchase any time predicted probability of purchase > 0.25, we get much better results
+We have a problem: only 7 test observations are predicted to purchase insurance. **Even worse, we are wrong about all of these!** However, we are **not required to use a cut-off of 0.5**. If we instead *predict a purchase any time predicted probability of purchase > 0.25*, we get much better results
 
 ```{r}
 glm_preds <- rep("No",1000)
 glm_preds[glm_probs > .25] <- "Yes"
 
-(cm <- table(glm_preds,test$Purchase)) # confusion matrix
-
-sensitivity <- cm[4] / (cm[4] + cm[2]) # true positive rate = TP / (TP + FN)
-specificity <- cm[1] / (cm[1] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[2]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_test_preds==Direction)
-
-cat("\nSensitivity (TP rate): ",sensitivity)
-cat("\nSpecificity (TN rate or Recall): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_test_preds==Direction)
-cat("\nTest Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
-```
-
-We predict 33 people will purchase insurance + are correct for about 33 % of these people = > 5X better than random guessing!
-
-## 4.7 Exercises
-###Conceptual
-**1. Using a little bit of algebra, prove that (4.2) is equivalent to (4.3). In other words, the logistic function representation and logit representation for the logistic regression model are equivalent.**
-
-* 4.2 = `p(X) = (exp(B0 + B1\*X))/(1+exp(B0 + B1\*X)))`
-* 4.3 = `p(X)/(1-p(X)) = exp(B0 + B1\*X)`
-* From 4.3: 
-\[= \frac {\frac {e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}}
-        {1 - \frac {e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}}
-\\
-= \frac {\frac {e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}}
-        {
-          \frac {1 + e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}
-          - \frac {e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}
-        }
-\\
-= \frac {\frac {e^{\beta_0 + \beta_1 X}} {1 + e^{\beta_0 + \beta_1 X}}}
-        {\frac {1} {1 + e^{\beta_0 + \beta_1 X}}}
-\]        
-
-**2. Classifying an observation to the class for which (4.12)** $p_k(x) = \frac {\pi_k \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_k)^2)}{\sum {\pi_l \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_l)^2) }}$
-**is largest = equivalent to classifying an observation to the class for which *the discriminant function* (4.13) $\delta_k(x) = x \frac {\mu_k} {\sigma^2} - \frac {\mu_k^2} {2 \sigma^2} + \log(\pi_k)$ is largest. Prove that this is the case. In other words, under the assumption the observations in the kth class are drawn from a $ N(\mu_k, \sigma^2)$ distribution, the Bayes' classifier assigns an observation to the class for which the discriminant function is maximized.**
-
-* ***NOTE***: **LDA** = model distribution of predictors `X` separately in each of response class (given `Y`s) + use Bayes’ theorem to flip these around into estimates for `Pr(Y = k|X = x)`
-
-* Fix `x` + observe that we're maximizing over parameter `k`. Suppose that $\delta_k(x) \geq \delta_i(x)$, show that $f_k(x) \geq f_i(x)$. 
-* Assuming $\delta_k(x) \geq \delta_i(x)$, we can write $x \frac {\mu_k} {\sigma^2} - \frac {\mu_k^2} {2 \sigma^2} + \log(\pi_k) \geq x \frac {\mu_i} {\sigma^2} - \frac {\mu_i^2} {2 \sigma^2} + \log(\pi_i)$
-* Exponentiation = a **monotonically increasing** (entirely non-decreasing) function, so we can exponentiate and write $\pi_k \exp (x \frac {\mu_k} {\sigma^2} - \frac {\mu_k^2} {2 \sigma^2}) \geq \pi_i \exp (x \frac {\mu_i} {\sigma^2} - \frac {\mu_i^2} {2 \sigma^2})$
-
-* Multipy both sides by constant $c = \frac { \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} x^2)} {\sum { \pi_l \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_l)^2)}}$
-
-* Gives $\frac {\pi_k \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_k)^2)}{\sum {\pi_l \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_l)^2) }} \geq \frac {\pi_i \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_i)^2)}{\sum {\pi_l \frac {1} {\sqrt{2 \pi} \sigma} \exp(- \frac {1} {2 \sigma^2} (x - \mu_l)^2) }}$ 
-
-* This is the same as $f_k(x) \geq f_i(x)$ and can be reversed to prove that maximizing $\delta_k(x)$ is the same as maximizing $p_k(x)$
-
-**3. This problem relates to the QDA model, in which observations w/in each class are drawn from a normal distribution w/ a class-specific mean vector + a class-specific covariance matrix. Consider the simple case where `p = 1` = only 1 feature. Suppose we have `K` classes, + if an observation belongs to the `k`th class, then `X` comes from a 1D normal distribution: $X \sim N(\mu_k, \sigma_k^2)$ Recall the density function for the 1D normal distribution is given in (4.11): $f_k(x) = \frac {1} {\sqrt{2 \pi} \sigma_k} \exp(- \frac {1} {2 \sigma_k^2} (x - \mu_k)^2)$ Prove that in this case, the Bayes' classifier ($Pr(Y = 1|X = x_0) > 0.5$) is *not* linear. Argue that it is in fact quadratic.**
-
-* **Hint: For this problem, you should follow the arguments laid out in Section 4.4.2, but without making the assumption that $\sigma_1^2  = ... = \sigma_K^2$ = (shared variance term across all K classes)**
-* $\mu_k$ and $\simga_k^2$ =k are mean + variance parameters for kth class.
-* Now, we are NOT making the shared variance assumtion
-* Plugging (4.11) into (4.10) $Pr(Y = 1|X = x) = \frac {\pi_k f_k(x)} {\sum_{l=1}^K \pi_l f_l(x)}$, we find that
-
-where n is the total number of training observations, and nk is the number
-of training observations in the kth class. The estimate for μk is simply the
-average of all the training observations from the kth class, while ˆσ2 can
-be seen as a weighted average of the sample variances for each of the K
-classes. Sometimes we have knowledge of the class membership probabilities
-π1,...,πK, which can be used directly. In the absence of any additional
-information, LDA estimates πk using the proportion of the training observations
-that belong to the kth class. In other words,
-
-**4. When the number of features p is large = tends to be deterioration in performance of KNN + other *local* approaches that perform prediction using only observations near the test observation = *curse of dimensionality*, which ties into the fact that *non-parametric approaches often perform poorly when p is large.* We will now investigate this curse.**
-
-**(a) Suppose we have a set of observations, each w/ measurements on p = 1 feature, `X`. Assume `X` = uniformly (evenly) distributed on [0, 1]. Associated w/ each observation = a response value. Suppose we wish to predict a test observation's response using only observations w/in 10 % of the range of X values that're closest to that test observation. For instance, in order to predict the response for a test observation with X = 0.6, use observations in the range [0.55, 0.65]. On average, what fraction of the available observations will we use to make the prediction?**
-
-* 
-
-**(b) Now suppose that we have a set of observations, each with measurements on p = 2 features, X1 and X2. We assume that (X1, X2) are uniformly distributed on [0, 1] ? [0, 1]. We wish to predict a test observation's response using only observations thatare within 10 % of the range of X1 and within 10 % of the range of X2 closest to that test observation. For instance, in order to predict the response for a test observation with X1 = 0.6 and X2 = 0.35, we will use observations in the range [0.55, 0.65] for X1 and in the range [0.3, 0.4] for X2. On average, what fraction of the available observations will we use to make the prediction?**
-
-**(c) Now suppose that we have a set of observations on p = 100 features. Again the observations are uniformly distributed on each feature, and again each feature ranges in value from 0 to 1. We wish to predict a test observation's response using observations within the 10 % of each feature's range that is closest to that test observation. What fraction of the available observations will we use to make the prediction?**
-
-**(d) Using your answers to parts (a)-(c), argue that a drawback of KNN when p is large is that there are very few training observations "near" any given test observation.**
-
-**(e) Now suppose that we wish to make a prediction for a test observation by creating a p-dimensional hypercube centered around the test observation that contains, on average, 10 % of the trainingobservations. For p = 1, 2, and 100, what is the length of each side of the hypercube? Comment on your answer.**
-
-* **Note: A hypercube is a generalization of a cube to an arbitrary number of dimensions. When p = 1, a hypercube is simply a line segment, when p = 2 it is a square, and when p = 100 it is a 100-dimensional cube.**
-
-**5. We now examine the differences between LDA and QDA.**
-
-**(a) If the Bayes decision boundary is linear, do we expect LDA or QDA to perform better on the training set? On the test set?**
-
-**(b) If the Bayes decision boundary is non-linear, do we expect LDA or QDA to perform better on the training set? On the test set?**
-
-**(c) In general, as the sample size n increases, do we expect the test prediction accuracy of QDA relative to LDA to improve, decline, or be unchanged? Why?**
-
-**(d) True or False: Even if the Bayes decision boundary for a given problem is linear, we will probably achieve a superior test error rate using QDA rather than LDA because QDA is flexible enough to model a linear decision boundary. Justify your answer.**
-
-**6. Suppose we collect data for a group of students in a statistics class with variables X1 = hours studied, X2 = undergrad GPA, and Y = receive an A. We fit a logistic regression and produce estimated coefficient, ??^0 = ???6, ??^1 = 0.05, ??^2 = 1.**
-
-**(a) Estimate the probability that a student who studies for 40 h and has an undergrad GPA of 3.5 gets an A in the class.**
-
-**(b) How many hours would the student in part (a) need to study to have a 50 % chance of getting an A in the class?**
-
-**7. Suppose that we wish to predict whether a given stock will issue a dividend this year ("Yes" or "No") based on X, last year's percentprofit. We examine a large number of companies and discover that themean value of X for companies that issued a dividend was X? = 10, while the mean for those that didn't was X? = 0. In addition, the variance of X for these two sets of companies was ^??2 = 36. Finally, 80 % of companies issued dividends. Assuming that X follows a normal distribution, predict the probability that a company will issue a dividend this year given that its percentage profit was X = 4 last year.**
-
-* **Hint: Recall that the density function for a normal random variable is f(x) = ??? 1 2????2 e???(x?????)2/2??2 . You will need to use Bayes' theorem.**
-
-**8. Suppose that we take a data set, divide it into equally-sized training and test sets, and then try out two different classification procedures. First we use logistic regression and get an error rate of 20 % on the training data and 30 % on the test data. Next we use 1-nearest neighbors (i.e. K = 1) and get an average error rate (averaged over both test and training data sets) of 18 %. Based on these results, which method should we prefer to use for classification of new observations? Why?**
-
-**9. This problem has to do with odds.**
-
-**(a) On average, what fraction of people with an odds of 0.37 of defaulting on their credit card payment will in fact default?**
-
-**(b) Suppose that an individual has a 16 % chance of defaulting on her credit card payment. What are the odds that she will default?**
-
-## Applied
-**10. This question should be answered using the Weekly data set from ISLR package = similar to `Smarket` data but contains 1089 weekly returns for 21 years, from beginning of 1990 to end of 2010**
-```{r}
-library(ISLR)
-```
-**(a) Produce some numerical and graphical summaries of the Weeklydata. Do there appear to be any patterns?**
-```{r}
-summary(Weekly)
-pairs(Weekly)
-
-library(tidyverse)
-Weekly[,1:8] %>%
-  cor()
-
-library(ggplot2)
-
-Weekly %>%
-  mutate(rowNum = as.numeric(row.names(Weekly))) %>%
-  ggplot(aes(rowNum,Volume)) + 
-    geom_point() + 
-    labs(x="Index",main="Volume of trades over Time")
-#plot(Smarket$Volume)
-```
-
-* Looks like an exponential increase starting @ index = ~700-900, and Year and Volume look to have an exponential relationship as well.
-
-**(b) Use the full data set to perform a logistic regression with Direction = response + the 5 lag variables + Volume as predictors. Use summary() to print the results. Do any of the predictors appear to be statistically significant? If so, which ones?**
-```{r}
-glm_fit <- glm(Direction ~ . - Year - Today, Weekly, family="binomial")
-summary(glm_fit)
-```
-
-* It appears that Lag2 is statistically significant (barely)
-
-**(c) Compute the confusion matrix + overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression.**
-```{r}
-glm_probs <- predict(glm_fit,type="response") # no newdata arg =  predict probability on training data used to fit model
-
-glm_preds <- rep("Down",nrow(Weekly))   # create vector of 1089 Down elements.
-glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
-True <- Weekly$Direction
-(cm <- table(glm_preds,True)) # confusion matrix
-
-sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
+cm <- table(glm_preds,test$Purchase) # confusion matrix
 accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
 
-cat("\nFOR PREDICTING DOWN:")
-cat("\nSensitivity (TP rate or Recall): ",sensitivity)
-cat("\nSpecificity (TN rate): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
-cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
-
-library(caret)
-#loads library "caret"
-cat("\n")
-confusionMatrix(as.factor(glm_preds), Weekly$Direction) 
+confusionMatrix(as.factor(glm_preds), test$Purchase) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-* Our logistic regression model has an accuracy of 56% with a training error rate of 44%. For this days the market did increase, we were right ~56.5% of the time (Neg Pred Value), and for those days where the market did not increase, we were correct 53% of the time (Pos Pred Value). With a sensitivity of 11% and specificity of 92%, this model is good at predicting when the market will go up, but not so much as to when it will go down.
-
-**(d) Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010).**
-```{r}
-train <- subset(Weekly,Year%in% c(1990:2008))
-test <- subset(Weekly,Year >= 2009)
-
-glm_fit <- glm(Direction ~ Lag2, train, family="binomial")
-summary(glm_fit)
-
-glm_probs <- predict(glm_fit,test,type="response") # no newdata arg =  predict probability on training data used to fit model
-
-glm_preds <- rep("Down",nrow(test))   # create vector of 1089 Down elements.
-glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
-True <- test$Direction
-(cm <- table(glm_preds,True)) # confusion matrix
-
-sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
-npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
-
-cat("\nFOR PREDICTING DOWN:")
-cat("\nSensitivity (TP rate or Recall): ",sensitivity)
-cat("\nSpecificity (TN rate): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nNegative Predictive Value: ",npv)
-cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
-cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
-
-#library(caret)
-#cat("\n")
-#confusionMatrix(as.factor(glm_preds), Weekly$Direction) 
-```
-
-* Our logistic regression model has an accuracy of 62.5% with a training error rate of 37.5%. For the days the market did increase, we were right ~62% of the time (Neg Pred Value), and for those days where the market did not increase, we were correct 64% of the time (Pos Pred Value). With a sensitivity of 21% and specificity of 92%, this model is good at predicting when the market will go up, but not so much as to when it will go down.
- 
-**(e) Repeat (d) using LDA.**
-```{r}
-lda_fit <- lda(Direction ~ Lag2, train)
-#summary(lda_fit)
-
-plot(lda_fit)
-
-lda_preds <- predict(lda_fit,test)
-#names(lda_preds)
-True <- test$Direction
-(cm <- table(lda_preds$class,True)) # confusion matrix
-
-sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
-npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
-
-cat("\nFOR PREDICTING DOWN:")
-cat("\nSensitivity (TP rate or Recall): ",sensitivity)
-cat("\nSpecificity (TN rate): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nNegative Predictive Value: ",npv)
-cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
-cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
-```
-
-* Our LDA model is the same as our logistic regression.
-
-**(f) Repeat (d) using QDA.**
-
-```{r}
-qda_fit <- qda(Direction ~ Lag2, train)
-qda_preds <- predict(qda_fit,test)
-
-True <- test$Direction
-(cm <- table(qda_preds$class,True)) # confusion matrix
-
-sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
-npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
-
-cat("\nFOR PREDICTING DOWN:")
-cat("\nSensitivity (TP rate or Recall): ",sensitivity)
-cat("\nSpecificity (TN rate): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nNegative Predictive Value: ",npv)
-cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
-cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
-```
-
-* Our QDA model has an accuracy of ~59% with a training error rate of ~41%. For the days the market did increase, we were right ~58% of the time (Neg Pred Value), and for those days where the market did not increase, we were never correct (Pos Pred Value). With a sensitivity of 0% and specificity of 100%, this model perfectly predicts when the market will go up, but always fails to correctly predict when will go down.
-* ***he proportion of negatives that are correctly identified as such (e.g. the percentage of healthy people who are correctly identified as not having the condition).***
-* So, even thought the QDA predicted "Up" every day, it was accurate > 58% of the time.
-
-**(g) Repeat (d) using KNN with K = 1.**
-```{r, eval=F}
-train_x_k <- train$Lag2
-test_x_k <- test$Lag2
-train_labels <- train$Direction
-
-set.seed(1)
-
-knn_preds <- knn(train = train_x, test = test_x, cl = train_labels, k = 1) # cl = class labels
-
-(cm <- table(knn_preds,test$Direction)) # confusion matrix
-
-sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
-npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
-
-cat("\nFOR PREDICTING DOWN:")
-cat("\nSensitivity (TP rate or Recall): ",sensitivity)
-cat("\nSpecificity (TN rate): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nNegative Predictive Value: ",npv)
-cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
-cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
-```
-
-* Our KNN model with K = 1 has an accuracy of ~48% with a training error rate of ~52%. For the days the market did increase, we were right ~56% of the time (Neg Pred Value), and for those days where the market did not increase, we correct 39% of the time (Pos Pred Value). With a sensitivity of 42% and specificity of 52%, we've correctly predicted 42% of days when the market went down and correctly predicted 52% of days when the market went up.
-
-**(h) Which of these methods appears to provide the best results on this data?**
-
-* We have accuracies of 62.5% for our logistic regression and our LDA models, and an accuracy of ~59% with our QDA model, and finally an accuracy of 48% with our KNN model.
-
-**(i) Experiment with different combinations of predictors, including possible transformations and interactions, for each of the methods. Report the variables, method, and associated confusion matrix that appears to provide the best results on the held out data. Note that you should also experiment with values for K in the KNN classifier.**
-
-**11. In this problem, you will develop a model to predict whether a given car gets high or low gas mileage based on the Auto data set.**
-
-**(a) Create a binary variable, mpg01, that contains a 1 if mpg contains a value above its median, and a 0 if mpg contains a value below its median. You can compute the median using the median()function. Note you may find it helpful to use the data.frame() function to create a single data set containing both mpg01 and the other Auto variables.**
-
-**(b) Explore the data graphically in order to investigate the association between mpg01 and the other features. Which of the other features seem most likely to be useful in predicting mpg01? Scatterplots and boxplots may be useful tools to answer this question. Describe your findings.**
-
-**(c) Split the data into a training set and a test set.**
-
-**(d) Perform LDA on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained?**
-
-**(e) Perform QDA on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained?**
-
-**(f) Perform logistic regression on the training data in order to predict mpg01 using the variables that seemed most associated with mpg01 in (b). What is the test error of the model obtained?**
-
-**(g) Perform KNN on the training data, with several values of K, in order to predict mpg01. Use only the variables that seemed most associated with mpg01 in (b). What test errors do you obtain? Which value of K seems to perform the best on this data set?**
-
-**12. This problem involves writing functions.**
-
-**(a) Write a function, Power(), that prints out the result of raising 2 to the 3rd power. In other words, your function should compute 23 and print out the results.**
-
-* **Hint: Recall that x^a raises x to the power a. Use the print() function to output the result.**
-
-**(b) Create a new function, Power2(), that allows you to pass any two numbers, x and a, and prints out the value of x^a. You can do this by beginning your function with the line**
-> Power2=function (x,a){
-**You should be able to call your function by entering, for instance,**
-> Power2 (3,8) 
-**on the command line. This should output the value of 38, namely, 6, 561.**
-
-**(c) Using the Power2() function that you just wrote, compute 103, 817, and 1313.**
-
-**(d) Now create a new function, Power3(), that actually returns the result x^a as an R object, rather than simply printing it to the screen. That is, if you store the value x^a in an object called result within your function, then you can simply return() this return() result, using the following line:**
-
-return(result)
-**The line above should be the last line in your function, before the } symbol.**
-
-**(e) Now using the Power3() function, create a plot of f(x) = x2. The x-axis should display a range of integers from 1 to 10, and the y-axis should display x2. Label the axes appropriately, and use an appropriate title for the figure. Consider displaying either the x-axis, the y-axis, or both on the log-scale. You can do this by using log=''x'', log=''y'', or log=''xy'' as arguments to the plot() function.**
-
-**(f) Create a function, PlotPower(), that allows you to create a plot of x against x^a for a fixed a and for a range of values of x. For instance, if you call**
-> PlotPower (1:10,3)
-**then a plot should be created with an x-axis taking on values 1, 2,..., 10, and a y-axis taking on values 13, 23,..., 103.**
-
-**13. Using the Boston data set, fit classification models in order to predict whether a given suburb has a crime rate above or below the median. Explore logistic regression, LDA, and KNN models using various subsets of the predictors. Describe your findings.**
+We predict 33 people will purchase insurance + are correct for about 33% of these people = > ~ 5X better than random guessing!
