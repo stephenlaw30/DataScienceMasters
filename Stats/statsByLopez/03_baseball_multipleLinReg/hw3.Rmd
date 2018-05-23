@@ -134,26 +134,46 @@ Which of the three runs created metrics more strongly correlates with its own fu
 
 Which of the three runs created metrics more strongly correlates with `f_RC1`? What does this suggest?
 
-* It appears that `RC3` correlates the strongest with `f_RC1`, but `f_RC3` is basically the same. This suggests
+* It appears that `RC3` correlates the strongest with `f_RC1`, but `f_RC3` is basically the same. 
+* This suggests that some factor that is included in `RC3` is influential in predicting future `RC` values (offensive production)
+* Could argue each formula is basically the same in terms of predictive power, as their correlations with future `RC` factors are basically the same
+* Would then want to use the less complex metric
 
 ## Question 8
 
-Make a pair of scatter plots: `f.RC1` versus `RC1`, and `f.RC3` versus `RC3`. Is the difference in correlations between each pair of variables obvious in the scatter plots?
+Make a pair of scatter plots: `f_RC1` versus `RC1`, and `f_RC3` versus `RC3`. Is the difference in correlations between each pair of variables obvious in the scatter plots?
+
+```{R}
+lattice::xyplot(f_RC1~RC1,batting_2,main='Runs Created 1')
+lattice::xyplot(f_RC3~RC3,batting_2,main='Runs Created 2')
+```
+
+* The scatterplots are pretty much identical, and the different in $r$ is not noticeable.
 
 ## Question 9
 
-In place of correlation, a useful tool for measuring predictive accuracy is mean absolute error (MAE). In R, the MAE between two variables of the same length can be calculated as follows:
-
+In place of correlation, a useful tool for measuring predictive accuracy is **mean absolute error (MAE)**. In R, the **MAE** between two variables of the same length can be calculated as follows:
 ```{r}
 x <- c(6, 10, 10)
 y <- c(10, 10, 8)
-MAE <- mean(abs(x-y))
-MAE
+(MAE <- mean(abs(x-y)))
 ```
 
-Calculate the MAE between between each of the following three variable pairs: `RC1` and `f.RC1`, `RC2` and `f.RC2`, and `RC3` and `f.RC3`.
+Calculate the MAE between between each of the following 3 variable pairs: `RC1` and `f_RC1`, `RC2` and `f_RC2`, and `RC3` and `f_RC3`.
+
+```{r}
+(MAE_1 <- mean(abs(batting_2$RC1-batting_2$f_RC1)))
+(MAE_2 <- mean(abs(batting_2$RC2-batting_2$f_RC2)))
+(MAE_3 <- mean(abs(batting_2$RC3-batting_2$f_RC3)))
+```
+
+* $MAE$ is also incredibly similar for the relationships between the Runs Created formulas and their future performance
 
 ## Question 10
 
-Interpret the MAE between `RC1` and `f.RC1`. Is there a noticeable difference between your MAE's found in question 9?  What does this suggest about the more complicated `RC3` formula?
+Interpret the $MAE$ between `RC1` and `f_RC1`. Is there a noticeable difference between your $MAE$'s found in question 9?  What does this suggest about the more complicated `RC3` formula?
+
+* $MAE$ = simplest measure of forecast accuracy (average absolute value of the difference between forecasted value vs. actual value) * tells us how big of an error we can expect from the forecast *on average*
+* So, $MAE = 16.43458$ suggests that our average error from our forecasted value of `RC` using `RC1` is about 16 and a half runs
+* There is no noticable different between the three $MAE$'s above, which suggests the more complicated `RC3` is not necessarily better, as far as repeatability goes.
 
