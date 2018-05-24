@@ -30,18 +30,20 @@ Let’s start with some basic data analysis, which should be the first thing we 
 
 ```{r}
 bwplot(Distance ~ as.factor(Year), nfl_kick)
-tally(Success ~ Grass, data = nfl_kick, format = "proportion")
-tally(Success ~ GameMinute >= 57, data = nfl_kick, format = "proportion")
 ```
 **1. Describe the distributions of field goal distance by year. Do there appear to be any changes over time? Note In the R-command, we turn `Year` into a factor for the boxplot. `Year` can be treated as either categorical or continuous.**
 
-* There appears to be no real different in the overall IQR (spread) nor median (center) of FG distance by year, with Q1 being basically the same for all years, and Q3 fluctuating but not too widly
-* There is a but more variance in 2011 (taller box), and 2008 is the only year with some long outliers
+* There appears to be no real difference in the overall IQR (spread) nor median (center) of FG distance by year, with Q1 being basically the same for all years, and Q3 fluctuating but not too widly
+* There is a bit more variance in 2011 (taller box), and 2008 is the only year with some long outliers
 ```{r}
-nfl_kick %>% filter(Year==2008) %>% arrange(desc(Distance)) %>% head()
+nfl_kick %>% filter(Year==2008) %>% arrange(desc(Distance)) %>% head(3)
 ```
 
 **2. Describe the link between success rates (`Success`) and `Grass` and the `GameMinute` variables.**
+```{r}
+tally(Success ~ Grass, data = nfl_kick, format = "proportion")
+tally(Success ~ GameMinute >= 57, data = nfl_kick, format = "proportion")
+```
 
 * Kickers appear to make more kicks if the field is indeed grass and that the kick does not take place within the final 3 minutes.
 
@@ -54,11 +56,32 @@ nfl_kick %>% filter(Year==2008) %>% arrange(desc(Distance)) %>% head()
 * **(i) identify if kickers on grass surfaces attempt shorter kicks than those on non-grass surfaces and**
 * **(ii) identify if there is any link between the distance of the kick and the game minute of the kick.**
 
-* 
+```{r}
+ggplot(nfl_kick,aes(Distance)) + 
+  geom_histogram(aes(group=Grass,fill=Grass),alpha=.5)
+```
+
+* It appears where just have more kicks overall that are *not* on grass, but with similar distributions (almost identical), so let's look at density (for proportions)
+
+```{r}
+ggplot(nfl_kick,aes(Distance)) + 
+  geom_density(aes(group=Grass,fill=Grass),alpha=.5)
+```
+
+* It looks like the proportion of kicks for both on and off Grass is the same, so kickers on grass surfaces do not seem to attempt shorter kicks than those on non-grass surfaces
+
+```{r}
+xyplot(Distance~GameMinute,nfl_kick)
+  #ggplot(nfl_kick,aes(GameMinute)) + 
+  #geom_histogram(binwidth = 5)
+```
+
+* The distribution appears to be very uniform, with *very* significant peaks at the end of the 2nd and 4th quarters, wherein teams do not have enough time to get any closer to the endzone and *must* kick in order to get points, and few observations occuring in overtime. 
+* So, I would say there does not appear to be too much of a link between the distance of the kick and the game minute of the kick other than at the end of the halves.
 
 ### Logistic regression
 
-At this point, we are aware that, overall, there seems to be a link between surface, distance, game minute, and field goal success. However, there’s also so correlation between a few of these predictors; kickers take longer field goals in the final few minutes of each half, for example. This makes it difficult to discern if the link between GameMinute and lower Success rates is real, or if its just simply because the kickers were kicking longer field goals.
+At this point, we are aware that, overall, there seems to be a link between surface, distance, game minute, and field goal success. However, there’s also so correlation between a few of these predictors; kickers take longer field goals in the final few minutes of each half, for example. This makes it difficult to discern if the link between `GameMinute` and lower `Success` rates is *real*, or if its just simply because the kickers were kicking longer field goals.
 
 We are going to walk through several logistic regression models of field goal kickers, with a focus on 
 
@@ -66,85 +89,106 @@ We are going to walk through several logistic regression models of field goal ki
 * (ii) interpreting the results, and, eventually 
 * (iii) linking back to the probability of a successful kick.
 
-First, let’s fit the model that we used in class on Tuesday $log \frac {P(Success = 1)} {1 - P(Success=1)} = \beta_0 + \beta_1Distance$
+First, let’s fit the model used in class $log \frac {P(Success = 1)} {1 - P(Success=1)} = \beta_0 + \beta_1Distance$
 ```{r}
 fit_1 <- glm(Success ~ Distance, nfl_kick, family = "binomial")
-msummary(fit.1)
+msummary(fit_1)
 ```
-We can write the estimated regression equation as:
-log(
-P (Success=1)
-1−P (Success=1) ) = 5.7246 + (−0.1026) ∗ Distance
-Estimated probabilities
-Recall, probability estimates can be made by transforming the above equation (written on the log-odds scale)
-into probabilities.
-P(Success = 1) = e
-5.7246+(−0.1026)∗Distance
-1+e
-5.7246+(−0.1026)∗Distance
-R will allow us to make such calculations quickly, and there are several ways to do this.
-First, we can use the exp() function to compute the exponential function. Let’s say we have a 50-yard field
-goal:
-phat.50 <- exp(5.7246 + (-0.1026)*50) / (1 + exp(5.7246 + (-0.1026)*50))
-phat.50
-Our model suggests that the probability of a successful 50-yard field goal is 64.4%.
-We can also use the predict() function in R to get the predicted probabilities for an assortment of distances.
-In the code below, the type = "response" ensures that the predictions are done on the probability scale (as
-opposed to, say, the log-odds scale).
-df.predict <- data.frame(Distance = c(20, 30, 40, 50, 60))
-pred <- predict(fit.1, df.predict, type = "response")
-pred
-Slope estimates from logistic regression
-Recall that the estimated slopes from a logistic regression model are given on the log-odds scale. We can
-exponentiate to get estimated odds ratio.
-2
+
+We can write the estimated regression equation as: $y = log(\frac {P(Success=1)} {1−P(Success=1)}) = \beta_0 + \beta_1Distance = 5.7246 - 0.1026Distance$
+
+### Estimated probabilities
+
+Recall, probability estimates can be made by transforming the above equation (written on the log-odds scale) into probabilities: $P(Success = 1) = \frac {e^{5.7246 − 0.1026Distance}} {1+e^{5.7246 − 0.1026Distance}}$
+
+R will allow us to make such calculations quickly, and there are several ways to do this. First, we can use the `exp()` function to compute the exponential function. Let’s say we have a 50-yard field goal:
+```{r}
+distance <- 50
+(p_hat_50 <- exp(5.7246 - 0.1026*distance) / (1 + exp(5.7246 - 0.1026*distance)))
+```
+
+Our model suggests that the probability of a successful 50-yard field goal is 64.4%. We can also use the `predict()` function in R to get the predicted probabilities for an assortment of distances. In the code below, the `type = "response"` ensures that the predictions are done on the *probability* scale (as opposed to, say, the *log-odds* scale).
+
+```{r}
+df_predict <- data.frame(Distance = c(20, 30, 40, 50, 60))
+(distance_predict <- predict(fit_1, df_predict, type='response'))
+```
+
+### Slope estimates from logistic regression
+
+Recall that the estimated slopes from a logistic regression model $\beta$ are given on the log-odds scale. We can exponentiate to get estimated odds ratio.
+
+```{r}
+# calculate estimated odds ratio by hand
 exp(-0.1026)
-exp(fit.1$coeff)
-exp(confint(fit.1))
-The first command calculated the estimated odds ratio by hand, while the second used the fact that R stores
-regression coefficients as coeff. In the third command, we use the confint command to get estimated
-confidence intervals for each parameter.
-In the logistic regression output, we also see an AIC value (more on that later), as well as a z-test statistic
-for each parameter. In this case, the estimated β1 is significantly different from 0. There is strong evidence
-that distance is linked to field goal success (shocker!).
-Multiple logistic regression
-Ultimately, we are interested in how several of our variables link to field goal success. Let’s create one model,
-fit.2, below.
+
+# calculate estimated odds ratio via stored regression coeffients in model
+exp(fit_1$coeff)
+
+# get estimated CI's for each parameter.
+exp(confint(fit_1))
+```
+
+In the logistic regression output, we also see an $AIC$ value (more on that later), as well as a $z$-test statistic for each parameter. In this case, the estimated $\beta_1$ is significantly different from 0. There is strong evidence that distance is linked to field goal success (shocker!)
+
+### Multiple logistic regression
+
+Ultimately, we are interested in how several of our variables link to field goal success. Let’s create one model, `fit_2`, below.
+```{r}
+# turn off R's scientific notation
 options(scipen=99)
-fit.2 <- glm(Success ~ Distance + Grass + Year + GameMinute,
-data = nfl.kick, family = "binomial")
-msummary(fit.2)
+
+fit_2 <- glm(Success ~ Distance + Grass + Year + GameMinute, nfl_kick, family='binomial')
+msummary(fit_2)
+```
+
 There’s a bunch to get to in this model. Let’s start by getting our estimated odds ratios:
-odds.ratios <- exp(fit.2$coeff)
-round(odds.ratios, 3)
-odds.intervals <- confint(fit.2)
-round(odds.intervals, 3)
-First, notice that the estimated effecet of Distance did not change much from fit.1. This suggests that,
-when including the other predictors, the link between Distance and Success remains the same.
-Next, Grass is a categorical variable. We interpret this as follows:
-Given ‘Year‘, ‘GameMinute‘, and ‘Distance‘, the odds of a successsful kick on grass surfaces are about 0.856
-times that of one kicked on non-grass surfaces.
-Given ‘Year‘, ‘GameMinute‘, and ‘Distance‘, the odds of a successful kick on grass surfaces are about 14.4%
-less than that of one kicked on non-grass surfaces.
-Either interpretation above is fine; I tend to think of the second one (relative percent odds) as more intuitive.
-In this model, Year and GameMinute are treated as continuous, and their interpretations would be similar to
-those for Distance.
-3
-On your own
-5. Interpret the coefficient on Year in fit.2 (using the odds-ratio scale).
-6. Using fit.2, estimate the probability of a successful 40-yard kick in 2010, made on a grass surface in
-the 10th minute of the game.
+```{r}
+(odds_ratio <- round(exp(fit_2$coefficients),3))
+(odds_intervals <- round(confint(fit_2),3))
+```
+
+First, notice that the estimated effect of `Distance` did not change much from `fit_1`. This suggests that, when including the other predictors, the link between `Distance` and `Success` remains the same. Next, `Grass` is a categorical variable. We interpret this as follows:
+
+* **Given `Year`, `GameMinute`, and `Distance` held fixed, the odds of a successsful kick on grass surfaces are ~`.856` times that of one kicked on non-grass surfaces**.
+* **Given `Year`, `GameMinute`, and `Distance` held fixed, the odds of a successful kick on grass surfaces are ~15.4% less than that of one kicked on non-grass surfaces**
+
+Either interpretation above is fine; I tend to think of the second one (**relative percent odds**) as more intuitive.
+
+In this model, `Year` and `GameMinute` are treated as continuous, and their interpretations would be similar to those for `Distance`.
+
+### On your own
+
+**5. Interpret the coefficient on `Year` in `fit_2` (using the odds-ratio scale).**
+
+*  **Given `Grass`, `GameMinute`, and `Distance` held fixed, for each increase in `Year`, the odds of a successsful kick are ~`1.056` times that of the previous year**
+
+6. Using `fit_2`, estimate the probability of a successful 40-yard kick in 2010, made on a grass surface in the 10th minute of the game.
+```{r}
+df_predict <- data.frame(Distance = 40, Year=2010, Grass=TRUE, GameMinute=10)
+(distance_predict_grass <- predict(fit_2, df_predict, type='response'))
+```
+
+* **We expect the kick to have a probability of ~82.5% of being successful**
+
 7. Do the same as in (5), only now using a non-grass surface.
-8. Turn your probility estimates from (5) and (6) into odds, and then take their ratio. Where else do you
-see this number?
-9. In the summary of fit.2, the coefficient for Grass is larger than the coefficient for Distance. Does
-this mean that surface is a more important predictor of field goal success than distance? If not, give a
-guess as to why the results are the way they are.
-10. There are several variables in this data set. Using the AIC criteria, identify the model that is the best
-fit for our Success outcome.
-11. One variable that is difficult to include in a regression model is the kicker himself. Using the idea of
-Expected points, think of ways that we can estimate the net benefit or harm of each kicker, at least
-based on their field goal attempts.
-12. Given your readings, are there any other variables that you would want to account for when measuring
-field goal success that aren’t in the current data set?
-4
+```{r}
+df_predict <- data.frame(Distance = 40, Year=2010, Grass=F, GameMinute=10)
+(distance_predict_non_grass <- predict(fit_2, df_predict, type='response'))
+```
+
+* **We expect the kick to have a probability of ~84.6% of being successful**
+
+8. Turn your probility estimates from (5) and (6) into odds, and then take their ratio. Where else do you see this number?
+```{r}
+log(distance_predict_grass)
+log(distance_predict_non_grass)
+```
+
+9. In the summary of `fit_2`, the coefficient for `Grass` is larger than the coefficient for `Distance`. Does this mean that surface is a more important predictor of field goal success than distance? If not, give a guess as to why the results are the way they are.
+
+10. There are several variables in this data set. Using the $AIC$ criteria, identify the model that is the best fit for our `Success` outcome.
+
+11. One variable that is difficult to include in a regression model is the kicker himself. Using the idea of Expected points, think of ways that we can estimate the net benefit or harm of each kicker, at least based on their field goal attempts.
+
+12. Given your readings, are there any other variables that you would want to account for when measuring field goal success that aren’t in the current data set?
