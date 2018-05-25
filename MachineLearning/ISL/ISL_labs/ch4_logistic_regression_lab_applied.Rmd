@@ -4,23 +4,28 @@ author: "Steve Newns"
 date: "May 23, 2018"
 output: html_document
 ---
-
-
+```{r,echo=F}
+knitr::opts_chunk$set(warning=FALSE,message=FALSE)
+```
 ## Applied
 **10. This question should be answered using the Weekly data set from ISLR package = similar to `Smarket` data but contains 1089 weekly returns for 21 years, from beginning of 1990 to end of 2010**
 ```{r}
 library(ISLR)
+library(tidyverse)
+library(ggplot2)
+library(mosaic)
+library(caret)
+library(MASS) #lda/qda
+library(class) #knn
 ```
+
 **(a) Produce some numerical and graphical summaries of the Weeklydata. Do there appear to be any patterns?**
 ```{r}
 summary(Weekly)
 pairs(Weekly)
 
-library(tidyverse)
 Weekly[,1:8] %>%
   cor()
-
-library(ggplot2)
 
 Weekly %>%
   mutate(rowNum = as.numeric(row.names(Weekly))) %>%
@@ -30,15 +35,15 @@ Weekly %>%
 #plot(Smarket$Volume)
 ```
 
-* Looks like an exponential increase starting @ index = ~700-900, and Year and Volume look to have an exponential relationship as well.
+* Looks like an exponential increase starting @ index = ~700-900, and `Year` and `Volume` look to have an exponential relationship as well.
 
-**(b) Use the full data set to perform a logistic regression with Direction = response + the 5 lag variables + Volume as predictors. Use summary() to print the results. Do any of the predictors appear to be statistically significant? If so, which ones?**
+**(b) Use the full data set to perform a logistic regression with `Direction` = response + the 5 `Lag` variables + `Volume` as predictors. Use summary() to print the results. Do any of the predictors appear to be statistically significant? If so, which ones?**
 ```{r}
 glm_fit <- glm(Direction ~ . - Year - Today, Weekly, family="binomial")
-summary(glm_fit)
+msummary(glm_fit)
 ```
 
-* It appears that Lag2 is statistically significant (barely)
+* It appears that `Lag2` is statistically significant (barely)
 
 **(c) Compute the confusion matrix + overall fraction of correct predictions. Explain what the confusion matrix is telling you about the types of mistakes made by logistic regression.**
 ```{r}
@@ -47,27 +52,15 @@ glm_probs <- predict(glm_fit,type="response") # no newdata arg =  predict probab
 glm_preds <- rep("Down",nrow(Weekly))   # create vector of 1089 Down elements.
 glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
 True <- Weekly$Direction
-(cm <- table(glm_preds,True)) # confusion matrix
 
-sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+cm <- table(glm_preds,True) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean
 
-cat("\nFOR PREDICTING DOWN:")
-cat("\nSensitivity (TP rate or Recall): ",sensitivity)
-cat("\nSpecificity (TN rate): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
-cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
-
-library(caret)
-#loads library "caret"
-cat("\n")
-confusionMatrix(as.factor(glm_preds), Weekly$Direction) 
+confusionMatrix(as.factor(glm_preds),True) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-* Our logistic regression model has an accuracy of 56% with a training error rate of 44%. For this days the market did increase, we were right ~56.5% of the time (Neg Pred Value), and for those days where the market did not increase, we were correct 53% of the time (Pos Pred Value). With a sensitivity of 11% and specificity of 92%, this model is good at predicting when the market will go up, but not so much as to when it will go down.
+* Our logistic regression model has an accuracy of 56% with a training error rate of 44%. For this days the market did increase, we were right ~56.5% of the time (Neg Pred Value), and for those days where the market did not increase, we were correct 53% of the time (`Pos Pred Value`). With a sensitivity of 11% and specificity of 92%, this model is good at predicting when the market will go up, but not so much as to when it will go down.
 
 **(d) Now fit the logistic regression model using a training data period from 1990 to 2008, with Lag2 as the only predictor. Compute the confusion matrix and the overall fraction of correct predictions for the held out data (that is, the data from 2009 and 2010).**
 ```{r}
@@ -82,54 +75,31 @@ glm_probs <- predict(glm_fit,test,type="response") # no newdata arg =  predict p
 glm_preds <- rep("Down",nrow(test))   # create vector of 1089 Down elements.
 glm_preds[glm_probs>.5] <- "Up" # set index of elements where p > .5 to Up
 True <- test$Direction
-(cm <- table(glm_preds,True)) # confusion matrix
 
-sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
-npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+cm <- table(glm_preds,True) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean
 
-cat("\nFOR PREDICTING DOWN:")
-cat("\nSensitivity (TP rate or Recall): ",sensitivity)
-cat("\nSpecificity (TN rate): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nNegative Predictive Value: ",npv)
-cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
-cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
-
-#library(caret)
-#cat("\n")
-#confusionMatrix(as.factor(glm_preds), Weekly$Direction) 
+confusionMatrix(as.factor(glm_preds),True) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-* Our logistic regression model has an accuracy of 62.5% with a training error rate of 37.5%. For the days the market did increase, we were right ~62% of the time (Neg Pred Value), and for those days where the market did not increase, we were correct 64% of the time (Pos Pred Value). With a sensitivity of 21% and specificity of 92%, this model is good at predicting when the market will go up, but not so much as to when it will go down.
+* Our logistic regression model has an accuracy of 62.5% with a test error rate of 37.5%. For the days the market did increase, we were right ~62% of the time (`Neg Pred Value`), and for those days where the market did not increase, we were correct 64% of the time (`Pos Pred Value`). With a sensitivity of 21% and specificity of 92%, this model is good at predicting when the market will go up, but not so much as to when it will go down.
  
 **(e) Repeat (d) using LDA.**
 ```{r}
-lda_fit <- lda(Direction ~ Lag2, train)
-#summary(lda_fit)
-
+(lda_fit <- lda(Direction ~ Lag2, train))
 plot(lda_fit)
+```
 
+```{r}
 lda_preds <- predict(lda_fit,test)
-#names(lda_preds)
 True <- test$Direction
-(cm <- table(lda_preds$class,True)) # confusion matrix
 
-sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
-npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+cm <- table(lda_preds$class,True) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean
 
-cat("\nFOR PREDICTING DOWN:")
-cat("\nSensitivity (TP rate or Recall): ",sensitivity)
-cat("\nSpecificity (TN rate): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nNegative Predictive Value: ",npv)
-cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
-cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+confusionMatrix(as.factor(lda_preds$class),True) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
 * Our LDA model is the same as our logistic regression.
@@ -137,29 +107,23 @@ cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
 **(f) Repeat (d) using QDA.**
 
 ```{r}
-qda_fit <- qda(Direction ~ Lag2, train)
+(qda_fit <- qda(Direction ~ Lag2, train))
+```
+```{r}
 qda_preds <- predict(qda_fit,test)
 
 True <- test$Direction
-(cm <- table(qda_preds$class,True)) # confusion matrix
 
-sensitivity <- cm[1] / (cm[2] + cm[1]) # true positive rate = TP / (TP + FN)
-specificity <- cm[4] / (cm[4] + cm[3]) # recall = true negative rate = TN / (TN + FP)
-precision <- cm[1] / (cm[1] + cm[3]) # TP / predicted Pos
-npv <- cm[4] / (cm[2] + cm[4]) # TP / predicted Pos
-accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean(glm_preds==Direction)
+cm <- table(qda_preds$class,True) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean
 
-cat("\nFOR PREDICTING DOWN:")
-cat("\nSensitivity (TP rate or Recall): ",sensitivity)
-cat("\nSpecificity (TN rate): ",specificity)
-cat("\nPrecision (Positive Predictive Value): ",precision)
-cat("\nNegative Predictive Value: ",npv)
-cat("\nAccuracy: ",accuracy) # mean(glm_preds==Direction)
-cat("\nTraining Error Rate: ", 1 - accuracy) # mean(glm_test_preds!=Direction)
+confusionMatrix(as.factor(qda_preds$class),True) 
+cat("\nTest Error Rate: ", 1 - accuracy)
 ```
 
-* Our QDA model has an accuracy of ~59% with a training error rate of ~41%. For the days the market did increase, we were right ~58% of the time (Neg Pred Value), and for those days where the market did not increase, we were never correct (Pos Pred Value). With a sensitivity of 0% and specificity of 100%, this model perfectly predicts when the market will go up, but always fails to correctly predict when will go down.
-* ***he proportion of negatives that are correctly identified as such (e.g. the percentage of healthy people who are correctly identified as not having the condition).***
+* Our QDA model has an accuracy of ~59% with a test error rate of ~41%. For the days the market did increase, we were right ~58% of the time (`Neg Pred Value`), and for those days where the market did not increase, we were never correct (`Pos Pred Value`), since the model never predicted that the market would go down.
+* With a sensitivity of 0% and specificity of 100%, this model perfectly predicts when the market will go up, but always fails to correctly predict when will go down.
+* ***The proportion of negatives that are correctly identified as such (e.g. the % of healthy people who are correctly identified as not having the condition).***
 * So, even thought the QDA predicted "Up" every day, it was accurate > 58% of the time.
 
 **(g) Repeat (d) using KNN with K = 1.**
