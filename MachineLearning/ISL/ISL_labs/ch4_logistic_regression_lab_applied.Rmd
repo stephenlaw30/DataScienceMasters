@@ -18,6 +18,8 @@ library(caret) # ML training
 library(MASS) #lda/qda
 library(class) #knn
 library(caTools) # sample.split
+library(corrplot)
+library(latex2exp)
 ```
 
 **(a) Produce some numerical and graphical summaries of the Weeklydata. Do there appear to be any patterns?**
@@ -429,13 +431,139 @@ Power3 <- function(x,a) {
 print(Power3(3,8))
 ```
 
-**(e) Now using the Power3() function, create a plot of f(x) = x2. The x-axis should display a range of integers from 1 to 10, and the y-axis should display x2. Label the axes appropriately, and use an appropriate title for the figure. Consider displaying either the x-axis, the y-axis, or both on the log-scale. You can do this by using log=''x'', log=''y'', or log=''xy'' as arguments to the plot() function.**
+**(e) Now using the `Power3()` function, create a plot of f(x) = $x^2$. The x-axis should display a range of integers from 1 to 10, and the y-axis should display x2. Label the axes appropriately, and use an appropriate title for the figure. Consider displaying either the x-axis, the y-axis, or both on the log-scale.**
 ```{r}
-print(Power3(3,8))
+df <- data.frame(x = seq(1,10), y = Power3(x,2))
+ggplot(df,aes(x,y)) + geom_point() + labs(x='x',y=TeX('$x^2$'))
+ggplot(df,aes(log(x),y)) + geom_point() + labs(x=TeX('$log(x)$'),y=TeX('$x^2$'))
+ggplot(df,aes(x,log(y))) + geom_point() + labs(x=TeX('x'),y=TeX('$log(x^2)$'))
+ggplot(df,aes(log(x),log(y))) + geom_point() + labs(x=TeX('$log(x)$'),y=TeX('$log(x^2)$'))
 ```
 
-**(f) Create a function, PlotPower(), that allows you to create a plot of x against x^a for a fixed a and for a range of values of x. For instance, if you call**
-> PlotPower (1:10,3)
-**then a plot should be created with an x-axis taking on values 1, 2,..., 10, and a y-axis taking on values 13, 23,..., 103.**
+**(f) Create a function, PlotPower(), that allows you to create a plot of $x$ against $x^a$ for a fixed $a$ and for a range of values of $x$. For instance, if you call `PlotPower(1:10,3)` then a plot should be created with an x-axis taking on values 1, 2,..., 10, and a y-axis taking on values 13, 23,..., 103.**
+```{r}
+PlotPower <- function(x,a) {
+  df <- data.frame(xs = x, ys = x^a)
+  ggplot(df,aes(x,y)) + geom_point() + labs(x=TeX('$x$'),y='x^a')
+}
+print(PlotPower(1:10,3))
+```
 
-**13. Using the Boston data set, fit classification models in order to predict whether a given suburb has a crime rate above or below the median. Explore logistic regression, LDA, and KNN models using various subsets of the predictors. Describe your findings.**title: 
+**13. Using the `Boston` data set, fit classification models in order to predict whether a given suburb has a crime rate above or below the median. Explore logistic regression, LDA, and KNN models using various subsets of the predictors. Describe your findings.**
+```{r}
+data(Boston)
+
+med_crim <- median(Boston$crim)
+
+Boston <- Boston %>%
+  mutate(above_avg_crim = as.factor(case_when(crim > med_crim ~ 1,
+                                    crim < med_crim ~ 0)),
+         chas = as.factor(chas),
+         rad = as.factor(rad))
+
+set.seed(1)
+spl <- sample.split(Boston$above_avg_crim, SplitRatio = 0.7) # 70% of mpg01 = 1 in both sets
+train <- subset(Boston, spl==T)
+test <- subset(Boston, spl==F)
+
+glm_fit <- glm(above_avg_crim ~ . - crim - rad - lstat - rm, train, family="binomial")
+msummary(glm_fit)
+
+glm_probs <- predict(glm_fit,test,type="response") # no newdata arg =  predict probability on training data used to fit model
+
+glm_preds <- rep(0,nrow(test))   # create vector of 0 elements.
+glm_preds[glm_probs>.5] <- 1 # set index of elements where p > .5 to 1
+True <- test$above_avg_crim
+
+cm <- table(glm_preds,True) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean
+
+confusionMatrix(as.factor(glm_preds),True)
+```
+```{r,echo=F}
+cat("Test Error Rate: ", 1 - accuracy)
+```
+
+* Our logistic regression model has an accuracy of 86% with an error rate of ~14%. For neighborhoods with below average crime rates, we were right ~89% of the time (`Neg Pred Value`  = number of below average predictions that were correct), and for neighborhoods with above average crime, we were correct ~84%% of the time (`Pos Pred Value` = number of above average crime rates predictions that were correct). 
+* With a `sensitivity`/`TPR`/`recall` of ~89.5% (proportion of actual below average crime rates correctly identified as such) and `specificity`/`TNR` of ~82.9% (proportion of actual above average crime rates correctly identified as such), this model is good at predicting both neighborhoods with above and below average crime rates
+
+```{r}
+(lda_fit <- lda(above_avg_crim ~ . - crim - rad - lstat - rm, train))
+plot(lda_fit)
+```
+
+```{r}
+lda_preds <- predict(lda_fit,test)
+
+cm <- table(lda_preds$class,True) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean
+
+confusionMatrix(as.factor(lda_preds$class),True) 
+```
+```{r,echo=F}
+cat("Test Error Rate: ", 1 - accuracy)
+```
+
+* Our LDA model has a lower accuracy of 82% with an error rate of ~17.7%. For neighborhoods with below average crime rates, we were right ~86.5% of the time (`Neg Pred Value` = number of below average predictions that were correct), and for neighborhoods with above average crime, we were correct ~78.8% of the time (`Pos Pred Value` = number of above average crime rates predictions that were correct). 
+* With a `sensitivity`/`TPR`/`recall` of ~88% (proportion of actual below average crime rates correctly identified as such) and `specificity`/`TNR` of ~76.3% (proportion of actual above average crime rates correctly identified as such), this LDA model is comparable to the logistic regression model at classifying neighborhoods with below average crime rates but is worse at classifying neighborhoods with above average crime rates
+
+```{r}
+(qda_fit <- qda(above_avg_crim ~ . - crim - rad - lstat - rm, train))
+
+qda_preds <- predict(qda_fit, test)
+
+cm <- table(qda_preds$class,True) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean
+
+confusionMatrix(as.factor(qda_preds$class),True) 
+```
+```{r,echo=F}
+cat("Test Error Rate: ", 1 - accuracy)
+```
+
+* Our QDA model has an accuracy of 84% with an error rate of ~15.7%. For neighborhoods with below average crime rates, we were right ~89.3% of the time (`Neg Pred Value` = number of below average predictions that were correct), and for neighborhoods with above average crime, we were correct ~80% of the time (`Pos Pred Value` = number of above average crime rates predictions that were correct). 
+* With a `sensitivity`/`TPR`/`recall` of ~90.8% (proportion of actual below average crime rates correctly identified as such) and `specificity`/`TNR` of ~77.6% (proportion of actual above average crime rates correctly identified as such), this QDA model is comparable to the LDA model, but a bit better
+
+```{r, eval=F}
+train_x_k <- as.matrix(train[,c('zn','indus','chas','nox','age','dis','tax','ptratio','black','medv')])
+test_x_k <- as.matrix(test[,c('zn', 'indus','chas','nox','age','dis','tax','ptratio','black','medv')])
+train_labels <- train$above_avg_crim
+
+set.seed(1)
+
+knn_preds <- knn(train = train_x_k, test = test_x_k, cl = train_labels, k = 1) # cl = class labels
+
+(cm <- table(knn_preds,True)) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean
+
+confusionMatrix(as.factor(knn_preds),True) 
+```
+```{r,echo=F}
+cat("Test Error Rate: ", 1 - accuracy)
+```
+
+```{r}
+knn_preds <- knn(train = train_x_k, test = test_x_k, cl = train_labels, k = 3) # cl = class labels
+
+(cm <- table(knn_preds,True)) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean
+
+confusionMatrix(as.factor(knn_preds),True) 
+```
+```{r,echo=F}
+cat("Test Error Rate: ", 1 - accuracy)
+```
+
+```{r}
+knn_preds <- knn(train = train_x_k, test = test_x_k, cl = train_labels, k = 5) # cl = class labels
+
+(cm <- table(knn_preds,True)) # confusion matrix
+accuracy <- (cm[4]+cm[1]) / sum(cm) # TP + TN / n OR  mean
+
+confusionMatrix(as.factor(knn_preds),True) 
+```
+```{r,echo=F}
+cat("Test Error Rate: ", 1 - accuracy)
+```
+
+* It appears that KNN with an increasing of $K$ to 5 is out best bet for the classifier for above or below average neighborhood crime rates
