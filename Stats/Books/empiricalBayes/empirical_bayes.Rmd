@@ -1,0 +1,25 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+**mpirical Bayesian methods** = an approximation to more exact methods + come w/ some controversy in the statistical community.
+
+* “empirical Bayes” = falsely implies other methods are “not empirical”, so named = only for lack of an alternative
+
+1 limitations of empirical Bayes = its approximations become inaccurate w/ only a few observations. Modern datasets often offer thousands/millions of observations = often little difference between solutions offered by traditional Bayesian methods vs. approximations of empirical Bayes. 
+
+Empirical Bayes also offers “shortcuts” that allow easy computation at scale. Full Bayesian methods that use **Markov Chain Monte Carlo (MCMC)** = useful when performance is less important than accuracy, such as analyzing a scientific study. However, production systems often need to perform estimation in a fraction of a second, and run them thousands or millions of times each day. Empirical Bayesian methods can make this process easy. 
+
+Empirical Bayes = not only useful, but undertaught. Typical statistical education often jumps from simple explanations of Bayes’ Theorem directly to full Bayesian models (***Bayesian Data Analysis, by Gelman et al***). 
+
+Empirical Bayes = extended analysis of a single concrete example to gain the intuition to work with the full Bayesian method.
+
+## Beta distribution
+
+Beta distribution plays an essential role in Empirical Bayes methods
+
+**Beta distribution = probability distribution with 2 parameters $\alpha, \beta$, + can take a couple of shapes, all constrained between 0 and 1
+
+* PDF of beta distribution = $\frac {x^{\alpha−1}(1−x)^{\beta−1}} {B(\alpha,\beta)}$, where $B$ = the beta function. $\int_0^1 t^{x-1}(1-t)^{y-1} \mathrm{d}t$. In practice, the **beta distribution = good at representing a probability distribution of probabilitie** == represents all possible values of a probability *when we don’t know what that probability is*
+
