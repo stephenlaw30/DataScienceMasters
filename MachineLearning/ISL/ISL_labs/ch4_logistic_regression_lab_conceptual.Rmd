@@ -45,13 +45,16 @@ output: html_document
 where $n$ = total number of training observations, and $n_k$ is the number of training observations in the kth class. The estimate for $\mu_k$ is simply the average of all the training observations from the $k$th class, while $\hat{\sigma}^2$ can be seen as a weighted average of the sample variances for each of the $K$ classes. Sometimes we have knowledge of the class membership probabilities
 $\pi_1, ... ,\pi_K$, which can be used directly. In the absence of any additional information, LDA estimates $\pi_k$ using the proportion of the training observations that belong to the $k$th class. In other words,
 
-**4. When the number of features $p$ is large = tends to be deterioration in performance of KNN + other *local* approaches that perform prediction using only observations near the test observation = *curse of dimensionality*, which ties into the fact that *non-parametric approaches often perform poorly when $p$ is large.* We will now investigate this curse.**
+**4. *Curse of Dimensionality* = When the number of features $p$ is large, there tends to be deterioration in performance of KNN + other *local* approaches that perform prediction using only observations near the test observation. This ties into the fact that *non-parametric approaches often perform poorly when $p$ is large.* We will now investigate this curse.**
 
 **(a) Suppose we have a set of observations, each w/ measurements on $p = 1$ feature, $X$. Assume $X$ = uniformly (evenly) distributed on $[0, 1]$. Associated w/ each observation = a response value. Suppose we wish to predict a test observation's response using only observations w/in 10% of the range of $X$ values that're closest to that test observation. For instance, in order to predict the response for a test observation with $X = 0.6$, use observations in the range $[0.55, 0.65]$. On average, what fraction of the available observations will we use to make the prediction?**
 
-* 
+* if $x \in [0.05,0.95], the observations used are in the interval $[x−0.05, x+0.05]$, which has a length of $0.1$, or $10%$ of available observations. 
+* If $x$ < 0.05, the observations used are in the interval $[0, x+0.05]$, which equals $(100x+5)%$
+* If x>0.95, the observations used are in the interval $[x-0.05, 1]$, which equals $(105 - 100x)%$
+* Then compute the average fraction of the available observations used to make the prediction: $\int_.05^.95 10dx + \int_0^.05 (100x+5) dx + \int_.95^1 (105−100x) dx = 9 + 0.375 + 0.375 = 9.75%$
 
-**(b) Now suppose that we have a set of observations, each with measurements on $p = 2$ features, $X_1$ and $X_2$. We assume that $(X_1, X_2)$ are uniformly distributed on $[0, 1]x[0, 1]$. We wish to predict a test observation's response using only observations thatare within 10% of the range of $X_1$ and within 10% of the range of $X_2$ closest to that test observation. For instance, in order to predict the response for a test observation with $X_1 = 0.6$ and $X_2 = 0.35$, we will use observations in the range $[0.55, 0.65]$ for $X_1$ and in the range $[0.3, 0.4]$ for $X_2$. On average, what fraction of the available observations will we use to make the prediction?**
+**(b) Now suppose we have a set of observations, each with measurements on $p = 2$ features, $X_1$ and $X_2$. We assume that $(X_1, X_2)$ are uniformly distributed on $[0, 1]x[0, 1]$. We wish to predict a test observation's response using only observations that are within 10% of the range of $X_1$ and within 10% of the range of $X_2$ closest to that test observation. For instance, in order to predict the response for a test observation with $X_1 = 0.6$ and $X_2 = 0.35$, we will use observations in the range $[0.55, 0.65]$ for $X_1$ and in the range $[0.3, 0.4]$ for $X_2$. On average, what fraction of the available observations will we use to make the prediction?**
 
 * 
 
